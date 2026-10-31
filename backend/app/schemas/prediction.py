@@ -47,3 +47,8 @@ class RULPredictionResponse(BaseModel):
         """Alias for rul_point_estimate."""
         return self.rul_point_estimate
 
+    @property
+    def conformal_lower_90(self) -> float:
+        """Alias for lower_bound_90."""
+        return self.lower_bound_90
+

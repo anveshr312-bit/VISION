@@ -98,11 +98,12 @@ class TurbofanEKF:
         P_pred = self.P + self.Q
 
         # 2. Measurement Vector z_k (centered around nominal cruise baseline)
+        f_norm = fuel_flow * (3.92 / 521.0) if fuel_flow > 50.0 else fuel_flow
         z_k = np.array([
             [t30],
             [p30],
             [t50],
-            [fuel_flow],
+            [f_norm],
         ], dtype=np.float64) - self.nominal_measurements
 
         # 3. Observation Prediction and Innovation
