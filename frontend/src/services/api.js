@@ -121,6 +121,13 @@ class ApiClient {
       method: 'POST',
     });
   }
+
+  /**
+   * Fetch live EKF state, degradation velocity/acceleration, and narrative incident brief
+   */
+  async getKalmanState(unitId, subset = 'FD001') {
+    return this._request(`/engine/${unitId}/kalman-state?subset=${subset}`);
+  }
 }
 
 export const api = new ApiClient();

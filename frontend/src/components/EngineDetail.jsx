@@ -12,6 +12,7 @@ import SensorChart from './SensorChart.jsx';
 import RulFanChart from './RulFanChart.jsx';
 import SensorImportanceBar from './SensorImportanceBar.jsx';
 import PhysicalDossierCard from './PhysicalDossierCard.jsx';
+import IncidentBriefCard from './IncidentBriefCard.jsx';
 import {
   Plane,
   AlertTriangle,
@@ -314,6 +315,10 @@ export default function EngineDetail({
           </div>
         </div>
       </div>
+
+      {/* MAIN GRID: Left 3D Twin (5 cols) & Right Telemetry Analytics (7 cols) */}
+      {/* INCIDENT BRIEF — EKF Narrative + Degradation Velocity */}
+      <IncidentBriefCard engine={engine} className="lg:col-span-12" />
 
       {/* Main Grid: Left 3D Twin (5 cols) & Right Telemetry Analytics (7 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
