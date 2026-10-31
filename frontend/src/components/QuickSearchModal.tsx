@@ -185,3 +185,4 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     </div>
   );
 };
+

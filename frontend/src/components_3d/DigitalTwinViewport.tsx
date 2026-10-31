@@ -34,6 +34,7 @@ interface DigitalTwinViewportProps {
   onNavigateToDossier: () => void;
   onNavigateToDiagnostics?: () => void;
   actionBanner: string | null;
+  dataSource?: string;
 }
 
 const STAGE_ORDER: StageId[] = ['FAN', 'LPC', 'HPC', 'COMBUSTOR', 'HPT', 'LPT'];
@@ -72,6 +73,7 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
   onToggleSensorFault,
   onNavigateToDossier,
   actionBanner,
+  dataSource = 'NASA_CMAPSS_BENCHMARK',
 }) => {
   const canvasMountRef = useRef<HTMLDivElement | null>(null);
   const pinOverlayRef = useRef<HTMLDivElement | null>(null);
@@ -715,6 +717,27 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         </div>
       )}
 
+      {/* Dedicated FAA 14 CFR § 33.70 Physical Airworthiness Ribbon */}
+      {dataSource === 'FAA_PHYSICAL_MAINTENANCE' && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 pointer-events-auto px-5 py-2 rounded-full bg-[#D97865]/20 border border-[#D97865]/50 backdrop-blur-xl text-xs flex items-center gap-3 shadow-[0_8px_32px_rgba(217,120,101,0.3)]">
+          <ShieldAlert className="w-4 h-4 text-[#D97865] shrink-0" />
+          <span className="font-bold text-[#EAECE9] tracking-wide uppercase text-[11px]">
+            FAA § 33.70 Governing Limit: <span className="text-[#D97865] font-mono">{engine.llpLimitCycles - engine.llpAccumulatedCycles} Cycles</span> Left on HPT Disk (15,000c Cap)
+          </span>
+          <span className="text-white/20">|</span>
+          <span className="font-mono text-[11px] text-[#B8CE82]">
+            SOAP: Fe {engine.soapOilPpm.fe}ppm · Ti {engine.soapOilPpm.ti}ppm
+          </span>
+          <button
+            type="button"
+            onClick={onNavigateToDossier}
+            className="px-2.5 py-0.5 rounded-full bg-[#D97865] text-[#181B19] font-bold text-[10px] hover:bg-[#e28a78] cursor-pointer transition-colors"
+          >
+            Form 8130-3 →
+          </button>
+        </div>
+      )}
+
       {/* Custom GLSL Thermal Shader Gradient Legend Pill (Visible when Thermal Mode is active) */}
       {thermalHeatmap && !actionBanner && (
         <div
@@ -1262,40 +1285,112 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
               </div>
             </div>
 
-            {/* Bottom-Center Card: Temperatures */}
+            {/* Bottom-Center Card: Temperatures OR SOAP Oil Spectrometry if in FAA Physical Dossier mode */}
             <div className="lg:col-span-4 backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between space-y-3">
-              <div className="flex items-center gap-2">
-                <Thermometer className="w-4 h-4 text-[#949C96]" />
-                <h3 className="text-[14px] font-normal text-[#EAECE9]">Temperatures</h3>
-              </div>
-
-              <div className="space-y-2.5">
-                {tempRows.map((row) => (
-                  <div key={row.label} className="grid grid-cols-12 items-center gap-2 text-xs">
-                    <span className="col-span-2 text-[#949C96] font-mono">{row.label}</span>
-                    <span className="col-span-4 text-[#EAECE9] font-mono tabular-nums">
-                      {row.value}
+              {dataSource === 'FAA_PHYSICAL_MAINTENANCE' ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="w-4 h-4 text-[#D97865]" />
+                      <h3 className="text-[14px] font-normal text-[#EAECE9]">SOAP Oil Spectrometry (ASTM D5185)</h3>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#D97865]/20 text-[#D97865] border border-[#D97865]/30">
+                      METALLURGICAL WEAR
                     </span>
-                    <div className="col-span-6 h-2 rounded-full bg-[#323734] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-[#B8CE82] shadow-[0_0_10px_rgba(184,206,130,0.45)] transition-all duration-300"
-                        style={{ width: `${row.pct}%` }}
-                      />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-12 items-center gap-2 text-xs">
+                      <span className="col-span-3 text-[#EAECE9] font-mono font-semibold">Fe (Iron)</span>
+                      <span className="col-span-4 text-[#D97865] font-mono tabular-nums font-bold">
+                        {engine.soapOilPpm.fe.toFixed(1)} ppm
+                      </span>
+                      <div className="col-span-5 h-2 rounded-full bg-[#323734] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#D97865] shadow-[0_0_8px_rgba(217,120,101,0.6)]"
+                          style={{ width: `${Math.min(100, (engine.soapOilPpm.fe / 20) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-12 items-center gap-2 text-xs">
+                      <span className="col-span-3 text-[#EAECE9] font-mono font-semibold">Ti (Titanium)</span>
+                      <span className="col-span-4 text-[#B8CE82] font-mono tabular-nums font-bold">
+                        {engine.soapOilPpm.ti.toFixed(1)} ppm
+                      </span>
+                      <div className="col-span-5 h-2 rounded-full bg-[#323734] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#B8CE82] shadow-[0_0_8px_rgba(184,206,130,0.6)]"
+                          style={{ width: `${Math.min(100, (engine.soapOilPpm.ti / 10) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-12 items-center gap-2 text-xs">
+                      <span className="col-span-3 text-[#949C96] font-mono">Ag (Silver)</span>
+                      <span className="col-span-4 text-[#EAECE9] font-mono tabular-nums">
+                        {engine.soapOilPpm.ag.toFixed(2)} ppm
+                      </span>
+                      <div className="col-span-5 h-2 rounded-full bg-[#323734] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#82A995]"
+                          style={{ width: `${Math.min(100, (engine.soapOilPpm.ag / 1.5) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-12 items-center gap-2 text-xs">
+                      <span className="col-span-3 text-[#949C96] font-mono">Si (Silicon)</span>
+                      <span className="col-span-4 text-[#EAECE9] font-mono tabular-nums">
+                        {engine.soapOilPpm.si.toFixed(1)} ppm
+                      </span>
+                      <div className="col-span-5 h-2 rounded-full bg-[#323734] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#949C96]"
+                          style={{ width: `${Math.min(100, (engine.soapOilPpm.si / 15) * 100)}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Thermometer className="w-4 h-4 text-[#949C96]" />
+                    <h3 className="text-[14px] font-normal text-[#EAECE9]">Temperatures</h3>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {tempRows.map((row) => (
+                      <div key={row.label} className="grid grid-cols-12 items-center gap-2 text-xs">
+                        <span className="col-span-2 text-[#949C96] font-mono">{row.label}</span>
+                        <span className="col-span-4 text-[#EAECE9] font-mono tabular-nums">
+                          {row.value}
+                        </span>
+                        <div className="col-span-6 h-2 rounded-full bg-[#323734] overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-[#B8CE82] shadow-[0_0_10px_rgba(184,206,130,0.45)] transition-all duration-300"
+                            style={{ width: `${row.pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* Bottom-Right Card: High-Risk Alarms */}
+            {/* Bottom-Right Card: High-Risk Alarms OR FAA Part 33.70 Limit */}
             <div className="lg:col-span-3 backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-[#949C96]" />
-                  <h3 className="text-[14px] font-normal text-[#EAECE9]">High-Risk Alarms</h3>
+                  <AlertTriangle className="w-4 h-4 text-[#D97865]" />
+                  <h3 className="text-[14px] font-normal text-[#EAECE9]">
+                    {dataSource === 'FAA_PHYSICAL_MAINTENANCE' ? 'FAA Regulatory Ceiling' : 'High-Risk Alarms'}
+                  </h3>
                 </div>
                 <span className="px-2.5 py-0.5 rounded-full bg-[#4A322E] text-[#F2D5CF] text-xs font-mono font-semibold">
-                  {engine.urgency === 'NOMINAL' ? '0' : '1'}
+                  {dataSource === 'FAA_PHYSICAL_MAINTENANCE' ? '§ 33.70' : (engine.urgency === 'NOMINAL' ? '0' : '1')}
                 </span>
               </div>
 
@@ -1307,10 +1402,21 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
                 <div className="flex items-center gap-3">
                   <AlertTriangle className="w-4 h-4 text-[#D97865] shrink-0" />
                   <div className="text-xs leading-snug text-[#EAECE9]">
-                    <div>HPC T30 exceeds threshold</div>
-                    <div className="text-[#949C96] font-mono tabular-nums mt-0.5">
-                      ({engine.t30.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} °R)
-                    </div>
+                    {dataSource === 'FAA_PHYSICAL_MAINTENANCE' ? (
+                      <>
+                        <div className="font-semibold text-[#D97865]">HPT Disk Retirement Near</div>
+                        <div className="text-[#949C96] font-mono tabular-nums mt-0.5">
+                          {engine.llpLimitCycles - engine.llpAccumulatedCycles} cycles left (15,000c cap)
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>HPC T30 exceeds threshold</div>
+                        <div className="text-[#949C96] font-mono tabular-nums mt-0.5">
+                          ({engine.t30.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} °R)
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-[#949C96] group-hover:text-[#EAECE9] shrink-0" />

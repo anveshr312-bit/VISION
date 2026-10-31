@@ -240,3 +240,4 @@ export const AircraftProfileModal: React.FC<AircraftProfileModalProps> = ({
     </div>
   );
 };
+

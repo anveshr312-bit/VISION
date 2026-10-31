@@ -129,12 +129,31 @@ function applySourceTelemetryToFleet(
     }
 
     if (source === 'FAA_PHYSICAL_MAINTENANCE') {
+      const n1 = is34 ? 86.8 : Number((85.0 + (eng.flightCycles % 5)).toFixed(1));
+      const n2 = is34 ? 89.2 : Number((87.0 + (eng.flightCycles % 6)).toFixed(1));
+      const t30 = is34 ? 1608.5 : Number((1585.0 + (eng.flightCycles % 30)).toFixed(1));
+      const t50 = is34 ? 1428.0 : Number((1395.0 + (eng.flightCycles % 30)).toFixed(1));
+      const p30 = is34 ? 542.0 : Number((530.0 + (eng.flightCycles % 20)).toFixed(1));
+      const rul = is34 ? 12.4 : eng.conformalRul;
+      const lower = is34 ? 8.6 : eng.conformalLower90;
+      const upper = is34 ? 16.2 : eng.conformalUpper90;
       return {
         ...eng,
+        n1RpmPct: n1,
+        n2RpmPct: n2,
+        t30,
+        t50,
+        p30,
+        overallPressureRatio: 36.4,
+        sfc: 0.558,
+        vibrationIps: is34 ? 0.38 : 0.29,
+        conformalRul: rul,
+        conformalLower90: lower,
+        conformalUpper90: upper,
         llpAccumulatedCycles: is34 ? 14892 : eng.llpAccumulatedCycles,
         llpLimitCycles: 15000,
-        soapOilPpm: is34 ? { fe: 14.8, ti: 6.4, ag: 0.85, si: 9.2 } : eng.soapOilPpm,
-        vibrationIps: is34 ? 0.31 : eng.vibrationIps,
+        soapOilPpm: is34 ? { fe: 18.4, ti: 7.2, ag: 1.10, si: 11.5 } : eng.soapOilPpm,
+        trajectory: buildEngineTrajectory(eng.flightCycles, rul, t30, eng.sensorFaultActive),
       };
     }
 
@@ -629,6 +648,7 @@ export default function App() {
             onNavigateToDossier={() => setActiveTab('AIRWORTHINESS')}
             onNavigateToDiagnostics={() => setActiveTab('STAGE_DEGRADATION')}
             actionBanner={actionBanner}
+            dataSource={activeDataSource}
           />
         )}
 
