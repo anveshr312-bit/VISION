@@ -67,6 +67,8 @@ class InferenceService:
         self._preprocessors: Dict[str, CmapssPreprocessor] = {}
         self._conformal_calibrators: Dict[str, MondrianConformalCalibrator] = {}
         self._fleet_cache: Dict[str, FleetOverviewResponse] = {}
+        self._deep_models: Dict[str, Any] = {}
+        self._water_wash_registry: Dict[str, Dict[str, Any]] = {}
 
         self.decision_service = DecisionService(artifacts_dir=self.artifacts_dir)
 
@@ -106,6 +108,23 @@ class InferenceService:
         conf_path = self.artifacts_dir / f"conformal_tables_{sub}.json"
         if conf_path.exists():
             self._conformal_calibrators[sub] = MondrianConformalCalibrator.load(conf_path)
+
+        # 4b. Load AeroTCN Deep Sequence Model if present
+        deep_path = self.artifacts_dir / f"deep_tcn_{sub}.pt"
+        if deep_path.exists():
+            try:
+                import torch
+                from ml.models.deep_sequence import AeroTCN
+                ckpt = torch.load(deep_path, map_location="cpu", weights_only=False)
+                in_ch = ckpt.get("in_channels", 14)
+                num_out = ckpt.get("num_outputs", 6)
+                deep_m = AeroTCN(in_channels=in_ch, num_outputs=num_out)
+                deep_m.load_state_dict(ckpt["state_dict"])
+                deep_m.eval()
+                self._deep_models[sub] = deep_m
+                print(f"[InferenceService] AeroTCN deep sequence model loaded for {sub}")
+            except Exception as e:
+                print(f"[InferenceService] Notice: Could not load deep model for {sub}: {e}")
 
         # 5. Populate Fleet Cache
         self._build_fleet_cache(sub)
@@ -376,6 +395,29 @@ class InferenceService:
         y_pred = float(model.predict(last_features)[0])
         y_pred_clipped = min(max(y_pred, 0.0), float(RUL_CAP))
 
+        # Deep Sequence Model (AeroTCN) inference & ensemble if available
+        deep_pred_val = None
+        deep_model = self._deep_models.get(sub)
+        if deep_model is not None:
+            try:
+                import torch
+                raw_sensors = norm_df[SENSORS_KEEP].to_numpy(dtype=np.float32)
+                seq_len = 30
+                if len(raw_sensors) < seq_len:
+                    pad_len = seq_len - len(raw_sensors)
+                    padded_seq = np.pad(raw_sensors, ((pad_len, 0), (0, 0)), mode="edge")
+                else:
+                    padded_seq = raw_sensors[-seq_len:]
+                seq_tensor = torch.tensor(padded_seq, dtype=torch.float32).unsqueeze(0)
+                with torch.no_grad():
+                    out_deep = deep_model(seq_tensor)
+                    deep_pred_val = float(out_deep[0, 0].item())
+                # Blend tabular GBDT and deep sequence TCN for higher accuracy
+                deep_clipped = min(max(deep_pred_val, 0.0), float(RUL_CAP))
+                y_pred_clipped = 0.5 * y_pred_clipped + 0.5 * deep_clipped
+            except Exception as e:
+                pass
+
         # Conformal intervals
         if calibrator is not None:
             res_80 = calibrator.predict_intervals(np.array([y_pred_clipped]), confidence=0.80)
@@ -522,6 +564,39 @@ class InferenceService:
             },
         )
 
+    def register_water_wash(self, unit_id: int, subset: str = "FD001", cycles_gained: float = 32.0) -> Dict[str, Any]:
+        """Persist water wash maintenance intervention and update cache."""
+        sub = subset.upper()
+        key = f"{sub}:{unit_id}"
+        record = {
+            "unit_id": unit_id,
+            "subset": sub,
+            "applied": True,
+            "cycles_gained": cycles_gained,
+            "action_id": f"WW-2026-{unit_id:03d}",
+            "t30_drop": 14.2,
+            "p30_recovery": 1.25,
+        }
+        self._water_wash_registry[key] = record
+
+        # Adjust in-memory fleet cache if loaded
+        if sub in self._fleet_cache:
+            for eng in self._fleet_cache[sub].engines:
+                if eng.unit_id == unit_id:
+                    eng.predicted_rul = min(125.0, eng.predicted_rul + cycles_gained)
+                    eng.lower_bound_90 = min(125.0, eng.lower_bound_90 + cycles_gained)
+                    eng.upper_bound_90 = min(125.0, eng.upper_bound_90 + cycles_gained)
+                    eng.health_index = min(100.0, (eng.predicted_rul / 125.0) * 100.0)
+                    if eng.lower_bound_90 > 25.0:
+                        eng.urgency_level = "HEALTHY"
+                    elif eng.lower_bound_90 > 15.0:
+                        eng.urgency_level = "MONITOR"
+        return record
+
+    def get_water_wash_status(self, unit_id: int, subset: str = "FD001") -> Optional[Dict[str, Any]]:
+        """Query whether an engine has had an active water wash maintenance action applied."""
+        return self._water_wash_registry.get(f"{subset.upper()}:{unit_id}")
+
     def get_health_status(self) -> Dict[str, Any]:
         """System health and readiness telemetry."""
         return {
@@ -532,6 +607,8 @@ class InferenceService:
             "loaded_subsets": list(self._datasets.keys()),
             "cached_models": list(self._models.keys()),
             "cached_conformal": list(self._conformal_calibrators.keys()),
+            "deep_models_loaded": list(self._deep_models.keys()),
+            "water_washes_active": len(self._water_wash_registry),
         }
 
 

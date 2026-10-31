@@ -249,3 +249,64 @@ def test_engine_water_wash():
 
 
 
+
+
+def test_kalman_state_and_incident_brief():
+    """Verify live EKF state tracking, degradation velocity, and incident brief synthesis."""
+    response = client.get("/api/engine/1/kalman-state?subset=FD001")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["unit_id"] == 1
+    assert data["subset"] == "FD001"
+    assert "latest_state" in data
+    state = data["latest_state"]
+    assert "delta_eta_hpc" in state
+    assert "delta_eta_hpt" in state
+    assert "estimated_hpc_health_pct" in state
+    assert "mahalanobis_distance_sq" in state
+    assert "degradation_velocity" in data
+    vel = data["degradation_velocity"]
+    assert "velocity_pct_per_cycle" in vel
+    assert "status" in vel
+    assert "incident_brief" in data
+    brief = data["incident_brief"]
+    assert "narrative" in brief
+    assert "severity" in brief
+    assert "recommended_action" in brief
+    assert "signals" in brief
+    assert brief["signals"]["hpc_health_pct"] > 0.0
+
+
+def test_multi_subset_integration():
+    """Verify newly trained subsets FD002, FD003, FD004 are healthy and served."""
+    for sub in ["FD002", "FD003", "FD004"]:
+        resp = client.get(f"/api/fleet/overview?subset={sub}")
+        assert resp.status_code == 200, f"Failed for {sub}: {resp.text}"
+        data = resp.json()
+        assert data["subset"] == sub
+        assert data["total_engines"] > 0
+        assert len(data["engines"]) > 0
+
+
+def test_water_wash_persistence_across_endpoints():
+    """Verify water wash maintenance state persists in the backend."""
+    # Perform wash on engine 1
+    wash_resp = client.post("/api/engine/1/water-wash?subset=FD001")
+    assert wash_resp.status_code == 200
+
+    # Query physical dossier to ensure wash is recognized
+    dossier_resp = client.get("/api/engine/1/physical-dossier?subset=FD001")
+    assert dossier_resp.status_code == 200
+    dossier = dossier_resp.json()
+    assert dossier.get("water_wash_applied") is True
+    assert dossier.get("water_wash_details") is not None
+    assert dossier["water_wash_details"]["cycles_gained"] == 32.0
+
+
+def test_health_check_reports_deep_model():
+    """Verify health endpoint reports deep AeroTCN model availability."""
+    resp = client.get("/api/health")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "deep_models_loaded" in data
+    assert "FD001" in data["deep_models_loaded"]

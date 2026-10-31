@@ -84,4 +84,82 @@ if (!DEMO_PRESETS || DEMO_PRESETS.length !== 4) {
 }
 console.log('✔ presentation demo presets passed');
 
+
+// 8. Verify Modern Screens Engine (prognosticsEngine.ts)
+const {
+  generateInitialFleet,
+  pairFleetIntoEtopsWings,
+  calculateEconomicSandbox,
+  evaluateDualConstraintAirworthiness,
+  applyCompressorWaterWash,
+  toggleSensorFaultAbstain,
+  mergeBackendFleet,
+  normalizeUrgency,
+} = await import('../services/prognosticsEngine.ts');
+
+const modernFleet = generateInitialFleet();
+if (!modernFleet || modernFleet.length !== 100) {
+  throw new Error(`Modern fleet length mismatch: expected 100, got ${modernFleet?.length}`);
+}
+
+// Check specific prompt reference engines
+const eng34 = modernFleet.find((e) => e.id === 'ESN-787-034');
+if (!eng34 || eng34.conformalRul !== 12.4 || eng34.flightCycles !== 142) {
+  throw new Error(`Engine 34 profile verification failed: ${JSON.stringify(eng34)}`);
+}
+
+// Verify ETOPS pairing
+const etopsPairs = pairFleetIntoEtopsWings(modernFleet);
+if (!etopsPairs || etopsPairs.length !== 50) {
+  throw new Error(`ETOPS tail pairs mismatch: expected 50, got ${etopsPairs?.length}`);
+}
+const hasAsymmetry = etopsPairs.some((p) => p.status === 'ASYMMETRY_WARNING' || p.status === 'CRITICAL_GROUND');
+if (!hasAsymmetry) {
+  throw new Error('Expected at least one ETOPS asymmetry or critical alert tail');
+}
+
+// Verify Economic Sandbox calculation
+const sandbox = calculateEconomicSandbox(
+  { failureCostCf: 220000, wastedLifeCostCw: 280, leadTimeL: 14, flexDeratePct: 8, routeEnvId: 'CONTINENTAL' },
+  modernFleet
+);
+if (!sandbox || !sandbox.optimalStoppingRulThreshold || !sandbox.hangarSchedule) {
+  throw new Error('Economic sandbox calculation failed');
+}
+
+// Verify Dual-Constraint Airworthiness
+const dossierEval = evaluateDualConstraintAirworthiness(eng34);
+if (!dossierEval || !dossierEval.trackingId || typeof dossierEval.isDispatchApproved !== 'boolean') {
+  throw new Error('Dual-constraint airworthiness evaluation failed');
+}
+
+// Verify Water Wash descaling
+const washed = applyCompressorWaterWash(eng34);
+if (washed.conformalRul !== eng34.conformalRul + 32.0 || washed.t30 !== eng34.t30 - 14.2) {
+  throw new Error('Water wash telemetry update failed');
+}
+
+// Verify DO-178C Sensor Fault Abstain
+const faulted = toggleSensorFaultAbstain(eng34, true);
+if (!faulted.sensorFaultActive || faulted.conformalLower90 !== 0.0 || faulted.conformalUpper90 !== 125.0) {
+  throw new Error('Sensor fault abstention failed');
+}
+
+// Verify Urgency Normalization
+if (normalizeUrgency('CRITICAL') !== 'CRITICAL OVERHAUL') throw new Error('normalizeUrgency CRITICAL failed');
+if (normalizeUrgency('MONITOR') !== 'SCHEDULED SHOP VISIT') throw new Error('normalizeUrgency MONITOR failed');
+if (normalizeUrgency('HEALTHY') !== 'NOMINAL') throw new Error('normalizeUrgency HEALTHY failed');
+
+// Verify Backend Merge
+const merged = mergeBackendFleet(
+  [{ unit_id: 34, predicted_rul: 15.5, lower_bound_90: 11.2, upper_bound_90: 19.8, current_cycle: 143, urgency_level: 'CRITICAL' }],
+  modernFleet
+);
+const merged34 = merged.find((e) => e.id === 'ESN-787-034');
+if (merged34.conformalRul !== 15.5 || merged34.flightCycles !== 143) {
+  throw new Error('Backend merge failed');
+}
+
+console.log('✔ modern screens prognosticsEngine, ETOPS pairing & dual-constraint passed');
+
 console.log('--- ALL FRONTEND SMOKE TESTS PASSED (100%) ---');

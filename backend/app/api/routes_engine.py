@@ -91,6 +91,9 @@ async def get_physical_dossier(
 
     pred = inference_service.predict_rul(unit_id=unit_id, subset=subset)
     rul = pred.predicted_rul if pred else 50.0
+    wash_info = inference_service.get_water_wash_status(unit_id=unit_id, subset=subset)
+    if wash_info:
+        rul = min(125.0, rul + wash_info["cycles_gained"])
 
     # 1. Structural Life-Limited Parts (LLP) Regulatory Clock
     hpt_disk_limit = 15000
@@ -173,6 +176,8 @@ async def get_physical_dossier(
             "last_inspection_cycle": max(1, telemetry.current_cycle - (telemetry.current_cycle % 50)),
             "findings": borescope_findings,
         },
+        "water_wash_applied": wash_info is not None,
+        "water_wash_details": wash_info,
     }
 
 
@@ -197,6 +202,9 @@ async def perform_water_wash(
     original_rul = pred.predicted_rul if pred else 50.0
     cycles_gained = 32.0
     restored_rul = min(125.0, original_rul + cycles_gained)
+
+    # Persist in server-side maintenance registry
+    wash_record = inference_service.register_water_wash(unit_id=unit_id, subset=subset, cycles_gained=cycles_gained)
 
     return {
         "unit_id": unit_id,

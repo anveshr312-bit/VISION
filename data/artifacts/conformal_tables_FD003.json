@@ -1,0 +1,255 @@
+{
+  "subset": "FD003",
+  "edges": [
+    15.0,
+    30.0,
+    50.0,
+    75.0,
+    100.0,
+    115.0
+  ],
+  "80": {
+    "nominal_confidence": 0.8,
+    "global_quantiles": {
+      "q_two_sided": 11.5431,
+      "q_lower_bound": 4.2037
+    },
+    "bins": {
+      "0": {
+        "bin_index": 0,
+        "bin_label": "[0, 15) - Critical Pre-Failure",
+        "count": 1484,
+        "used_fallback": false,
+        "q_two_sided": 3.7545,
+        "q_lower_bound": 2.2631
+      },
+      "1": {
+        "bin_index": 1,
+        "bin_label": "[15, 30) - Late Degradation",
+        "count": 1457,
+        "used_fallback": false,
+        "q_two_sided": 5.9237,
+        "q_lower_bound": 4.0186
+      },
+      "2": {
+        "bin_index": 2,
+        "bin_label": "[30, 50) - Accelerated Wear",
+        "count": 1883,
+        "used_fallback": false,
+        "q_two_sided": 9.9467,
+        "q_lower_bound": 6.0377
+      },
+      "3": {
+        "bin_index": 3,
+        "bin_label": "[50, 75) - Mid-Life Degradation",
+        "count": 2360,
+        "used_fallback": false,
+        "q_two_sided": 17.8298,
+        "q_lower_bound": 10.8305
+      },
+      "4": {
+        "bin_index": 4,
+        "bin_label": "[75, 100) - Early Wear Inflection",
+        "count": 2734,
+        "used_fallback": false,
+        "q_two_sided": 27.4283,
+        "q_lower_bound": 16.6248
+      },
+      "5": {
+        "bin_index": 5,
+        "bin_label": "[100, 115) - Healthy Phase",
+        "count": 2509,
+        "used_fallback": false,
+        "q_two_sided": 20.7689,
+        "q_lower_bound": 15.9623
+      },
+      "6": {
+        "bin_index": 6,
+        "bin_label": "[115, 125+] - Plateau / Run-In",
+        "count": 12293,
+        "used_fallback": false,
+        "q_two_sided": 4.4159,
+        "q_lower_bound": 0.0
+      }
+    }
+  },
+  "90": {
+    "nominal_confidence": 0.9,
+    "global_quantiles": {
+      "q_two_sided": 19.3478,
+      "q_lower_bound": 12.297
+    },
+    "bins": {
+      "0": {
+        "bin_index": 0,
+        "bin_label": "[0, 15) - Critical Pre-Failure",
+        "count": 1484,
+        "used_fallback": false,
+        "q_two_sided": 4.9852,
+        "q_lower_bound": 3.7066
+      },
+      "1": {
+        "bin_index": 1,
+        "bin_label": "[15, 30) - Late Degradation",
+        "count": 1457,
+        "used_fallback": false,
+        "q_two_sided": 7.9986,
+        "q_lower_bound": 5.914
+      },
+      "2": {
+        "bin_index": 2,
+        "bin_label": "[30, 50) - Accelerated Wear",
+        "count": 1883,
+        "used_fallback": false,
+        "q_two_sided": 13.9983,
+        "q_lower_bound": 9.405
+      },
+      "3": {
+        "bin_index": 3,
+        "bin_label": "[50, 75) - Mid-Life Degradation",
+        "count": 2360,
+        "used_fallback": false,
+        "q_two_sided": 26.4112,
+        "q_lower_bound": 16.0054
+      },
+      "4": {
+        "bin_index": 4,
+        "bin_label": "[75, 100) - Early Wear Inflection",
+        "count": 2734,
+        "used_fallback": false,
+        "q_two_sided": 33.8744,
+        "q_lower_bound": 23.5986
+      },
+      "5": {
+        "bin_index": 5,
+        "bin_label": "[100, 115) - Healthy Phase",
+        "count": 2509,
+        "used_fallback": false,
+        "q_two_sided": 24.9868,
+        "q_lower_bound": 24.9214
+      },
+      "6": {
+        "bin_index": 6,
+        "bin_label": "[115, 125+] - Plateau / Run-In",
+        "count": 12293,
+        "used_fallback": false,
+        "q_two_sided": 7.6927,
+        "q_lower_bound": 0.0
+      }
+    }
+  },
+  "95": {
+    "nominal_confidence": 0.95,
+    "global_quantiles": {
+      "q_two_sided": 26.8729,
+      "q_lower_bound": 20.0484
+    },
+    "bins": {
+      "0": {
+        "bin_index": 0,
+        "bin_label": "[0, 15) - Critical Pre-Failure",
+        "count": 1484,
+        "used_fallback": false,
+        "q_two_sided": 6.0694,
+        "q_lower_bound": 4.75
+      },
+      "1": {
+        "bin_index": 1,
+        "bin_label": "[15, 30) - Late Degradation",
+        "count": 1457,
+        "used_fallback": false,
+        "q_two_sided": 9.6991,
+        "q_lower_bound": 7.4452
+      },
+      "2": {
+        "bin_index": 2,
+        "bin_label": "[30, 50) - Accelerated Wear",
+        "count": 1883,
+        "used_fallback": false,
+        "q_two_sided": 17.7637,
+        "q_lower_bound": 11.9488
+      },
+      "3": {
+        "bin_index": 3,
+        "bin_label": "[50, 75) - Mid-Life Degradation",
+        "count": 2360,
+        "used_fallback": false,
+        "q_two_sided": 40.2507,
+        "q_lower_bound": 20.4019
+      },
+      "4": {
+        "bin_index": 4,
+        "bin_label": "[75, 100) - Early Wear Inflection",
+        "count": 2734,
+        "used_fallback": false,
+        "q_two_sided": 38.848,
+        "q_lower_bound": 29.5199
+      },
+      "5": {
+        "bin_index": 5,
+        "bin_label": "[100, 115) - Healthy Phase",
+        "count": 2509,
+        "used_fallback": false,
+        "q_two_sided": 31.8106,
+        "q_lower_bound": 31.8106
+      },
+      "6": {
+        "bin_index": 6,
+        "bin_label": "[115, 125+] - Plateau / Run-In",
+        "count": 12293,
+        "used_fallback": false,
+        "q_two_sided": 12.0,
+        "q_lower_bound": 12.0
+      }
+    }
+  },
+  "evaluation": {
+    "80": {
+      "nominal_confidence": 0.8,
+      "nominal_miscoverage_alpha": 0.2,
+      "picp": 0.77,
+      "mpiw": 25.71,
+      "safety_rate": 0.74,
+      "test_engines_covered_2s": 77,
+      "test_engines_covered_lb": 74,
+      "total_test_engines": 100
+    },
+    "90": {
+      "nominal_confidence": 0.9,
+      "nominal_miscoverage_alpha": 0.1,
+      "picp": 0.89,
+      "mpiw": 33.53,
+      "safety_rate": 0.83,
+      "test_engines_covered_2s": 89,
+      "test_engines_covered_lb": 83,
+      "total_test_engines": 100
+    },
+    "95": {
+      "nominal_confidence": 0.95,
+      "nominal_miscoverage_alpha": 0.05,
+      "picp": 0.92,
+      "mpiw": 42.2,
+      "safety_rate": 0.91,
+      "test_engines_covered_2s": 92,
+      "test_engines_covered_lb": 91,
+      "total_test_engines": 100
+    }
+  },
+  "metadata": {
+    "theory": "Mondrian Split-Conformal Prediction",
+    "exchangeability": "Conformal coverage guarantees hold marginally across exchangeable engines drawn from the operational fleet population.",
+    "calibration_source": "5-fold engine-grouped out-of-fold (OOF) cross-validation residuals",
+    "rul_cap": 125.0,
+    "n_calibration_samples": 24720,
+    "bin_counts": {
+      "0": 1484,
+      "1": 1457,
+      "2": 1883,
+      "3": 2360,
+      "4": 2734,
+      "5": 2509,
+      "6": 12293
+    },
+    "elapsed_seconds": 11.86
+  }
+}

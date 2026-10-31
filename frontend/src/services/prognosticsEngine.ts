@@ -857,3 +857,92 @@ export function evaluateDualConstraintAirworthiness(
     regulatoryCitation: '14 CFR § 33.70 & EASA CS-E 515 (Engine Life-Limited Parts)',
   };
 }
+
+
+/**
+ * Normalizes backend urgency string to frontend UrgencyLevel enum.
+ */
+export function normalizeUrgency(rawUrgency: string): UrgencyLevel {
+  const upper = String(rawUrgency || '').toUpperCase();
+  if (upper.includes('CRITICAL')) return 'CRITICAL OVERHAUL';
+  if (upper.includes('SHOP') || upper.includes('SCHEDULED') || upper === 'MONITOR' || upper === 'ADVISORY') return 'SCHEDULED SHOP VISIT';
+  if (upper.includes('ELEVATED') || upper.includes('WARN')) return 'MONITOR';
+  return 'NOMINAL';
+}
+
+/**
+ * Merges real backend fleet predictions (RUL, conformal bounds, health indices, bays)
+ * into the rich 3D / digital twin EngineTelemetry records.
+ */
+export function mergeBackendFleet(
+  backendEngines: any[],
+  currentFleet: EngineTelemetry[]
+): EngineTelemetry[] {
+  if (!Array.isArray(backendEngines) || backendEngines.length === 0) {
+    return currentFleet;
+  }
+
+  const backendMap = new Map<number, any>();
+  for (const be of backendEngines) {
+    backendMap.set(Number(be.unit_id), be);
+  }
+
+  return currentFleet.map((eng, idx) => {
+    const unitId = idx + 1;
+    const be = backendMap.get(unitId);
+    if (!be) return eng;
+
+    const newRul = Number(be.predicted_rul ?? eng.conformalRul);
+    const newLb = Number(be.lower_bound_90 ?? be.conformal_lower_90 ?? Math.max(0, newRul - 4.5));
+    const newUb = Number(be.upper_bound_90 ?? be.conformal_upper_90 ?? (newRul + 6.5));
+    const newCycles = Number(be.current_cycle ?? eng.flightCycles);
+    const newUrgency = normalizeUrgency(be.urgency_level ?? be.urgency ?? eng.urgency);
+
+    const degradationFactor = Math.max(0, Math.min(1, (115 - newRul) / 105));
+    const newHpcEff = Number((89.2 - degradationFactor * 7.4).toFixed(1));
+
+    return {
+      ...eng,
+      flightCycles: newCycles,
+      conformalRul: newRul,
+      conformalLower90: newLb,
+      conformalUpper90: newUb,
+      urgency: newUrgency,
+      hpcEfficiencyPct: newHpcEff,
+      trajectory: buildEngineTrajectory(newCycles, newRul, eng.t30, eng.sensorFaultActive),
+    };
+  });
+}
+
+/**
+ * Merges live engine sensor detail and Kalman Filter state into an EngineTelemetry record.
+ */
+export function mergeBackendEngineDetail(
+  engine: EngineTelemetry,
+  telemetryDetail: any,
+  kalmanState: any
+): EngineTelemetry {
+  if (!telemetryDetail && !kalmanState) return engine;
+
+  let updated = { ...engine };
+
+  if (telemetryDetail) {
+    const sensors = telemetryDetail.latest_sensors || {};
+    if (sensors.s3) updated.t30 = Number(sensors.s3.toFixed(1));
+    if (sensors.s4) updated.t50 = Number(sensors.s4.toFixed(1));
+    if (sensors.s7) updated.p30 = Number(sensors.s7.toFixed(1));
+    if (sensors.s2) updated.t24 = Number(sensors.s2.toFixed(1));
+    if (sensors.s8) updated.n1RpmPct = Number(((sensors.s8 / 2400.0) * 100).toFixed(1));
+    if (sensors.s9) updated.n2RpmPct = Number(((sensors.s9 / 9200.0) * 100).toFixed(1));
+    if (telemetryDetail.current_cycle) updated.flightCycles = telemetryDetail.current_cycle;
+  }
+
+  if (kalmanState && kalmanState.latest_state) {
+    const ks = kalmanState.latest_state;
+    if (ks.estimated_hpc_health_pct) {
+      updated.hpcEfficiencyPct = Number(ks.estimated_hpc_health_pct.toFixed(1));
+    }
+  }
+
+  return updated;
+}

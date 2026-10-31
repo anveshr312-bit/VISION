@@ -12,5 +12,5 @@
   "window_size": 30,
   "epochs": 15,
   "elapsed_seconds": 148.35,
-  "artifact_file": "C:\\Users\\anves\\Downloads\\VISION\\data\\artifacts\\deep_tcn_FD001.pt"
+  "artifact_file": "data/artifacts/deep_tcn_FD001.pt"
 }

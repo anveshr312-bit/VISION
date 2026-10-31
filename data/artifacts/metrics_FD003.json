@@ -1,0 +1,24 @@
+{
+  "subset": "FD003",
+  "test_rmse": 13.2582,
+  "test_mae": 9.389,
+  "test_nasa_score": 338.22,
+  "test_ci_95": [
+    10.784,
+    15.656
+  ],
+  "oof_rmse": 11.4345,
+  "oof_mae": 6.7513,
+  "oof_nasa_score": 58334.63,
+  "fold_rmses": [
+    10.9278,
+    10.3538,
+    9.8204,
+    13.9529,
+    11.6648
+  ],
+  "n_train_engines": 100,
+  "n_test_engines": 100,
+  "features_count": 57,
+  "elapsed_seconds": 14.99
+}

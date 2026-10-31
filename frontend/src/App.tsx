@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Cpu,
   Plane,
@@ -8,13 +8,21 @@ import {
   Fan,
   Sparkles,
   X,
+  Wifi,
+  WifiOff,
+  Radio,
+  Loader2,
 } from 'lucide-react';
 import {
   EngineTelemetry,
   generateInitialFleet,
   applyCompressorWaterWash,
   toggleSensorFaultAbstain,
+  mergeBackendFleet,
+  mergeBackendEngineDetail,
 } from './services/prognosticsEngine';
+import api from './services/api';
+import TelemetryStreamClient from './services/streamClient';
 import { DigitalTwinViewport } from './components_3d/DigitalTwinViewport';
 import { FleetEtopsScreen } from './components/FleetEtopsScreen';
 import { EconomicSandboxScreen } from './components/EconomicSandboxScreen';
@@ -35,8 +43,15 @@ export default function App() {
   const [fleet, setFleet] = useState<EngineTelemetry[]>(() => generateInitialFleet());
   const [selectedEngineId, setSelectedEngineId] = useState<string>('ESN-787-034');
   const [activeTab, setActiveTab] = useState<ScreenTab>('DIGITAL_TWIN');
+  const [activeSubset, setActiveSubset] = useState<string>('FD001');
   const [actionBanner, setActionBanner] = useState<string | null>(null);
   const [showStarDemoModal, setShowStarDemoModal] = useState<boolean>(false);
+
+  // Live Backend & Telemetry Stream State
+  const [isBackendOnline, setIsBackendOnline] = useState<boolean>(false);
+  const [isLiveStreaming, setIsLiveStreaming] = useState<boolean>(false);
+  const [isLoadingBackend, setIsLoadingBackend] = useState<boolean>(false);
+  const [syncStatusText, setSyncStatusText] = useState<string>('Initializing certified PHM engine...');
 
   const activeEngine = useMemo(
     () => fleet.find((e) => e.id === selectedEngineId) ?? fleet[33] ?? fleet[0],
@@ -50,6 +65,128 @@ export default function App() {
     }
     return tails;
   }, []);
+
+  // 1. Initial Load & Subset Switching: Fetch Fleet from FastAPI Backend
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadBackendFleet() {
+      setIsLoadingBackend(true);
+      setSyncStatusText(`Connecting to FastAPI backend (${activeSubset})...`);
+      try {
+        const overview = await api.getFleetOverview(activeSubset);
+        if (!cancelled && overview && Array.isArray(overview.engines)) {
+          setFleet((prev) => mergeBackendFleet(overview.engines, prev));
+          setIsBackendOnline(true);
+          setSyncStatusText(`Connected to live NASA ${activeSubset} model (${overview.total_engines} engines synced)`);
+          setActionBanner(
+            `Loaded certified NASA ${activeSubset} fleet predictions from FastAPI backend (${overview.critical_count} critical, ${overview.monitor_count} monitor)`
+          );
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.warn('[VISION] Backend offline or unreachable. Using certified offline fallback cache.', err);
+          setIsBackendOnline(false);
+          setSyncStatusText('Air-gapped offline mode (deterministic certified cache)');
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingBackend(false);
+        }
+      }
+    }
+
+    loadBackendFleet();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSubset]);
+
+  // 2. Fetch Deep Physical Telemetry & EKF State on Engine Select
+  useEffect(() => {
+    let cancelled = false;
+    const unitNumber = parseInt(activeEngine.id.replace('ESN-787-', ''), 10);
+    if (isNaN(unitNumber)) return;
+
+    async function syncActiveTelemetry() {
+      try {
+        const [detail, kalman] = await Promise.all([
+          api.getEngineDetail(unitNumber, activeSubset).catch(() => null),
+          api.getKalmanState(unitNumber, activeSubset).catch(() => null),
+        ]);
+
+        if (!cancelled && (detail || kalman)) {
+          setIsBackendOnline(true);
+          setFleet((prev) =>
+            prev.map((eng) =>
+              eng.id === activeEngine.id ? mergeBackendEngineDetail(eng, detail, kalman) : eng
+            )
+          );
+        }
+      } catch (err) {
+        // Graceful offline fallback
+      }
+    }
+
+    syncActiveTelemetry();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedEngineId, activeSubset]);
+
+  // 3. Real-Time SSE Telemetry Streaming Client
+  useEffect(() => {
+    const unitNumber = parseInt(activeEngine.id.replace('ESN-787-', ''), 10);
+    if (isNaN(unitNumber)) return;
+
+    const streamClient = new TelemetryStreamClient({
+      units: [unitNumber, 1, 10, 24, 34, 45],
+      subset: activeSubset,
+      speed: 1.0,
+      onCycleUpdate: (payload: any) => {
+        if (payload && payload.unit_id === unitNumber) {
+          setIsBackendOnline(true);
+          setFleet((prev) =>
+            prev.map((eng) => {
+              if (eng.id === activeEngine.id) {
+                const s = payload.sensors || {};
+                const newT30 = s.s3 ? Number(s.s3.toFixed(1)) : eng.t30;
+                const newT50 = s.s4 ? Number(s.s4.toFixed(1)) : eng.t50;
+                const newP30 = s.s7 ? Number(s.s7.toFixed(1)) : eng.p30;
+                const newRul = typeof payload.rul_prediction === 'number' ? Number(payload.rul_prediction.toFixed(1)) : eng.conformalRul;
+                const newLb = typeof payload.conformal_lower_90 === 'number' ? Number(payload.conformal_lower_90.toFixed(1)) : eng.conformalLower90;
+
+                return {
+                  ...eng,
+                  flightCycles: payload.cycle ?? eng.flightCycles,
+                  t30: newT30,
+                  t50: newT50,
+                  p30: newP30,
+                  conformalRul: newRul,
+                  conformalLower90: newLb,
+                };
+              }
+              return eng;
+            })
+          );
+        }
+      },
+      onStatusChange: (status: any) => {
+        setIsLiveStreaming(Boolean(status?.streaming));
+      },
+      onError: () => {
+        setIsLiveStreaming(false);
+      },
+    });
+
+    streamClient.connect();
+
+    return () => {
+      streamClient.disconnect();
+    };
+  }, [selectedEngineId, activeSubset]);
 
   const handleTailChange = (newTailId: string) => {
     const matchingEngine =
@@ -71,13 +208,24 @@ export default function App() {
     }
   };
 
-  const handleWaterWash = () => {
+  const handleWaterWash = async () => {
+    const unitNumber = parseInt(activeEngine.id.replace('ESN-787-', ''), 10);
+
+    // 1. Immediate optimistic UI feedback
     setFleet((prev) =>
       prev.map((eng) => (eng.id === activeEngine.id ? applyCompressorWaterWash(eng) : eng))
     );
     setActionBanner(
       `${activeEngine.id}: AMM 72-00-00 Compressor Water Wash complete (+32.0c RUL rebound, −14.2°R T30 drop, +1.25% P30 recovery)`
     );
+
+    // 2. Persist to FastAPI backend registry
+    try {
+      await api.performWaterWash(unitNumber, activeSubset);
+      setIsBackendOnline(true);
+    } catch (e) {
+      console.warn('[VISION] Server water-wash registration note:', e);
+    }
   };
 
   const handleToggleSensorFault = () => {
@@ -113,7 +261,7 @@ export default function App() {
 
       {/* TOP NAVIGATION BAR */}
       <header className="h-[72px] backdrop-blur-2xl bg-[#182321]/90 border-b border-[#46564D] shadow-[0_4px_30px_rgba(0,0,0,0.5)] px-3.5 flex items-center justify-between gap-2 shrink-0 z-30 relative">
-        {/* Left Brand Lockup & Tail Switcher */}
+        {/* Left Brand Lockup & Tail / Subset Switcher */}
         <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center gap-2">
             {/* Primary Accent Turbine Icon Badge */}
@@ -128,6 +276,24 @@ export default function App() {
                 DO-178C Air-Gapped PHM · UTC 14:32Z
               </div>
             </div>
+          </div>
+
+          {/* Dataset Subset Selector (FD001 - FD004) */}
+          <div className="flex items-center gap-1.5 backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-2xl px-2 py-1 shadow-lg shrink-0">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#A6B4AA]">
+              Set:
+            </span>
+            <select
+              aria-label="C-MAPSS Dataset Subset"
+              value={activeSubset}
+              onChange={(e) => setActiveSubset(e.target.value)}
+              className="bg-transparent text-xs font-mono font-bold text-[#B3C58B] focus:outline-none cursor-pointer pr-0.5"
+            >
+              <option value="FD001" className="bg-[#182321] text-[#E7ECE7]">FD001 (Sea Level / HPC)</option>
+              <option value="FD002" className="bg-[#182321] text-[#E7ECE7]">FD002 (6 Regimes / HPC)</option>
+              <option value="FD003" className="bg-[#182321] text-[#E7ECE7]">FD003 (Sea Level / HPC+HPT)</option>
+              <option value="FD004" className="bg-[#182321] text-[#E7ECE7]">FD004 (6 Regimes / Dual Fault)</option>
+            </select>
           </div>
 
           {/* Aircraft Tail Switcher (N787-01 to N787-50) + Wing Toggle */}
@@ -244,8 +410,32 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Right Active Engine Pill, Starfield Demo Toggle & Release Tag */}
-        <div className="hidden xl:flex items-center gap-1.5 shrink-0">
+        {/* Right Active Engine Pill, Live Backend Status & Starfield Demo */}
+        <div className="hidden xl:flex items-center gap-2 shrink-0">
+          {/* Live Telemetry / API Connection Status Pill */}
+          <div
+            className={`px-2.5 py-1 rounded-xl text-[10px] font-mono flex items-center gap-1.5 border transition-all ${
+              isBackendOnline
+                ? 'bg-[#1C2926]/90 border-[#82A995] text-[#B3C58B]'
+                : 'bg-[#1C2926]/90 border-[#46564D] text-[#A6B4AA]'
+            }`}
+            title={syncStatusText}
+          >
+            {isLoadingBackend ? (
+              <Loader2 className="w-3 h-3 animate-spin text-[#B3C58B]" />
+            ) : isBackendOnline ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-[#B3C58B] shadow-[0_0_8px_#B3C58B] animate-pulse" />
+                <span className="font-semibold tracking-wider">LIVE ML {isLiveStreaming ? '+ SSE' : ''}</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>OFFLINE CACHE</span>
+              </>
+            )}
+          </div>
+
           <div className="text-right">
             <span className="text-[8px] font-mono uppercase tracking-wider text-[#A6B4AA] block">
               Active Serial
@@ -254,6 +444,7 @@ export default function App() {
               {activeEngine.id}
             </span>
           </div>
+
           <button
             type="button"
             onClick={() => setShowStarDemoModal(true)}
@@ -263,6 +454,7 @@ export default function App() {
             <Sparkles className="w-3 h-3 text-[#B3C58B]" />
             <span>Starfield</span>
           </button>
+
           <button
             type="button"
             onClick={() => setActiveTab('AIRWORTHINESS')}
