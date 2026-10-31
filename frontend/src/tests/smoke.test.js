@@ -8,7 +8,13 @@ import { TELEMETRY_MODES } from '../utils/telemetryModes.js';
 import { ComponentSelector } from '../components_3d/ComponentSelector.js';
 import { buildProceduralTurbofan } from '../components_3d/engineGeometries.js';
 import { DEMO_PRESETS } from '../utils/demoPresets.js';
-import { OFFLINE_FLEET_CACHE, getOfflineEngineDetail } from '../services/apiFallback.js';
+import {
+  OFFLINE_FLEET_CACHE,
+  getOfflineEngineDetail,
+  getOfflineFleetEtops,
+  getOfflinePhysicalDossier,
+  getOfflineWaterWash,
+} from '../services/apiFallback.js';
 
 console.log('--- RUNNING VISION FRONTEND SMOKE TESTS ---');
 
@@ -52,9 +58,23 @@ const offlineUnit1 = getOfflineEngineDetail(1);
 if (!offlineUnit1 || offlineUnit1.unit_id !== 1 || !offlineUnit1.sensor_history) {
   throw new Error('Offline engine detail unit 1 verification failed');
 }
-console.log('✔ offline API fallback cache passed');
 
-// 6. Verify presentation demo presets
+// 6. Verify operational modules: ETOPS pairing, Physical Dossier, Water Wash
+const etops = getOfflineFleetEtops();
+if (!etops || etops.total_aircraft !== 50 || etops.aircraft.length !== 50) {
+  throw new Error(`ETOPS offline pairing failed: expected 50 aircraft, got ${etops?.aircraft?.length}`);
+}
+const dossier = getOfflinePhysicalDossier(34);
+if (!dossier || !dossier.llp_regulatory_clock || !dossier.oil_spectrometry || !dossier.borescope_inspection) {
+  throw new Error('Physical dossier offline generation failed');
+}
+const wash = getOfflineWaterWash(34);
+if (!wash || wash.cycles_gained !== 32.0 || !wash.maintenance_signoff) {
+  throw new Error('Water wash offline simulation failed');
+}
+console.log('✔ offline API fallback cache & operational modules passed');
+
+// 7. Verify presentation demo presets
 if (!DEMO_PRESETS || DEMO_PRESETS.length !== 4) {
   throw new Error(`Demo presets mismatch: expected 4, got ${DEMO_PRESETS?.length}`);
 }

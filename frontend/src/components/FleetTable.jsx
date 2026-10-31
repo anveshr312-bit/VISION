@@ -27,6 +27,7 @@ export default function FleetTable({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState('predicted_rul');
   const [sortAsc, setSortAsc] = useState(true);
+  const [viewMode, setViewMode] = useState('ENGINES'); // 'ENGINES' | 'ETOPS'
 
   // Sorting Handler
   const handleSort = (field) => {
@@ -37,6 +38,57 @@ export default function FleetTable({
       setSortAsc(true);
     }
   };
+
+  // ETOPS Aircraft Pairings Generator (Pairs units 1-2, 3-4, ..., 99-100)
+  const etopsAircraftList = useMemo(() => {
+    const list = [];
+    const enginesById = new Map(fleet.map((e) => [e.unit_id, e]));
+
+    for (let i = 1; i <= 100; i += 2) {
+      const acIdx = Math.floor((i + 1) / 2);
+      const acId = `AC-${100 + acIdx}`;
+      const tailNumber = `N787-${String(acIdx).padStart(2, '0')}`;
+
+      const left = enginesById.get(i) || { unit_id: i, predicted_rul: 50, urgency: 'HEALTHY' };
+      const right = enginesById.get(i + 1) || { unit_id: i + 1, predicted_rul: 50, urgency: 'HEALTHY' };
+
+      const delta = Math.abs((left.predicted_rul || 0) - (right.predicted_rul || 0));
+      const isCritical = left.urgency === 'CRITICAL' || right.urgency === 'CRITICAL' || Math.min(left.predicted_rul || 100, right.predicted_rul || 100) <= 15;
+      const isAsymmetric = delta >= 40.0;
+
+      let status = 'COMPLIANT';
+      if (isCritical) {
+        status = 'CRITICAL_GROUND';
+      } else if (isAsymmetric) {
+        status = 'ASYMMETRY_WARNING';
+      }
+
+      list.push({
+        acId,
+        tailNumber,
+        left,
+        right,
+        delta: Number(delta.toFixed(1)),
+        status,
+      });
+    }
+
+    return list.filter((ac) => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        ac.acId.toLowerCase().includes(term) ||
+        ac.tailNumber.toLowerCase().includes(term) ||
+        String(ac.left.unit_id).includes(term) ||
+        String(ac.right.unit_id).includes(term) ||
+        ac.status.toLowerCase().includes(term)
+      );
+    });
+  }, [fleet, searchTerm]);
+
+  const etopsAsymmetricCount = useMemo(() => {
+    return etopsAircraftList.filter((a) => a.status === 'ASYMMETRY_WARNING').length;
+  }, [etopsAircraftList]);
 
   // Filter & Sort Logic
   const filteredFleet = useMemo(() => {
@@ -105,42 +157,76 @@ export default function FleetTable({
     <div className={`bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col ${className}`}>
       {/* Table Header Bar with Search & Urgency Filters */}
       <div className="p-4 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 bg-slate-950/60">
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search Unit ID..."
+              placeholder={viewMode === 'ENGINES' ? "Search Unit ID..." : "Search Tail or Unit..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-3 py-1.5 bg-slate-900 border border-slate-700/60 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono w-44"
             />
           </div>
 
-          {/* Quick Filters */}
-          <div className="hidden sm:flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
-            {['ALL', 'CRITICAL', 'ADVISORY', 'HEALTHY'].map((filterKey) => (
-              <button
-                key={filterKey}
-                onClick={() => onFilterChange && onFilterChange(filterKey)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors ${
-                  activeFilter === filterKey
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                {filterKey}
-              </button>
-            ))}
+          {/* View Mode Toggle: Engines vs ETOPS Wings */}
+          <div className="flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+            <button
+              onClick={() => setViewMode('ENGINES')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors ${
+                viewMode === 'ENGINES'
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Engines ({fleet.length})
+            </button>
+            <button
+              onClick={() => setViewMode('ETOPS')}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors flex items-center space-x-1.5 ${
+                viewMode === 'ETOPS'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <span>ETOPS Wings (50)</span>
+              {etopsAsymmetricCount > 0 && (
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              )}
+            </button>
           </div>
+
+          {/* Quick Filters */}
+          {viewMode === 'ENGINES' && (
+            <div className="hidden sm:flex items-center space-x-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+              {['ALL', 'CRITICAL', 'ADVISORY', 'HEALTHY'].map((filterKey) => (
+                <button
+                  key={filterKey}
+                  onClick={() => onFilterChange && onFilterChange(filterKey)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium transition-colors ${
+                    activeFilter === filterKey
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {filterKey}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center space-x-2 text-xs text-slate-400 font-mono">
-          <span>Showing <strong>{filteredFleet.length}</strong> of <strong>{fleet.length}</strong> units</span>
+          {viewMode === 'ENGINES' ? (
+            <span>Showing <strong>{filteredFleet.length}</strong> of <strong>{fleet.length}</strong> units</span>
+          ) : (
+            <span>Showing <strong>{etopsAircraftList.length}</strong> of <strong>50</strong> Aircraft Wings</span>
+          )}
         </div>
       </div>
 
       {/* Scrollable Table View */}
+      {viewMode === 'ENGINES' ? (
       <div className="overflow-x-auto overflow-y-auto max-h-[520px]">
         <table className="w-full text-left text-xs font-sans">
           <thead className="bg-slate-950/80 text-[11px] font-mono text-slate-400 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-800">
@@ -316,6 +402,147 @@ export default function FleetTable({
           </tbody>
         </table>
       </div>
+      ) : (
+        /* Aircraft Twin-Engine ETOPS Pairing Board */
+        <div className="overflow-x-auto overflow-y-auto max-h-[520px]">
+          <table className="w-full text-left text-xs font-sans">
+            <thead className="bg-slate-950/80 text-[11px] font-mono text-slate-400 uppercase tracking-wider sticky top-0 z-10 border-b border-slate-800">
+              <tr>
+                <th className="py-3 px-4">Aircraft Tail</th>
+                <th className="py-3 px-4">Left Wing Engine</th>
+                <th className="py-3 px-4">Right Wing Engine</th>
+                <th className="py-3 px-4">Wing RUL Delta (&Delta;)</th>
+                <th className="py-3 px-4 text-center">ETOPS Airworthiness Status</th>
+                <th className="py-3 px-4 text-right">Inspect Turbofan</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60 font-mono text-slate-300">
+              {etopsAircraftList.map((ac) => {
+                const isSelected = selectedUnitId === ac.left.unit_id || selectedUnitId === ac.right.unit_id;
+                const isAsymmetric = ac.status === 'ASYMMETRY_WARNING';
+                const isCritical = ac.status === 'CRITICAL_GROUND';
+
+                return (
+                  <tr
+                    key={ac.acId}
+                    className={`transition-colors duration-150 ${
+                      isSelected ? 'bg-cyan-950/50 border-l-4 border-cyan-400 text-white' : 'hover:bg-slate-800/40'
+                    }`}
+                  >
+                    {/* Aircraft ID & Tail */}
+                    <td className="py-3 px-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-cyan-300 text-[11px] font-bold">
+                          {ac.acId}
+                        </span>
+                        <div>
+                          <span className="font-bold text-slate-100">{ac.tailNumber}</span>
+                          <span className="text-[10px] text-slate-500 block">Boeing 787 Twin-Spool</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Left Wing Engine */}
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => onSelectUnit && onSelectUnit(ac.left.unit_id)}
+                        className="text-left group hover:text-cyan-300 transition-colors"
+                      >
+                        <div className="flex items-center space-x-1.5">
+                          <span className="text-slate-400">L:</span>
+                          <span className="font-bold text-slate-200 group-hover:text-cyan-300">Unit #{ac.left.unit_id}</span>
+                          <span
+                            className={`text-xs font-bold ${
+                              ac.left.predicted_rul < 20 ? 'text-rose-400' : ac.left.predicted_rul < 50 ? 'text-amber-400' : 'text-emerald-400'
+                            }`}
+                          >
+                            ({(ac.left.predicted_rul || 0).toFixed(1)}c)
+                          </span>
+                        </div>
+                      </button>
+                    </td>
+
+                    {/* Right Wing Engine */}
+                    <td className="py-3 px-4">
+                      <button
+                        onClick={() => onSelectUnit && onSelectUnit(ac.right.unit_id)}
+                        className="text-left group hover:text-cyan-300 transition-colors"
+                      >
+                        <div className="flex items-center space-x-1.5">
+                          <span className="text-slate-400">R:</span>
+                          <span className="font-bold text-slate-200 group-hover:text-cyan-300">Unit #{ac.right.unit_id}</span>
+                          <span
+                            className={`text-xs font-bold ${
+                              ac.right.predicted_rul < 20 ? 'text-rose-400' : ac.right.predicted_rul < 50 ? 'text-amber-400' : 'text-emerald-400'
+                            }`}
+                          >
+                            ({(ac.right.predicted_rul || 0).toFixed(1)}c)
+                          </span>
+                        </div>
+                      </button>
+                    </td>
+
+                    {/* Wing RUL Delta */}
+                    <td className="py-3 px-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-16 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              ac.delta >= 40 ? 'bg-amber-400' : 'bg-cyan-500'
+                            }`}
+                            style={{ width: `${Math.min(100, (ac.delta / 70) * 100)}%` }}
+                          />
+                        </div>
+                        <span className={`text-xs font-bold ${ac.delta >= 40 ? 'text-amber-400' : 'text-slate-300'}`}>
+                          &Delta; {ac.delta} cyc
+                        </span>
+                      </div>
+                    </td>
+
+                    {/* ETOPS Airworthiness Status */}
+                    <td className="py-3 px-4 text-center">
+                      {isCritical ? (
+                        <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-500/50">
+                          <AlertTriangle className="w-3 h-3 text-rose-400" />
+                          <span>CRITICAL GROUND</span>
+                        </span>
+                      ) : isAsymmetric ? (
+                        <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-500/50">
+                          <ShieldAlert className="w-3 h-3 text-amber-400" />
+                          <span>ASYMMETRY WARNING (&Delta; &gt; 40c)</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-500/50">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                          <span>ETOPS COMPLIANT</span>
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end space-x-1">
+                        <button
+                          onClick={() => onSelectUnit && onSelectUnit(ac.left.unit_id)}
+                          className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] transition-colors"
+                        >
+                          L #{ac.left.unit_id}
+                        </button>
+                        <button
+                          onClick={() => onSelectUnit && onSelectUnit(ac.right.unit_id)}
+                          className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] transition-colors"
+                        >
+                          R #{ac.right.unit_id}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import TurbofanCanvas from '../components_3d/TurbofanCanvas.jsx';
 import SensorChart from './SensorChart.jsx';
 import RulFanChart from './RulFanChart.jsx';
 import SensorImportanceBar from './SensorImportanceBar.jsx';
+import PhysicalDossierCard from './PhysicalDossierCard.jsx';
 import {
   Plane,
   AlertTriangle,
@@ -20,7 +21,14 @@ import {
   ChevronRight,
   Activity,
   Zap,
+  Droplet,
+  Sparkles,
+  FileText,
+  RotateCcw,
+  CheckCircle2,
 } from 'lucide-react';
+import { api } from '../services/api.js';
+import { getOfflineWaterWash } from '../services/apiFallback.js';
 
 export default function EngineDetail({
   engine,
@@ -30,6 +38,10 @@ export default function EngineDetail({
   className = '',
 }) {
   const [selectedComponent, setSelectedComponent] = useState(null);
+  const [activeRightTab, setActiveRightTab] = useState('ANALYTICS'); // 'ANALYTICS' | 'PHYSICAL_DOSSIER'
+  const [waterWashActive, setWaterWashActive] = useState(false);
+  const [waterWashLoading, setWaterWashLoading] = useState(false);
+  const [washResult, setWashResult] = useState(null);
 
   if (!engine) {
     return (
@@ -44,10 +56,37 @@ export default function EngineDetail({
   const prevEngine = currentIndex > 0 ? fleet[currentIndex - 1] : null;
   const nextEngine = currentIndex < fleet.length - 1 ? fleet[currentIndex + 1] : null;
 
-  const rul = engine.predicted_rul || 25.0;
-  const lb90 = engine.conformal_lower_90 || Math.max(0, rul - 12);
-  const ub90 = engine.conformal_upper_90 || rul + 15;
+  const baseRul = engine.predicted_rul || 25.0;
+  const baseLb90 = engine.conformal_lower_90 || Math.max(0, baseRul - 12);
+  const baseUb90 = engine.conformal_upper_90 || baseRul + 15;
   const cycle = engine.current_cycle || 140;
+
+  // Water wash dynamic rebound values
+  const rul = waterWashActive ? Math.min(125, baseRul + 32.0) : baseRul;
+  const lb90 = waterWashActive ? Math.min(125, baseLb90 + 26.0) : baseLb90;
+  const ub90 = waterWashActive ? Math.min(125, baseUb90 + 35.0) : baseUb90;
+
+  // Water Wash action handler
+  const handleToggleWaterWash = async () => {
+    if (waterWashActive) {
+      setWaterWashActive(false);
+      setWashResult(null);
+      return;
+    }
+
+    setWaterWashLoading(true);
+    try {
+      const res = await api.performWaterWash(engine.unit_id, engine.subset || 'FD001');
+      setWashResult(res);
+      setWaterWashActive(true);
+    } catch (err) {
+      const fallback = getOfflineWaterWash(engine.unit_id);
+      setWashResult(fallback);
+      setWaterWashActive(true);
+    } finally {
+      setWaterWashLoading(false);
+    }
+  };
 
   // Calculate spool rotation speed driven by telemetry (s8 Nf, s9 Nc)
   const nf = engine.sensors?.s8 || 2388.0;
@@ -87,6 +126,36 @@ export default function EngineDetail({
 
         {/* Quick Nav Prev/Next Buttons */}
         <div className="flex items-center space-x-3 text-xs font-mono">
+          {/* Water Wash Action Button */}
+          <div className="flex items-center space-x-1.5">
+            <button
+              onClick={handleToggleWaterWash}
+              disabled={waterWashLoading}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center space-x-1.5 shadow-md ${
+                waterWashActive
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-500/30'
+                  : 'bg-gradient-to-r from-cyan-600/30 to-blue-600/30 hover:from-cyan-600/50 hover:to-blue-600/50 text-cyan-200 border border-cyan-500/40'
+              }`}
+              title="Simulate core detergent descaling to wash compressor soot and salt deposits"
+            >
+              <Droplet className={`w-3.5 h-3.5 ${waterWashActive ? 'text-emerald-400' : 'text-cyan-400'}`} />
+              <span>{waterWashActive ? 'Water Wash: +32c Rebound' : 'Perform Water Wash'}</span>
+            </button>
+
+            {waterWashActive && (
+              <button
+                onClick={() => {
+                  setWaterWashActive(false);
+                  setWashResult(null);
+                }}
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 transition-colors"
+                title="Reset to Pre-Wash Baseline"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
           <div className="flex items-center space-x-1">
             <button
               disabled={!prevEngine}
@@ -111,7 +180,9 @@ export default function EngineDetail({
 
           {/* Point RUL Pill */}
           <div className="flex items-center space-x-2 px-3 py-1 rounded-xl bg-slate-950 border border-slate-800">
-            <span className="text-[10px] text-slate-400 uppercase">Predicted RUL:</span>
+            <span className="text-[10px] text-slate-400 uppercase">
+              {waterWashActive ? 'Restored RUL:' : 'Predicted RUL:'}
+            </span>
             <span
               className={`font-bold ${
                 rul < 20 ? 'text-rose-400' : rul < 50 ? 'text-amber-400' : 'text-emerald-400'
@@ -119,9 +190,29 @@ export default function EngineDetail({
             >
               {rul.toFixed(1)} cycles
             </span>
+            {waterWashActive && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">
+                +32c Wash
+              </span>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Water Wash Maintenance Certificate Banner */}
+      {waterWashActive && (
+        <div className="bg-emerald-950/70 border border-emerald-500/40 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-emerald-300 shadow-lg animate-fadeIn">
+          <div className="flex items-center space-x-2.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>
+              <strong>AMM 72-00-00 Wash Certificate:</strong> Descaled HPC blades &bull; Recovered <strong>+32.0 flight cycles</strong> &bull; T30 drop <strong>-14.2&deg;R</strong> &bull; P30 ratio <strong>+1.25%</strong>
+            </span>
+          </div>
+          <span className="text-[10px] text-emerald-400/80 font-sans uppercase tracking-wider font-semibold">
+            Airworthiness Certified
+          </span>
+        </div>
+      )}
 
       {/* Main Grid: Left 3D Twin (5 cols) & Right Telemetry Analytics (7 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -191,26 +282,70 @@ export default function EngineDetail({
           </div>
         </div>
 
-        {/* Right Pane: Analytical Charts */}
+        {/* Right Pane: Analytical Charts or Physical Dossier */}
         <div className="lg:col-span-6 xl:col-span-7 flex flex-col space-y-4">
-          {/* Conformal RUL Fan Chart */}
-          <RulFanChart
-            currentCycle={cycle}
-            predictedRul={rul}
-            conformalLower90={lb90}
-            conformalUpper90={ub90}
-            leadTime={15}
-            unitId={engine.unit_id}
-          />
+          {/* Tab Switcher */}
+          <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-2xl p-2 flex items-center justify-between gap-2 shadow-lg">
+            <div className="flex items-center space-x-1.5">
+              <button
+                onClick={() => setActiveRightTab('ANALYTICS')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors flex items-center space-x-1.5 ${
+                  activeRightTab === 'ANALYTICS'
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Activity className="w-3.5 h-3.5" />
+                <span>Telemetry &amp; Conformal RUL</span>
+              </button>
 
-          {/* Multi-Sensor Time-Series Trajectory */}
-          <SensorChart
-            sensorHistory={engine.sensor_history || []}
-            unitId={engine.unit_id}
-          />
+              <button
+                onClick={() => setActiveRightTab('PHYSICAL_DOSSIER')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition-colors flex items-center space-x-1.5 ${
+                  activeRightTab === 'PHYSICAL_DOSSIER'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Physical Inspection Dossier (LLP &amp; Oil)</span>
+              </button>
+            </div>
 
-          {/* Explainability Attribution Bars */}
-          <SensorImportanceBar />
+            <span className="hidden sm:inline-block text-[10px] text-slate-500 font-mono pr-2">
+              {activeRightTab === 'ANALYTICS' ? 'Real-time telemetry stream' : 'Structural &amp; lab diagnostics'}
+            </span>
+          </div>
+
+          {activeRightTab === 'ANALYTICS' ? (
+            <>
+              {/* Conformal RUL Fan Chart */}
+              <RulFanChart
+                currentCycle={cycle}
+                predictedRul={rul}
+                conformalLower90={lb90}
+                conformalUpper90={ub90}
+                leadTime={15}
+                unitId={engine.unit_id}
+              />
+
+              {/* Multi-Sensor Time-Series Trajectory */}
+              <SensorChart
+                sensorHistory={engine.sensor_history || []}
+                unitId={engine.unit_id}
+              />
+
+              {/* Explainability Attribution Bars */}
+              <SensorImportanceBar />
+            </>
+          ) : (
+            <PhysicalDossierCard
+              unitId={engine.unit_id}
+              subset={engine.subset || 'FD001'}
+              predictedRul={rul}
+              currentCycle={cycle}
+            />
+          )}
         </div>
       </div>
     </div>

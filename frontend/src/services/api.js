@@ -98,6 +98,29 @@ class ApiClient {
       body: JSON.stringify(params),
     });
   }
+
+  /**
+   * Fetch Aircraft Twin-Engine ETOPS pairing board and asymmetry metrics
+   */
+  async getFleetEtops(subset = 'FD001') {
+    return this._request(`/fleet/etops?subset=${subset}`);
+  }
+
+  /**
+   * Fetch non-sensor physical inspection dossier (LLP clock, oil spectrometry, borescope AI)
+   */
+  async getPhysicalDossier(unitId, subset = 'FD001') {
+    return this._request(`/engine/${unitId}/physical-dossier?subset=${subset}`);
+  }
+
+  /**
+   * Execute compressor water wash maintenance simulation action
+   */
+  async performWaterWash(unitId, subset = 'FD001') {
+    return this._request(`/engine/${unitId}/water-wash?subset=${subset}`, {
+      method: 'POST',
+    });
+  }
 }
 
 export const api = new ApiClient();

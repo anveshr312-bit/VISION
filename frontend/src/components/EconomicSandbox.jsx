@@ -24,6 +24,8 @@ export default function EconomicSandbox({
   const [wastedCostPerCycle, setWastedCostPerCycle] = useState(100);
   const [riskBudget, setRiskBudget] = useState(0.02);
   const [leadTime, setLeadTime] = useState(15);
+  const [flexDerate, setFlexDerate] = useState(10);
+  const [routeEnv, setRouteEnv] = useState('CONTINENTAL');
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -59,6 +61,10 @@ export default function EconomicSandbox({
         onRiskBudgetChange={setRiskBudget}
         leadTime={leadTime}
         onLeadTimeChange={setLeadTime}
+        flexDerate={flexDerate}
+        onFlexDerateChange={setFlexDerate}
+        routeEnv={routeEnv}
+        onRouteChange={setRouteEnv}
       />
 
       {/* Backtested Policy Comparison Table */}

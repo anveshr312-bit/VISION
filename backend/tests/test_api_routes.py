@@ -200,3 +200,49 @@ def test_stream_telemetry_endpoint():
         assert "conformal_lower_90" in payload
 
 
+def test_fleet_etops_pairings():
+    """Verify Aircraft Twin-Engine ETOPS pairing board and asymmetry metrics."""
+    response = client.get("/api/fleet/etops?subset=FD001")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total_aircraft"] == 50
+    assert "critical_aircraft_count" in data
+    assert "asymmetric_risk_count" in data
+    assert len(data["aircraft"]) == 50
+
+    ac = data["aircraft"][0]
+    assert "aircraft_id" in ac
+    assert "tail_number" in ac
+    assert "left_engine" in ac
+    assert "right_engine" in ac
+    assert "wing_rul_delta" in ac
+    assert ac["etops_status"] in ["COMPLIANT", "ASYMMETRY_WARNING", "CRITICAL_GROUND"]
+
+
+def test_engine_physical_dossier():
+    """Verify non-sensor physical inspection dossier (LLP clock, oil metals, borescope)."""
+    response = client.get("/api/engine/1/physical-dossier?subset=FD001")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["unit_id"] == 1
+    assert "llp_regulatory_clock" in data
+    assert data["llp_regulatory_clock"]["hard_limit_cycles"] == 15000
+    assert "oil_spectrometry" in data
+    assert data["oil_spectrometry"]["iron_fe_ppm"] > 0
+    assert "borescope_inspection" in data
+    assert len(data["borescope_inspection"]["findings"]) >= 2
+
+
+def test_engine_water_wash():
+    """Verify compressor water wash descaling action and RUL rebound."""
+    response = client.post("/api/engine/34/water-wash?subset=FD001")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["unit_id"] == 34
+    assert data["action"] == "COMPRESSOR_WATER_WASH"
+    assert data["cycles_gained"] == 32.0
+    assert data["restored_rul"] > data["original_rul"]
+    assert "maintenance_signoff" in data
+
+
+

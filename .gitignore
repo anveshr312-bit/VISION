@@ -23,3 +23,5 @@ data/processed/*.parquet
 .env
 .DS_Store
 Thumbs.db
+graphify-out/
+
