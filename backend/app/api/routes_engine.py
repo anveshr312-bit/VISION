@@ -283,8 +283,8 @@ async def get_kalman_state(
     # Narrative Engine — fuse all signals into plain-English Incident Brief
     # -----------------------------------------------------------------------
     pred = inference_service.predict_rul(unit_id=unit_id, subset=subset)
-    rul_point = pred.predicted_rul if pred else 50.0
-    rul_lower = pred.conformal_lower_90 if pred else max(0.0, rul_point - 12.0)
+    rul_point = pred.rul_point_estimate if pred else 50.0
+    rul_lower = pred.lower_bound_90 if pred else max(0.0, rul_point - 12.0)
 
     hpt_disk_limit = 15000
     base_cycles = 14200 + ((unit_id * 17) % 650)

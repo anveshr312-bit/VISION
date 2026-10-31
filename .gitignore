@@ -29,3 +29,6 @@ scratch/
 DO NOT TOUCH/
 
 
+
+# Logs
+*.log
