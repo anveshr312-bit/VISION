@@ -3,44 +3,69 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --bg-main: #111A19;
+    --bg-secondary: #182321;
+    --bg-card: #1C2926;
+    --bg-elevated: #293834;
+    --border-color: #46564D;
+    --text-primary: #E7ECE7;
+    --text-secondary: #A6B4AA;
+    --accent-primary: #B3C58B;
+    --status-warning: #D8B65E;
+    --status-critical: #D97865;
+    --status-normal: #82A995;
+  }
+
   body {
-    @apply bg-slate-950 text-slate-100 font-sans;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background-color: #111A19;
+    color: #E7ECE7;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Custom Aerospace Dark Scrollbar */
+/* Diagonal hatched pattern for Industrial Temperature & Gantt Columns */
+.hatched-track {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    rgba(166, 180, 170, 0.14),
+    rgba(166, 180, 170, 0.14) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+}
+
+/* Subtle industrial scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #182321;
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 9999px;
+  background: #46564D;
+  border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #06b6d4;
+  background: #82A995;
 }
 
-/* Smooth Fade In Animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
-}
 
