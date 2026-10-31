@@ -1,14 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Cpu,
-  Plane,
-  Layers,
-  Sliders,
-  FileCheck2,
-  Fan,
-  Sparkles,
+  Search,
+  Bell,
   X,
 } from 'lucide-react';
+import { api } from './services/api.js';
 import {
   EngineTelemetry,
   generateInitialFleet,
@@ -20,14 +16,14 @@ import { FleetEtopsScreen } from './components/FleetEtopsScreen';
 import { EconomicSandboxScreen } from './components/EconomicSandboxScreen';
 import { AirworthinessDossierScreen } from './components/AirworthinessDossierScreen';
 import StageDegradationMap from './components/StageDegradationMap.jsx';
+import ShootingStarsAndStarsBackgroundDemo from '@/src/components/shooting-stars-and-stars-background-demo';
 import { ShootingStars } from '@/src/components/ui/shooting-stars';
 import { StarsBackground } from '@/src/components/ui/stars-background';
-import ShootingStarsAndStarsBackgroundDemo from '@/src/components/shooting-stars-and-stars-background-demo';
 
 type ScreenTab =
   | 'DIGITAL_TWIN'
-  | 'FLEET_ETOPS'
   | 'STAGE_DEGRADATION'
+  | 'FLEET_ETOPS'
   | 'ECONOMIC_SANDBOX'
   | 'AIRWORTHINESS';
 
@@ -37,6 +33,19 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<ScreenTab>('DIGITAL_TWIN');
   const [actionBanner, setActionBanner] = useState<string | null>(null);
   const [showStarDemoModal, setShowStarDemoModal] = useState<boolean>(false);
+  const [backendOnline, setBackendOnline] = useState<boolean>(false);
+
+  useEffect(() => {
+    api.getHealth()
+      .then(() => {
+        setBackendOnline(true);
+        console.log('[VISION] Connected to FastAPI backend');
+      })
+      .catch((err) => {
+        setBackendOnline(false);
+        console.warn('[VISION] Operating in standalone edge mode:', err.message);
+      });
+  }, []);
 
   const activeEngine = useMemo(
     () => fleet.find((e) => e.id === selectedEngineId) ?? fleet[33] ?? fleet[0],
@@ -78,6 +87,9 @@ export default function App() {
     setActionBanner(
       `${activeEngine.id}: AMM 72-00-00 Compressor Water Wash complete (+32.0c RUL rebound, −14.2°R T30 drop, +1.25% P30 recovery)`
     );
+    // Wireframe with backend API (sync if online)
+    const unitNum = parseInt(activeEngine.id.replace(/\D/g, ''), 10) || 1;
+    api.performWaterWash(unitNum, 'FD001').catch(() => {});
   };
 
   const handleToggleSensorFault = () => {
@@ -101,41 +113,65 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#111A19] text-[#E7ECE7] flex flex-col relative overflow-x-hidden">
-      {/* AMBIENT SHOOTING STARS & STARS BACKGROUND LAYER IN NEW PALETTE */}
+    <div className="min-h-screen bg-[#111A19] text-[#EAECE9] flex flex-col relative overflow-x-hidden">
+      {/* Fixed Global Background Layer (#111A19 base + Studio Radial Vignette + Low-Opacity ShootingStars & StarsBackground) */}
       <div
         aria-hidden="true"
-        className="fixed inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_top,_rgba(179,197,139,0.12),_rgba(130,169,149,0.06)_45%,_rgba(17,26,25,0.98)_85%)]"
+        data-testid="global-starfield-background"
+        className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#111A19]"
       >
-        <StarsBackground starDensity={0.00022} />
-        <ShootingStars starColor="#B3C58B" trailColor="#82A995" minDelay={1000} maxDelay={3200} />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_52%_42%,_rgba(42,54,49,0.52)_0%,_rgba(17,26,25,0.84)_58%,_rgba(17,26,25,0.98)_100%)]" />
+        <StarsBackground
+          starDensity={0.00014}
+          allStarsTwinkle={true}
+          twinkleProbability={0.65}
+          minTwinkleSpeed={0.6}
+          maxTwinkleSpeed={1.3}
+          className="opacity-35 mix-blend-screen"
+        />
+        <ShootingStars
+          starColor="#B8CE82"
+          trailColor="#82A995"
+          minSpeed={12}
+          maxSpeed={28}
+          minDelay={1800}
+          maxDelay={4200}
+          starWidth={12}
+          starHeight={1.5}
+          className="opacity-45 mix-blend-screen"
+        />
       </div>
 
-      {/* TOP NAVIGATION BAR */}
-      <header className="h-[72px] backdrop-blur-2xl bg-[#182321]/90 border-b border-[#46564D] shadow-[0_4px_30px_rgba(0,0,0,0.5)] px-3.5 flex items-center justify-between gap-2 shrink-0 z-30 relative">
-        {/* Left Brand Lockup & Tail Switcher */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-2">
-            {/* Primary Accent Turbine Icon Badge */}
-            <div className="w-8 h-8 rounded-xl bg-[#B3C58B] shadow-[0_0_16px_rgba(179,197,139,0.3)] flex items-center justify-center text-[#111A19] shrink-0">
-              <Fan className="w-4 h-4" />
-            </div>
-            <div>
-              <h1 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E7ECE7] whitespace-nowrap">
-                VISION <span className="font-normal text-[#B3C58B]">· TRENT 1000</span>
-              </h1>
-              <div className="text-[9px] font-mono uppercase tracking-wider text-[#A6B4AA] hidden 2xl:block whitespace-nowrap">
-                DO-178C Air-Gapped PHM · UTC 14:32Z
-              </div>
-            </div>
-          </div>
-
-          {/* Aircraft Tail Switcher (N787-01 to N787-50) + Wing Toggle */}
-          <div className="flex items-center gap-1.5 backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-2xl px-2 py-1 shadow-lg shrink-0">
-            <label
-              htmlFor="tail-switcher"
-              className="text-[10px] font-mono uppercase tracking-wider text-[#A6B4AA]"
+      {/* TOP NAVIGATION BAR (Matches Reference Image: /// V I S I O N | Pill Nav | Search, Bell, Profile) */}
+      <header className="h-[74px] px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0 z-30 relative">
+        {/* Left: Three Diagonal Slashes Logo + Spaced V I S I O N + Compact Tail Switcher */}
+        <div className="flex items-center gap-5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab('DIGITAL_TWIN')}
+            className="flex items-center gap-3.5 cursor-pointer group"
+          >
+            {/* Three Diagonal Parallel Lines Icon matching reference */}
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              className="text-[#EAECE9] group-hover:text-[#B8CE82] transition-colors"
+              aria-hidden="true"
             >
+              <line x1="4" y1="19" x2="13" y2="5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <line x1="8.5" y1="20" x2="17.5" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <line x1="13" y1="21" x2="20" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span className="text-[15px] font-medium tracking-[0.38em] text-[#EAECE9] uppercase">
+              VISION
+            </span>
+          </button>
+
+          {/* Subtle Aircraft Tail & Wing Pill Switcher */}
+          <div className="hidden md:flex items-center gap-1.5 bg-[#232725]/90 border border-white/[0.08] rounded-full px-3 py-1 text-xs">
+            <label htmlFor="tail-switcher" className="text-[11px] text-[#949C96]">
               Tail:
             </label>
             <select
@@ -143,27 +179,25 @@ export default function App() {
               aria-label="Aircraft Tail Switcher"
               value={activeEngine.tailId}
               onChange={(e) => handleTailChange(e.target.value)}
-              className="bg-transparent text-xs font-mono font-bold text-[#E7ECE7] focus:outline-none cursor-pointer pr-0.5"
+              className="bg-transparent text-xs font-medium text-[#EAECE9] focus:outline-none cursor-pointer"
             >
               {tailList.map((tail) => (
-                <option key={tail} value={tail} className="bg-[#182321] text-[#E7ECE7]">
+                <option key={tail} value={tail} className="bg-[#1B1F1D] text-[#EAECE9]">
                   {tail}
                 </option>
               ))}
             </select>
-
-            <span className="text-[#46564D]">|</span>
-
-            <div className="flex items-center gap-1" role="group" aria-label="Wing Engine Selector">
+            <span className="text-white/15">|</span>
+            <div className="flex items-center gap-0.5" role="group" aria-label="Wing Engine Selector">
               {(['ENG-L', 'ENG-R'] as const).map((wing) => (
                 <button
                   key={wing}
                   type="button"
                   onClick={() => handleWingToggle(wing)}
-                  className={`px-1.5 py-0.5 rounded-lg text-[10px] font-mono uppercase tracking-wider font-bold cursor-pointer transition-all ${
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold cursor-pointer transition-all ${
                     activeEngine.wingPosition === wing
-                      ? 'bg-[#B3C58B] text-[#111A19] shadow-[0_0_10px_rgba(179,197,139,0.3)]'
-                      : 'text-[#A6B4AA] hover:text-[#E7ECE7]'
+                      ? 'bg-[#B8CE82] text-[#181B19]'
+                      : 'text-[#949C96] hover:text-[#EAECE9]'
                   }`}
                 >
                   {wing}
@@ -173,102 +207,113 @@ export default function App() {
           </div>
         </div>
 
-        {/* Center Floating Glassmorphism Capsule Navigation */}
+        {/* Center Capsule Navigation (Matches Reference: Overview | Diagnostics | Fleet | Maintenance | Airworthiness) */}
         <nav
           aria-label="Primary Command Screens"
-          className="flex items-center gap-1 backdrop-blur-2xl bg-[#1C2926]/90 p-1 rounded-2xl border border-[#46564D] shadow-2xl shrink-0"
+          className="flex items-center gap-1 bg-[#252927]/90 backdrop-blur-xl p-1 rounded-full border border-white/[0.07] shadow-lg"
         >
           <button
             type="button"
             onClick={() => setActiveTab('DIGITAL_TWIN')}
-            className={`px-2 py-1.5 rounded-xl text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer whitespace-nowrap ${
+            aria-label="Overview 3D Digital Twin"
+            className={`px-5 py-1.5 rounded-full text-[13px] transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'DIGITAL_TWIN'
-                ? 'bg-[#B3C58B] text-[#111A19] font-bold shadow-[0_0_14px_rgba(179,197,139,0.3)]'
-                : 'text-[#A6B4AA] hover:text-[#E7ECE7] hover:bg-[#293834]/70'
+                ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-sm'
+                : 'text-[#949C96] hover:text-[#EAECE9]'
             }`}
           >
-            <Cpu className="w-3.5 h-3.5" />
-            <span>3D Digital Twin</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('FLEET_ETOPS')}
-            className={`px-2 py-1.5 rounded-xl text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'FLEET_ETOPS'
-                ? 'bg-[#B3C58B] text-[#111A19] font-bold shadow-[0_0_14px_rgba(179,197,139,0.3)]'
-                : 'text-[#A6B4AA] hover:text-[#E7ECE7] hover:bg-[#293834]/70'
-            }`}
-          >
-            <Plane className="w-3.5 h-3.5" />
-            <span>Fleet &amp; ETOPS</span>
+            Overview
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('STAGE_DEGRADATION')}
-            className={`px-2 py-1.5 rounded-xl text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer whitespace-nowrap ${
+            aria-label="Diagnostics Stage Degradation Map"
+            className={`px-5 py-1.5 rounded-full text-[13px] transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'STAGE_DEGRADATION'
-                ? 'bg-[#B3C58B] text-[#111A19] font-bold shadow-[0_0_14px_rgba(179,197,139,0.3)]'
-                : 'text-[#A6B4AA] hover:text-[#E7ECE7] hover:bg-[#293834]/70'
+                ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-sm'
+                : 'text-[#949C96] hover:text-[#EAECE9]'
             }`}
           >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Stage Degradation Map</span>
+            Diagnostics
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('FLEET_ETOPS')}
+            aria-label="Fleet and ETOPS"
+            className={`px-5 py-1.5 rounded-full text-[13px] transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'FLEET_ETOPS'
+                ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-sm'
+                : 'text-[#949C96] hover:text-[#EAECE9]'
+            }`}
+          >
+            Fleet
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('ECONOMIC_SANDBOX')}
-            className={`px-2 py-1.5 rounded-xl text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer whitespace-nowrap ${
+            aria-label="Maintenance Economic Sandbox"
+            className={`px-5 py-1.5 rounded-full text-[13px] transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'ECONOMIC_SANDBOX'
-                ? 'bg-[#B3C58B] text-[#111A19] font-bold shadow-[0_0_14px_rgba(179,197,139,0.3)]'
-                : 'text-[#A6B4AA] hover:text-[#E7ECE7] hover:bg-[#293834]/70'
+                ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-sm'
+                : 'text-[#949C96] hover:text-[#EAECE9]'
             }`}
           >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Economic Sandbox</span>
+            Maintenance
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('AIRWORTHINESS')}
-            className={`px-2 py-1.5 rounded-xl text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer whitespace-nowrap ${
+            aria-label="Airworthiness Release Form 8130-3"
+            className={`px-5 py-1.5 rounded-full text-[13px] transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'AIRWORTHINESS'
-                ? 'bg-[#B3C58B] text-[#111A19] font-bold shadow-[0_0_14px_rgba(179,197,139,0.3)]'
-                : 'text-[#A6B4AA] hover:text-[#E7ECE7] hover:bg-[#293834]/70'
+                ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-sm'
+                : 'text-[#949C96] hover:text-[#EAECE9]'
             }`}
           >
-            <FileCheck2 className="w-3.5 h-3.5" />
-            <span>Airworthiness Release</span>
+            Airworthiness
           </button>
         </nav>
 
-        {/* Right Active Engine Pill, Starfield Demo Toggle & Release Tag */}
-        <div className="hidden xl:flex items-center gap-1.5 shrink-0">
-          <div className="text-right">
-            <span className="text-[8px] font-mono uppercase tracking-wider text-[#A6B4AA] block">
-              Active Serial
-            </span>
-            <span className="text-[11px] font-mono font-bold text-[#B3C58B] tabular-nums">
-              {activeEngine.id}
-            </span>
-          </div>
+        {/* Right: Search Icon, Notification Bell with Coral Dot, and Profile Avatar */}
+        <div className="flex items-center gap-4 shrink-0">
           <button
             type="button"
-            onClick={() => setShowStarDemoModal(true)}
-            title="Preview Aceternity Shooting Stars & Stars Background Demo"
-            className="px-2 py-1.5 rounded-xl bg-[#293834] hover:bg-[#293834]/80 border border-[#46564D] text-[#E7ECE7] text-[10px] font-mono uppercase tracking-wider font-semibold flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
+            onClick={() => setActiveTab('FLEET_ETOPS')}
+            title="Search Fleet & Serial Numbers"
+            aria-label="Search Fleet"
+            className="text-[#949C96] hover:text-[#EAECE9] transition-colors cursor-pointer p-1"
           >
-            <Sparkles className="w-3 h-3 text-[#B3C58B]" />
-            <span>Starfield</span>
+            <Search className="w-[18px] h-[18px]" />
           </button>
+
           <button
             type="button"
             onClick={() => setActiveTab('AIRWORTHINESS')}
-            className="px-2.5 py-1.5 rounded-xl bg-[#293834] hover:bg-[#293834]/80 border border-[#46564D] text-[#B3C58B] text-[10px] font-mono uppercase tracking-wider font-semibold flex items-center gap-1 shadow-xs cursor-pointer whitespace-nowrap"
+            title="High-Risk Alarms & Airworthiness Dossier"
+            aria-label="View High-Risk Alarms"
+            className="relative text-[#949C96] hover:text-[#EAECE9] transition-colors cursor-pointer p-1"
           >
-            <span>Form 8130-3</span>
+            <Bell className="w-[18px] h-[18px]" />
+            <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-[#D97865] ring-2 ring-[#111A19]" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowStarDemoModal(true)}
+            title="Lead PHM Chief Engineer · Click to view Starfield Showcase"
+            aria-label="Engineer Profile and Starfield Showcase"
+            className="relative w-8 h-8 rounded-full bg-[#2E3330] border border-white/15 flex items-center justify-center overflow-hidden cursor-pointer hover:border-[#B8CE82] transition-colors"
+          >
+            <svg viewBox="0 0 36 36" className="w-full h-full">
+              <rect width="36" height="36" fill="#2B312E" />
+              <circle cx="18" cy="13" r="6" fill="#949C96" />
+              <path d="M7 33 C7 25 29 25 29 33" fill="#68726B" />
+            </svg>
+            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-[#B8CE82] ring-1 ring-[#111A19]" />
           </button>
         </div>
       </header>
@@ -281,6 +326,7 @@ export default function App() {
             onWaterWash={handleWaterWash}
             onToggleSensorFault={handleToggleSensorFault}
             onNavigateToDossier={() => setActiveTab('AIRWORTHINESS')}
+            onNavigateToDiagnostics={() => setActiveTab('STAGE_DEGRADATION')}
             actionBanner={actionBanner}
           />
         )}
@@ -324,12 +370,12 @@ export default function App() {
           aria-label="Shooting Stars and Stars Background Demo"
           className="fixed inset-0 z-50 bg-[#111A19]/85 backdrop-blur-md flex items-center justify-center p-6"
         >
-          <div className="relative w-full max-w-5xl rounded-2xl overflow-hidden border border-[#46564D] shadow-2xl">
+          <div className="relative w-full max-w-5xl rounded-[24px] overflow-hidden border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.75)]">
             <button
               type="button"
               onClick={() => setShowStarDemoModal(false)}
               aria-label="Close Starfield Demo"
-              className="absolute top-4 right-4 z-30 p-2 rounded-xl bg-[#1C2926]/90 hover:bg-[#293834] border border-[#46564D] text-[#E7ECE7] cursor-pointer"
+              className="absolute top-4 right-4 z-30 p-2 rounded-xl bg-[#232725]/90 hover:bg-[#2E3330] border border-white/10 text-[#EAECE9] cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

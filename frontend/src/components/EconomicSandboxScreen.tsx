@@ -49,83 +49,100 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
   const bays: Array<'BAY A' | 'BAY B' | 'BAY C'> = ['BAY A', 'BAY B', 'BAY C'];
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 py-4 space-y-4 text-[#E7ECE7]">
+    <div className="max-w-[1440px] mx-auto px-6 lg:px-8 py-5 space-y-5 text-[#EAECE9]">
+      {/* Editorial Section Header matching Overview aesthetic */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#232725]/90 border border-white/15 text-xs text-[#EAECE9]">
+            <span className="w-2 h-2 rounded-full bg-[#B8CE82]" />
+            <span>Trent 1000 · MRO Optimization</span>
+          </div>
+          <h1 className="text-2xl lg:text-3xl font-normal tracking-tight text-[#EAECE9]">
+            Predictive Maintenance &amp; Hangar Sandbox
+          </h1>
+        </div>
+        <p className="text-xs text-[#949C96] font-mono">
+          Optimal Stopping Policy θ* = γ/(1+γ) · Pilot FLEX Thrust Derate · 3-Bay Hangar Gantt
+        </p>
+      </div>
+
       {/* Top 4 Glassmorphic KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-4 shadow-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
+            <span className="text-[13px] font-normal text-[#EAECE9]">
               Optimal Stopping Trigger θ*
             </span>
-            <ArrowUpRight className="w-4 h-4 text-[#B3C58B]" />
+            <ArrowUpRight className="w-4 h-4 text-[#B8CE82]" />
           </div>
-          <div className="mt-1.5 flex items-baseline justify-between">
-            <span className="text-xl font-mono font-bold text-[#E7ECE7] tabular-nums">
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-2xl font-mono font-bold text-[#EAECE9] tabular-nums">
               θ* = {(sandboxResult.thetaStar * 100).toFixed(3)}%
             </span>
-            <span className="text-xs font-mono text-[#B3C58B] tabular-nums">
+            <span className="text-xs font-mono text-[#B8CE82] tabular-nums">
               γ = {sandboxResult.gammaRatio.toFixed(5)}
             </span>
           </div>
-          <div className="text-[10px] font-mono text-[#A6B4AA] mt-1">
+          <div className="text-[11px] font-mono text-[#949C96] mt-1.5">
             θ* = γ / (1 + γ) where γ = c_w / C_f
           </div>
         </div>
 
-        <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-4 shadow-2xl">
+        <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
+            <span className="text-[13px] font-normal text-[#EAECE9]">
               FLEX EGT Alleviation
             </span>
-            <ArrowUpRight className="w-4 h-4 text-[#B3C58B]" />
-          </div>
-          <div className="mt-1.5 flex items-baseline justify-between">
-            <span className="text-xl font-mono font-bold text-[#B3C58B] tabular-nums">
-              {sandboxResult.peakEgtAlleviationDegR.toFixed(1)}°R
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-[#82A995]/20 border border-[#82A995]/60 text-[#82A995] text-[10px] font-mono font-bold tabular-nums">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#B8CE82]/20 border border-[#B8CE82]/50 text-[#B8CE82] text-[10px] font-mono font-bold tabular-nums">
               +{sandboxResult.lcfCyclesPreserved.toFixed(1)}c LCF
             </span>
           </div>
-          <div className="text-[11px] text-[#A6B4AA] mt-1">
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-2xl font-mono font-bold text-[#B8CE82] tabular-nums">
+              {sandboxResult.peakEgtAlleviationDegR.toFixed(1)}°R
+            </span>
+            <span className="text-xs font-mono text-[#949C96] tabular-nums">
+              [ {flexDeratePct}% Derate ]
+            </span>
+          </div>
+          <div className="text-[11px] text-[#949C96] mt-1.5">
             −1.8°R peak T50 &amp; +2.2c LCF per 1% derate
           </div>
         </div>
 
-        <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-4 shadow-2xl">
+        <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
+            <span className="text-[13px] font-normal text-[#EAECE9]">
               Annual FLEX Savings
             </span>
-            <ArrowUpRight className="w-4 h-4 text-[#82A995]" />
+            <ArrowUpRight className="w-4 h-4 text-[#B8CE82]" />
           </div>
-          <div className="mt-1.5 flex items-baseline justify-between">
-            <span className="text-xl font-mono font-bold text-[#82A995] tabular-nums">
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-2xl font-mono font-bold text-[#B8CE82] tabular-nums">
               +${sandboxResult.annualSavingsUsd.toLocaleString()}/yr
             </span>
-            <span className="text-xs font-mono text-[#A6B4AA] tabular-nums">+$14,500/yr/%</span>
+            <span className="text-xs font-mono text-[#949C96] tabular-nums">+$14,500/yr/%</span>
           </div>
-          <div className="text-[11px] text-[#A6B4AA] mt-1">
+          <div className="text-[11px] text-[#949C96] mt-1.5">
             Reduced HPT TBC spallation &amp; shop visit rate
           </div>
         </div>
 
-        <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-4 shadow-2xl text-[#E7ECE7]">
+        <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] text-[#EAECE9] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
+            <span className="text-[13px] font-normal text-[#EAECE9]">
               Optimal Removal Threshold
             </span>
-            <ArrowUpRight className="w-4 h-4 text-[#D8B65E]" />
-          </div>
-          <div className="mt-1.5 flex items-baseline justify-between">
-            <span className="text-xl font-mono font-bold text-[#D8B65E] tabular-nums">
-              {sandboxResult.optimalStoppingRulThreshold.toFixed(1)} cycles
-            </span>
-            <span className="px-2 py-0.5 rounded-md bg-[#B3C58B] text-[#111A19] text-[10px] font-mono font-bold uppercase tracking-wider tabular-nums">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#B8CE82] text-[#181B19] text-[10px] font-mono font-bold uppercase tracking-wider tabular-nums">
               {activeRouteSpec.multiplier.toFixed(2)}x Env
             </span>
           </div>
-          <div className="text-[11px] font-mono text-[#A6B4AA] mt-1 tabular-nums">
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-2xl font-mono font-bold text-[#D8B65E] tabular-nums">
+              {sandboxResult.optimalStoppingRulThreshold.toFixed(1)} cycles
+            </span>
+          </div>
+          <div className="text-[11px] font-mono text-[#949C96] mt-1.5 tabular-nums">
             Fleet Cost Avoidance: ${sandboxResult.expectedFleetCostSavingsUsd.toLocaleString()}
           </div>
         </div>
@@ -134,30 +151,30 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
       {/* Middle Split: Left Cost & FLEX Sliders | Right Geographic Route Environment */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
         {/* Left Column */}
-        <div className="lg:col-span-7 backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+        <div className="lg:col-span-7 backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#B3C58B]" />
-              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E7ECE7]">
+              <Sliders className="w-4 h-4 text-[#B8CE82]" />
+              <h2 className="text-[14px] font-normal text-[#EAECE9]">
                 Optimal Stopping Cost Parameters &amp; Pilot FLEX Derate
               </h2>
             </div>
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#82A995]">
-              ● Conformal Model Active
+            <span className="px-3 py-0.5 rounded-full bg-[#B8CE82] text-[#181B19] text-[10px] font-bold uppercase tracking-wider">
+              ACTIVE MODEL
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Slider 1: C_f */}
-            <div className="bg-[#182321] rounded-2xl p-3.5 border border-[#46564D]">
+            <div className="bg-[#1B1F1D]/85 rounded-2xl p-3.5 border border-white/[0.07]">
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <label
                   htmlFor="slider-cf"
-                  className="text-[10px] uppercase tracking-wider text-[#A6B4AA]"
+                  className="text-[10px] uppercase tracking-wider text-[#949C96]"
                 >
                   In-Service Failure Cost (C_f)
                 </label>
-                <span className="font-mono font-bold text-[#E7ECE7] tabular-nums">
+                <span className="font-mono font-bold text-[#EAECE9] tabular-nums">
                   ${failureCostCf.toLocaleString()}
                 </span>
               </div>
@@ -169,9 +186,9 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
                 step={5000}
                 value={failureCostCf}
                 onChange={(e) => setFailureCostCf(Number(e.target.value))}
-                className="w-full accent-[#B3C58B] cursor-pointer"
+                className="w-full accent-[#B8CE82] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] font-mono text-[#A6B4AA] mt-1">
+              <div className="flex justify-between text-[10px] font-mono text-[#949C96] mt-1">
                 <span>$10k</span>
                 <span>AOG / IFSD Penalty</span>
                 <span>$500k</span>
@@ -179,15 +196,15 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
             </div>
 
             {/* Slider 2: c_w */}
-            <div className="bg-[#182321] rounded-2xl p-3.5 border border-[#46564D]">
+            <div className="bg-[#1B1F1D]/85 rounded-2xl p-3.5 border border-white/[0.07]">
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <label
                   htmlFor="slider-cw"
-                  className="text-[10px] uppercase tracking-wider text-[#A6B4AA]"
+                  className="text-[10px] uppercase tracking-wider text-[#949C96]"
                 >
                   Wasted Life Cost (c_w)
                 </label>
-                <span className="font-mono font-bold text-[#E7ECE7] tabular-nums">
+                <span className="font-mono font-bold text-[#EAECE9] tabular-nums">
                   ${wastedLifeCostCw.toLocaleString()} / cycle
                 </span>
               </div>
@@ -201,7 +218,7 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
                 onChange={(e) => setWastedLifeCostCw(Number(e.target.value))}
                 className="w-full accent-[#D8B65E] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] font-mono text-[#A6B4AA] mt-1">
+              <div className="flex justify-between text-[10px] font-mono text-[#949C96] mt-1">
                 <span>$10/c</span>
                 <span>Green-Time Loss</span>
                 <span>$1,000/c</span>
@@ -209,15 +226,15 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
             </div>
 
             {/* Slider 3: Lead Time L */}
-            <div className="bg-[#182321] rounded-2xl p-3.5 border border-[#46564D]">
+            <div className="bg-[#1B1F1D]/85 rounded-2xl p-3.5 border border-white/[0.07]">
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <label
                   htmlFor="slider-leadtime"
-                  className="text-[10px] uppercase tracking-wider text-[#A6B4AA]"
+                  className="text-[10px] uppercase tracking-wider text-[#949C96]"
                 >
                   Hangar Lead Time (L)
                 </label>
-                <span className="font-mono font-bold text-[#E7ECE7] tabular-nums">
+                <span className="font-mono font-bold text-[#EAECE9] tabular-nums">
                   {leadTimeL} cycles
                 </span>
               </div>
@@ -231,7 +248,7 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
                 onChange={(e) => setLeadTimeL(Number(e.target.value))}
                 className="w-full accent-[#82A995] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] font-mono text-[#A6B4AA] mt-1">
+              <div className="flex justify-between text-[10px] font-mono text-[#949C96] mt-1">
                 <span>5c (Hub)</span>
                 <span>MRO Induct Buffer</span>
                 <span>30c (Remote)</span>
@@ -239,7 +256,7 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
             </div>
 
             {/* Slider 4: Pilot Takeoff Thrust Derate (FLEX Temp) */}
-            <div className="bg-[#293834]/70 rounded-2xl p-3.5 border border-[#D8B65E]/50">
+            <div className="bg-[#2B302D]/80 rounded-2xl p-3.5 border border-[#D8B65E]/45">
               <div className="flex items-center justify-between text-xs mb-1.5">
                 <label
                   htmlFor="slider-flex"
@@ -248,7 +265,7 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
                   <Flame className="w-3.5 h-3.5 text-[#D8B65E]" />
                   <span>Pilot FLEX Thrust Derate</span>
                 </label>
-                <span className="font-mono font-bold text-[#E7ECE7] tabular-nums">
+                <span className="font-mono font-bold text-[#EAECE9] tabular-nums">
                   {flexDeratePct}% ({sandboxResult.peakEgtAlleviationDegR.toFixed(1)}°R)
                 </span>
               </div>
@@ -262,9 +279,9 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
                 onChange={(e) => setFlexDeratePct(Number(e.target.value))}
                 className="w-full accent-[#D8B65E] cursor-pointer"
               />
-              <div className="flex justify-between text-[10px] font-mono text-[#A6B4AA] mt-1">
+              <div className="flex justify-between text-[10px] font-mono text-[#949C96] mt-1">
                 <span>0% (TOGA)</span>
-                <span className="text-[#82A995]">
+                <span className="text-[#B8CE82]">
                   +{sandboxResult.lcfCyclesPreserved.toFixed(1)}c LCF
                 </span>
                 <span>15% Max</span>
@@ -274,16 +291,16 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
         </div>
 
         {/* Right Column: Geographic Route Environment Selector */}
-        <div className="lg:col-span-5 backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+        <div className="lg:col-span-5 backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-[#B3C58B]" />
-                <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E7ECE7]">
+                <Globe className="w-4 h-4 text-[#B8CE82]" />
+                <h2 className="text-[14px] font-normal text-[#EAECE9]">
                   Geographic Route Environment
                 </h2>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full bg-[#D8B65E] text-[#111A19] text-[10px] font-mono font-bold uppercase tracking-wider tabular-nums">
+              <span className="px-2.5 py-0.5 rounded-full bg-[#D8B65E] text-[#181B19] text-[10px] font-mono font-bold uppercase tracking-wider tabular-nums">
                 {activeRouteSpec.multiplier.toFixed(2)}x Wear
               </span>
             </div>
@@ -302,8 +319,8 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
                     onClick={() => setRouteEnvId(env.id)}
                     className={`text-left p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                       isSelected
-                        ? 'bg-[#293834] text-[#E7ECE7] border-[#B3C58B] shadow-md'
-                        : 'bg-[#182321] text-[#E7ECE7] border-[#46564D] hover:border-[#B3C58B]/60'
+                        ? 'bg-[#2B302D] text-[#EAECE9] border-[#B8CE82] shadow-md'
+                        : 'bg-[#1B1F1D]/85 text-[#EAECE9] border-white/[0.07] hover:border-[#B8CE82]/50'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-1">
@@ -311,14 +328,14 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
                       <span
                         className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full shrink-0 tabular-nums ${
                           isSelected
-                            ? 'bg-[#B3C58B] text-[#111A19]'
-                            : 'bg-[#293834] text-[#82A995]'
+                            ? 'bg-[#B8CE82] text-[#181B19]'
+                            : 'bg-[#2B302D] text-[#B8CE82]'
                         }`}
                       >
                         {env.multiplier.toFixed(2)}x
                       </span>
                     </div>
-                    <div className="mt-1.5 text-[10px] leading-snug text-[#A6B4AA]">
+                    <div className="mt-1.5 text-[10px] leading-snug text-[#949C96]">
                       {env.primaryDegradationMechanism}
                     </div>
                   </button>
@@ -330,15 +347,15 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
       </div>
 
       {/* Bottom Section: 60-Cycle 3-Bay Hangar Gantt Scheduler */}
-      <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-5 shadow-2xl text-[#E7ECE7] space-y-3.5">
+      <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] text-[#EAECE9] space-y-3.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <CalendarClock className="w-4 h-4 text-[#B3C58B]" />
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E7ECE7]">
+            <CalendarClock className="w-4 h-4 text-[#B8CE82]" />
+            <h2 className="text-[14px] font-normal text-[#EAECE9]">
               60-Cycle 3-Bay Hangar Gantt Scheduler (Zero-Contention MRO Allocation)
             </h2>
           </div>
-          <div className="flex items-center gap-4 text-[10px] font-mono uppercase tracking-wider text-[#A6B4AA]">
+          <div className="flex items-center gap-4 text-[10px] font-mono uppercase tracking-wider text-[#949C96]">
             <span className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-[#D97865] inline-block" />
               Critical Overhaul
@@ -348,14 +365,14 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
               Scheduled Shop Visit
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#82A995] inline-block" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#B8CE82] inline-block" />
               Preventive Monitor
             </span>
           </div>
         </div>
 
         <div className="space-y-2.5">
-          <div className="grid grid-cols-12 text-[10px] font-mono uppercase tracking-wider text-[#A6B4AA] pl-28 pr-2 tabular-nums">
+          <div className="grid grid-cols-12 text-[10px] font-mono uppercase tracking-wider text-[#949C96] pl-28 pr-2 tabular-nums">
             <span>Cycle +0</span>
             <span className="col-span-2 text-center">+10c</span>
             <span className="col-span-2 text-center">+20c</span>
@@ -370,20 +387,20 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
             return (
               <div
                 key={bayName}
-                className="flex items-center gap-3 bg-[#182321] border border-[#46564D] rounded-2xl p-2.5"
+                className="flex items-center gap-3 bg-[#1B1F1D]/85 border border-white/[0.07] rounded-2xl p-2.5"
               >
                 <div className="w-24 shrink-0 pl-1">
-                  <div className="text-xs font-mono font-bold text-[#E7ECE7]">{bayName}</div>
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#A6B4AA]">
+                  <div className="text-xs font-mono font-bold text-[#EAECE9]">{bayName}</div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#949C96]">
                     {bayOrders.length} Work Orders
                   </div>
                 </div>
 
-                <div className="relative flex-1 h-12 bg-[#111A19] rounded-xl overflow-hidden hatched-track border border-[#46564D]">
+                <div className="relative flex-1 h-12 bg-[#141715] rounded-xl overflow-hidden hatched-track border border-white/[0.06]">
                   {[10, 20, 30, 40, 50].map((mark) => (
                     <div
                       key={mark}
-                      className="absolute top-0 bottom-0 border-l border-[#46564D]/50"
+                      className="absolute top-0 bottom-0 border-l border-white/[0.06]"
                       style={{ left: `${(mark / 60) * 100}%` }}
                     />
                   ))}
@@ -393,10 +410,10 @@ export const EconomicSandboxScreen: React.FC<EconomicSandboxScreenProps> = ({
                     const widthPct = Math.max(8, (wo.durationCycles / 60) * 100);
                     const blockTone =
                       wo.urgency === 'CRITICAL OVERHAUL'
-                        ? 'bg-[#D97865] text-[#111A19]'
+                        ? 'bg-[#D97865] text-[#181B19]'
                         : wo.urgency === 'SCHEDULED SHOP VISIT'
-                          ? 'bg-[#D8B65E] text-[#111A19]'
-                          : 'bg-[#82A995] text-[#111A19]';
+                          ? 'bg-[#D8B65E] text-[#181B19]'
+                          : 'bg-[#B8CE82] text-[#181B19]';
 
                     return (
                       <button

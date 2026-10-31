@@ -70,105 +70,127 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
   }, [fleet, searchQuery]);
 
   return (
-    <div className="max-w-[1440px] mx-auto px-6 py-6 space-y-5 text-[#E7ECE7]">
+    <div className="max-w-[1440px] mx-auto px-6 lg:px-8 py-5 space-y-5 text-[#EAECE9]">
+      {/* Editorial Section Header matching Overview aesthetic */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#232725]/90 border border-white/15 text-xs text-[#EAECE9]">
+            <span className="w-2 h-2 rounded-full bg-[#B8CE82]" />
+            <span>Trent 1000 · 50 Boeing 787-9 Tails</span>
+          </div>
+          <h1 className="text-2xl lg:text-3xl font-normal tracking-tight text-[#EAECE9]">
+            Fleet &amp; ETOPS-330 Twin-Wing Dispatch
+          </h1>
+        </div>
+        <p className="text-xs text-[#949C96] font-mono">
+          100 Active Turbofans · Oceanic Wing Asymmetry &amp; Conformal RUL Monitoring
+        </p>
+      </div>
+
       {/* Top 4 Glassmorphic Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+        <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
+            <span className="text-[13px] font-normal text-[#EAECE9]">
               Boeing 787-9 Fleet
             </span>
-            <ArrowUpRight className="w-4 h-4 text-[#B3C58B]" />
+            <ArrowUpRight className="w-4 h-4 text-[#B8CE82]" />
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-mono font-bold text-[#E7ECE7] tabular-nums">
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-2xl font-mono font-bold text-[#EAECE9] tabular-nums">
               50 Tails · 100
             </span>
-            <span className="text-xs font-mono font-semibold text-[#B3C58B] tabular-nums">
+            <span className="text-xs font-mono font-semibold text-[#B8CE82] tabular-nums">
               Avg {summaryStats.avgRul.toFixed(1)}c
             </span>
           </div>
-          <div className="text-[11px] text-[#A6B4AA] mt-1">
+          <div className="text-[11px] text-[#949C96] mt-1.5">
             Rolls-Royce Trent 1000 High-Bypass Fleet
           </div>
         </div>
 
-        <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+        <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
+            <span className="text-[13px] font-normal text-[#EAECE9]">
               ETOPS-330 Compliant
             </span>
-            <ArrowUpRight className="w-4 h-4 text-[#82A995]" />
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-mono font-bold text-[#82A995] tabular-nums">
-              {summaryStats.compliant}
-            </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#82A995]/20 border border-[#82A995]/60 text-[#82A995] text-[10px] font-mono font-bold uppercase tracking-wider">
+            <span className="px-3 py-0.5 rounded-full bg-[#B8CE82] text-[#181B19] text-[10px] font-mono font-bold uppercase tracking-wider">
               COMPLIANT
             </span>
           </div>
-          <div className="text-[11px] text-[#A6B4AA] mt-1">
-            Balanced wing RUL &amp; above 20c oceanic floor
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-3xl font-light text-[#EAECE9] tabular-nums">
+              {summaryStats.compliant}
+            </span>
+            <span className="text-xs font-mono text-[#B8CE82] tabular-nums">
+              [ ≥ 20.0c floor ]
+            </span>
+          </div>
+          <div className="text-[11px] text-[#949C96] mt-1.5">
+            Balanced wing RUL &amp; unrestricted oceanic dispatch
           </div>
         </div>
 
-        <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+        <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
+            <span className="text-[13px] font-normal text-[#EAECE9]">
               Wing Asymmetry (Δ &gt; 40c)
             </span>
-            <ArrowUpRight className="w-4 h-4 text-[#D8B65E]" />
+            <span className="px-2.5 py-0.5 rounded-full bg-[#D8B65E] text-[#181B19] text-[10px] font-mono font-bold uppercase tracking-wider">
+              ASYMMETRY
+            </span>
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-mono font-bold text-[#D8B65E] tabular-nums">
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-3xl font-light text-[#D8B65E] tabular-nums">
               {summaryStats.asymmetry}
             </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#D8B65E] text-[#111A19] text-[10px] font-mono font-bold uppercase tracking-wider">
-              ASYMMETRY_WARNING
+            <span className="text-xs font-mono text-[#949C96] tabular-nums">
+              [ |ΔRUL| &gt; 40c ]
             </span>
           </div>
-          <div className="text-[11px] text-[#A6B4AA] mt-1">
+          <div className="text-[11px] text-[#949C96] mt-1.5">
             Prevents simultaneous oceanic dual-removal
           </div>
         </div>
 
-        <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#D97865]/60 rounded-3xl p-5 shadow-2xl text-[#E7ECE7] flex flex-col justify-between">
+        <div className="backdrop-blur-2xl bg-[#232725]/88 border border-[#D97865]/40 rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] text-[#EAECE9] flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-wider text-[#D97865]">
+            <span className="text-[13px] font-normal text-[#EAECE9]">
               Critical Ground Queue
             </span>
-            <ArrowUpRight className="w-4 h-4 text-[#D97865]" />
+            <span className="px-2.5 py-0.5 rounded-full bg-[#D97865] text-[#181B19] text-[10px] font-mono font-bold uppercase tracking-wider">
+              CRITICAL
+            </span>
           </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <span className="text-2xl font-mono font-bold text-[#D97865] tabular-nums">
+          <div className="mt-3 flex items-baseline justify-between">
+            <span className="text-3xl font-light text-[#D97865] tabular-nums">
               {summaryStats.critical}
             </span>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#D97865] text-[#111A19] text-[10px] font-mono font-bold uppercase tracking-wider">
-              CRITICAL_GROUND
+            <span className="text-xs font-mono text-[#D97865] tabular-nums">
+              [ &lt; 20c / FAULT ]
             </span>
           </div>
-          <div className="text-[11px] text-[#A6B4AA] mt-1">
+          <div className="text-[11px] text-[#949C96] mt-1.5">
             Minimum wing RUL &lt; 20c or DO-178C fault
           </div>
         </div>
       </div>
 
       {/* Filter & View Mode Glassmorphic Toolbar */}
-      <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-4 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+      <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <div
-            className="flex items-center bg-[#182321] border border-[#46564D] p-1 rounded-2xl"
+            className="flex items-center bg-[#1B1F1D] border border-white/[0.07] p-1 rounded-full"
             role="group"
             aria-label="Fleet Display Mode"
           >
             <button
               type="button"
               onClick={() => setViewMode('TWIN_WING_ETOPS')}
-              className={`px-3.5 py-1.5 rounded-xl text-[11px] font-mono uppercase tracking-wider font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
                 viewMode === 'TWIN_WING_ETOPS'
-                  ? 'bg-[#B3C58B] text-[#111A19] font-bold shadow-sm'
-                  : 'text-[#A6B4AA] hover:text-[#E7ECE7]'
+                  ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-sm'
+                  : 'text-[#949C96] hover:text-[#EAECE9]'
               }`}
             >
               <Plane className="w-3.5 h-3.5" />
@@ -177,10 +199,10 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
             <button
               type="button"
               onClick={() => setViewMode('SINGLE_ENGINES')}
-              className={`px-3.5 py-1.5 rounded-xl text-[11px] font-mono uppercase tracking-wider font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${
                 viewMode === 'SINGLE_ENGINES'
-                  ? 'bg-[#B3C58B] text-[#111A19] font-bold shadow-sm'
-                  : 'text-[#A6B4AA] hover:text-[#E7ECE7]'
+                  ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-sm'
+                  : 'text-[#949C96] hover:text-[#EAECE9]'
               }`}
             >
               <Cpu className="w-3.5 h-3.5" />
@@ -202,10 +224,10 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
                   key={tab.id}
                   type="button"
                   onClick={() => setStatusFilter(tab.id)}
-                  className={`px-3 py-1.5 rounded-xl text-[10px] font-mono uppercase tracking-wider transition-colors cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs transition-colors cursor-pointer ${
                     statusFilter === tab.id
-                      ? 'bg-[#B3C58B] text-[#111A19] font-bold'
-                      : 'bg-[#293834] text-[#A6B4AA] hover:text-[#E7ECE7] border border-[#46564D]'
+                      ? 'bg-[#B8CE82] text-[#181B19] font-semibold'
+                      : 'bg-[#1B1F1D] text-[#949C96] hover:text-[#EAECE9] border border-white/[0.07]'
                   }`}
                 >
                   {tab.label}
@@ -216,14 +238,14 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
         </div>
 
         <div className="relative min-w-[260px]">
-          <Search className="w-4 h-4 text-[#A6B4AA] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#949C96] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter by Tail (N787-17) or ESN-787-034..."
             aria-label="Filter Fleet by Tail or Engine Serial Number"
-            className="w-full pl-9 pr-3 py-2 rounded-2xl bg-[#182321] border border-[#46564D] text-xs font-mono text-[#E7ECE7] placeholder:text-[#A6B4AA]/60 focus:outline-none focus:border-[#B3C58B]"
+            className="w-full pl-9 pr-3.5 py-2 rounded-full bg-[#1B1F1D] border border-white/[0.08] text-xs font-mono text-[#EAECE9] placeholder:text-[#949C96]/60 focus:outline-none focus:border-[#B8CE82]"
           />
         </div>
       </div>
@@ -240,20 +262,20 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
               <div
                 key={pair.tailId}
                 data-testid={`etops-tail-card-${pair.tailId}`}
-                className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-5 shadow-2xl flex flex-col justify-between gap-4"
+                className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between gap-4"
               >
                 {/* Header Row */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-2xl bg-[#293834] border border-[#46564D] flex items-center justify-center text-[#B3C58B]">
+                    <div className="w-9 h-9 rounded-2xl bg-[#2B302D] border border-white/[0.08] flex items-center justify-center text-[#B8CE82]">
                       <Plane className="w-4 h-4" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base font-mono font-bold text-[#E7ECE7]">{pair.tailId}</h3>
-                        <span className="text-xs font-mono text-[#A6B4AA]">· {pair.routeHub}</span>
+                        <h3 className="text-base font-mono font-bold text-[#EAECE9]">{pair.tailId}</h3>
+                        <span className="text-xs font-mono text-[#949C96]">· {pair.routeHub}</span>
                       </div>
-                      <div className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
+                      <div className="text-[11px] text-[#949C96]">
                         {pair.aircraftModel}
                       </div>
                     </div>
@@ -262,10 +284,10 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
                   <span
                     className={`px-3 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 ${
                       isCritical
-                        ? 'bg-[#D97865] text-[#111A19]'
+                        ? 'bg-[#D97865] text-[#181B19]'
                         : isAsymmetry
-                          ? 'bg-[#D8B65E] text-[#111A19]'
-                          : 'bg-[#82A995]/20 border border-[#82A995]/60 text-[#82A995]'
+                          ? 'bg-[#D8B65E] text-[#181B19]'
+                          : 'bg-[#B8CE82]/20 border border-[#B8CE82]/50 text-[#B8CE82]'
                     }`}
                   >
                     {isCritical ? (
@@ -290,34 +312,34 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
                         onClick={() => onSelectEngineForTwin(eng.id)}
                         className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer group ${
                           isSelected
-                            ? 'bg-[#293834] text-[#E7ECE7] border-[#B3C58B] shadow-md'
-                            : 'bg-[#182321] border-[#46564D] hover:border-[#B3C58B]/60 text-[#E7ECE7]'
+                            ? 'bg-[#2B302D] text-[#EAECE9] border-[#B8CE82] shadow-md'
+                            : 'bg-[#1B1F1D]/85 border-white/[0.07] hover:border-[#B8CE82]/50 text-[#EAECE9]'
                         }`}
                       >
                         <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
-                          <span className="text-[#A6B4AA]">
+                          <span className="text-[#949C96]">
                             {eng.wingPosition === 'ENG-L' ? 'Left Wing (ENG-L)' : 'Right Wing (ENG-R)'}
                           </span>
-                          <span className="flex items-center gap-0.5 font-mono font-bold text-[#B3C58B]">
+                          <span className="flex items-center gap-0.5 font-mono font-bold text-[#B8CE82]">
                             <span>3D Twin</span>
                             <ArrowUpRight className="w-3.5 h-3.5" />
                           </span>
                         </div>
 
                         <div className="mt-1.5 flex items-baseline justify-between font-mono">
-                          <span className="text-sm font-bold text-[#E7ECE7] tabular-nums">{eng.id}</span>
+                          <span className="text-sm font-bold text-[#EAECE9] tabular-nums">{eng.id}</span>
                           <span
                             className={`text-sm font-bold tabular-nums ${
                               eng.conformalRul < 20
                                 ? 'text-[#D97865]'
-                                : 'text-[#82A995]'
+                                : 'text-[#B8CE82]'
                             }`}
                           >
                             {eng.conformalRul.toFixed(1)}c
                           </span>
                         </div>
 
-                        <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono text-[#A6B4AA] tabular-nums">
+                        <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono text-[#949C96] tabular-nums">
                           <span>T30: {eng.t30.toFixed(1)}°R</span>
                           <span>η: {eng.hpcEfficiencyPct.toFixed(1)}%</span>
                         </div>
@@ -327,14 +349,14 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
                 </div>
 
                 {/* Wing RUL Delta Bar */}
-                <div className="bg-[#182321] rounded-2xl p-3.5 border border-[#46564D] space-y-1.5">
+                <div className="bg-[#1B1F1D]/85 rounded-2xl p-3.5 border border-white/[0.07] space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
+                    <span className="text-[10px] uppercase tracking-wider text-[#949C96]">
                       Wing RUL Delta |RUL_L − RUL_R|
                     </span>
                     <span
                       className={`font-mono font-bold tabular-nums text-xs ${
-                        pair.rulDelta > 40 ? 'text-[#D8B65E]' : 'text-[#82A995]'
+                        pair.rulDelta > 40 ? 'text-[#D8B65E]' : 'text-[#B8CE82]'
                       }`}
                     >
                       Δ = {pair.rulDelta.toFixed(1)} cycles{' '}
@@ -342,7 +364,7 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
                     </span>
                   </div>
 
-                  <div className="relative h-2 bg-[#111A19] rounded-full overflow-hidden">
+                  <div className="relative h-2 bg-[#141715] rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all"
                       style={{
@@ -350,12 +372,12 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
                         background:
                           pair.rulDelta > 40
                             ? 'linear-gradient(90deg, #D8B65E 0%, #D97865 100%)'
-                            : 'linear-gradient(90deg, #82A995 0%, #B3C58B 100%)',
+                            : 'linear-gradient(90deg, #82A995 0%, #B8CE82 100%)',
                       }}
                     />
                   </div>
 
-                  <div className="text-[11px] text-[#A6B4AA] leading-snug pt-0.5">
+                  <div className="text-[11px] text-[#949C96] leading-snug pt-0.5">
                     {pair.advisoryMessage}
                   </div>
                 </div>
@@ -365,11 +387,11 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
         </div>
       ) : (
         /* VIEW 2: Single Engine Table */
-        <div className="backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-5 shadow-2xl overflow-hidden">
+        <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#46564D] text-[10px] font-mono uppercase tracking-wider text-[#A6B4AA]">
+                <tr className="border-b border-white/[0.08] text-[10px] font-mono uppercase tracking-wider text-[#949C96]">
                   <th className="py-3 px-4">Engine ESN</th>
                   <th className="py-3 px-4">Tail / Wing</th>
                   <th className="py-3 px-4">Cycles</th>
@@ -381,39 +403,39 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
                   <th className="py-3 px-4 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#46564D]/50 text-xs font-mono tabular-nums">
+              <tbody className="divide-y divide-white/[0.06] text-xs font-mono tabular-nums">
                 {filteredSingleEngines.map((eng) => (
                   <tr
                     key={eng.id}
-                    className={`hover:bg-[#293834]/60 transition-colors ${
-                      eng.id === selectedEngineId ? 'bg-[#293834] font-semibold' : ''
+                    className={`hover:bg-[#2B302D]/60 transition-colors ${
+                      eng.id === selectedEngineId ? 'bg-[#2B302D] font-semibold' : ''
                     }`}
                   >
-                    <td className="py-3 px-4 font-bold text-[#E7ECE7]">{eng.id}</td>
-                    <td className="py-3 px-4 text-[#A6B4AA]">
+                    <td className="py-3 px-4 font-bold text-[#EAECE9]">{eng.id}</td>
+                    <td className="py-3 px-4 text-[#949C96]">
                       {eng.tailId} · {eng.wingPosition}
                     </td>
-                    <td className="py-3 px-4 text-[#A6B4AA]">{eng.flightCycles}c</td>
-                    <td className="py-3 px-4 font-bold text-[#B3C58B]">
+                    <td className="py-3 px-4 text-[#949C96]">{eng.flightCycles}c</td>
+                    <td className="py-3 px-4 font-bold text-[#B8CE82]">
                       {eng.conformalRul.toFixed(1)}c
                     </td>
                     <td
                       className={`py-3 px-4 ${
-                        eng.t30 >= 1590 ? 'text-[#D97865] font-bold' : 'text-[#A6B4AA]'
+                        eng.t30 >= 1590 ? 'text-[#D97865] font-bold' : 'text-[#949C96]'
                       }`}
                     >
                       {eng.t30.toFixed(1)}°R
                     </td>
-                    <td className="py-3 px-4 text-[#A6B4AA]">{eng.p30.toFixed(1)}</td>
-                    <td className="py-3 px-4 text-[#A6B4AA]">{eng.hpcEfficiencyPct.toFixed(1)}%</td>
+                    <td className="py-3 px-4 text-[#949C96]">{eng.p30.toFixed(1)}</td>
+                    <td className="py-3 px-4 text-[#949C96]">{eng.hpcEfficiencyPct.toFixed(1)}%</td>
                     <td className="py-3 px-4">
                       <span
                         className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                           eng.urgency === 'CRITICAL OVERHAUL'
-                            ? 'bg-[#D97865] text-[#111A19]'
+                            ? 'bg-[#D97865] text-[#181B19]'
                             : eng.urgency === 'SCHEDULED SHOP VISIT'
-                              ? 'bg-[#D8B65E] text-[#111A19]'
-                              : 'bg-[#82A995]/20 border border-[#82A995]/60 text-[#82A995]'
+                              ? 'bg-[#D8B65E] text-[#181B19]'
+                              : 'bg-[#B8CE82]/20 border border-[#B8CE82]/50 text-[#B8CE82]'
                         }`}
                       >
                         {eng.urgency}
@@ -423,7 +445,7 @@ export const FleetEtopsScreen: React.FC<FleetEtopsScreenProps> = ({
                       <button
                         type="button"
                         onClick={() => onSelectEngineForTwin(eng.id)}
-                        className="px-3 py-1 rounded-xl bg-[#B3C58B] hover:bg-[#B3C58B]/90 text-[#111A19] text-[10px] font-mono font-bold uppercase tracking-wider cursor-pointer"
+                        className="px-3.5 py-1 rounded-full bg-[#B8CE82] hover:bg-[#B8CE82]/90 text-[#181B19] text-[10px] font-mono font-bold uppercase tracking-wider cursor-pointer"
                       >
                         Inspect 3D Twin
                       </button>

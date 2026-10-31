@@ -4,7 +4,7 @@ import { TrajectoryPoint } from '../services/prognosticsEngine';
 
 /**
  * Dotted semi-circular arc gauge + vertical equalizer bars
- * Styled with high-density JetBrains Mono readouts and uppercase tracking-wider labels
+ * Styled with Overview warm dark slate-charcoal glassmorphism and JetBrains Mono readouts
  */
 interface DottedArcEqualizerProps {
   powerLabel: string;
@@ -66,7 +66,7 @@ export const DottedArcEqualizerWidget: React.FC<DottedArcEqualizerProps> = ({
           <path
             d={`M ${cx - rOuter - 8} ${cy} A ${rOuter + 8} ${rOuter + 8} 0 0 1 ${cx + rOuter + 8} ${cy}`}
             fill="none"
-            stroke="rgba(179,197,139,0.25)"
+            stroke="rgba(184,206,130,0.22)"
             strokeWidth="1"
             strokeDasharray="2 3"
           />
@@ -77,7 +77,7 @@ export const DottedArcEqualizerWidget: React.FC<DottedArcEqualizerProps> = ({
               y1={t.y1.toFixed(1)}
               x2={t.x2.toFixed(1)}
               y2={t.y2.toFixed(1)}
-              stroke={t.active ? '#B3C58B' : 'rgba(70,86,77,0.45)'}
+              stroke={t.active ? '#B8CE82' : 'rgba(255,255,255,0.12)'}
               strokeWidth="2.4"
               strokeLinecap="round"
             />
@@ -85,34 +85,34 @@ export const DottedArcEqualizerWidget: React.FC<DottedArcEqualizerProps> = ({
         </svg>
 
         <div className="absolute bottom-2 text-center">
-          <div className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">{powerLabel}</div>
-          <div className="text-base font-mono font-bold text-[#E7ECE7] tracking-tight">
-            {powerValue} <span className="text-xs font-mono font-normal text-[#B3C58B]">{powerUnit}</span>
+          <div className="text-[10px] uppercase tracking-wider text-[#949C96]">{powerLabel}</div>
+          <div className="text-base font-mono font-bold text-[#EAECE9] tracking-tight">
+            {powerValue} <span className="text-xs font-mono font-normal text-[#B8CE82]">{powerUnit}</span>
           </div>
         </div>
 
-        <div className="w-full flex justify-between px-4 text-[10px] font-mono text-[#A6B4AA] -mt-1">
+        <div className="w-full flex justify-between px-4 text-[10px] font-mono text-[#949C96] -mt-1">
           <span>0</span>
           <span>100%</span>
         </div>
       </div>
 
       {/* Two key-value summary lines */}
-      <div className="space-y-1.5 text-xs pt-1.5 border-t border-[#46564D]">
+      <div className="space-y-1.5 text-xs pt-1.5 border-t border-white/[0.08]">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">{metricLeftLabel}</span>
-          <span className="font-mono font-semibold text-[#B3C58B] tabular-nums">{metricLeftValue}</span>
+          <span className="text-[10px] uppercase tracking-wider text-[#949C96]">{metricLeftLabel}</span>
+          <span className="font-mono font-semibold text-[#B8CE82] tabular-nums">{metricLeftValue}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">{metricRightLabel}</span>
-          <span className="font-mono font-semibold text-[#E7ECE7] tabular-nums">{metricRightValue}</span>
+          <span className="text-[10px] uppercase tracking-wider text-[#949C96]">{metricRightLabel}</span>
+          <span className="font-mono font-semibold text-[#EAECE9] tabular-nums">{metricRightValue}</span>
         </div>
       </div>
 
       {/* Vertical Equalizer Bar Chart */}
       <div className="pt-1">
         <div className="flex items-center justify-between h-16 px-2 gap-1.5">
-          <div className="flex flex-col justify-between h-full text-[9px] font-mono text-[#A6B4AA]">
+          <div className="flex flex-col justify-between h-full text-[9px] font-mono text-[#949C96]">
             <span>1630</span>
             <span>°R</span>
             <span>1520</span>
@@ -123,7 +123,7 @@ export const DottedArcEqualizerWidget: React.FC<DottedArcEqualizerProps> = ({
               <div key={idx} className="h-full flex items-center">
                 <div
                   className={`w-1 rounded-full transition-all duration-300 ${
-                    bar.isYellow ? 'bg-[#D8B65E]' : 'bg-[#82A995]'
+                    bar.isYellow ? 'bg-[#D8B65E]' : 'bg-[#B8CE82]'
                   }`}
                   style={{ height: `${Math.round(bar.hFrac * 100)}%` }}
                 />
@@ -131,16 +131,16 @@ export const DottedArcEqualizerWidget: React.FC<DottedArcEqualizerProps> = ({
             ))}
           </div>
 
-          <div className="flex flex-col justify-between h-full text-[9px] font-mono text-[#A6B4AA] text-right">
+          <div className="flex flex-col justify-between h-full text-[9px] font-mono text-[#949C96] text-right">
             <span>45</span>
             <span>OPR</span>
             <span>28</span>
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-4 text-[10px] uppercase tracking-wider text-[#A6B4AA] mt-1.5">
+        <div className="flex items-center justify-center gap-4 text-[10px] uppercase tracking-wider text-[#949C96] mt-1.5">
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-0.5 bg-[#82A995] inline-block" />
+            <span className="w-2.5 h-0.5 bg-[#B8CE82] inline-block" />
             gas path
           </span>
           <span className="flex items-center gap-1.5">
@@ -205,11 +205,11 @@ export const CircularCompassSpoolDial: React.FC<CircularCompassSpoolDialProps> =
       <div className="space-y-2.5 min-w-[92px]">
         {leftReadouts.map((item, idx) => (
           <div key={idx}>
-            <div className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">{item.label}</div>
+            <div className="text-[10px] uppercase tracking-wider text-[#949C96]">{item.label}</div>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="text-xs font-mono font-bold text-[#E7ECE7] tabular-nums">{item.value}</span>
+              <span className="text-xs font-mono font-bold text-[#EAECE9] tabular-nums">{item.value}</span>
               <span className="w-5 h-0.5 bg-[#82A995] rounded-full relative">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#B3C58B] absolute -top-0.5 left-2" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#B8CE82] absolute -top-0.5 left-2" />
               </span>
             </div>
           </div>
@@ -227,7 +227,7 @@ export const CircularCompassSpoolDial: React.FC<CircularCompassSpoolDialProps> =
                 y1={t.y1.toFixed(1)}
                 x2={t.x2.toFixed(1)}
                 y2={t.y2.toFixed(1)}
-                stroke={t.isMajor ? '#B3C58B' : 'rgba(70,86,77,0.6)'}
+                stroke={t.isMajor ? '#B8CE82' : 'rgba(255,255,255,0.16)'}
                 strokeWidth={t.isMajor ? '1.5' : '1'}
               />
             ))}
@@ -237,8 +237,8 @@ export const CircularCompassSpoolDial: React.FC<CircularCompassSpoolDialProps> =
               cx={cx}
               cy={cy}
               r={rOrb}
-              fill="rgba(41, 56, 52, 0.85)"
-              stroke="#B3C58B"
+              fill="rgba(27, 31, 29, 0.9)"
+              stroke="#B8CE82"
               strokeWidth="1.2"
             />
 
@@ -248,21 +248,21 @@ export const CircularCompassSpoolDial: React.FC<CircularCompassSpoolDialProps> =
               y1={py1.toFixed(1)}
               x2={px2.toFixed(1)}
               y2={py2.toFixed(1)}
-              stroke="#B3C58B"
+              stroke="#B8CE82"
               strokeWidth="2.5"
               strokeLinecap="round"
             />
           </svg>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-            <span className="text-[9px] uppercase tracking-wider text-[#A6B4AA] leading-tight">{centerTitle}</span>
-            <span className="text-xs font-mono font-bold text-[#E7ECE7] tabular-nums mt-0.5">{centerValue}</span>
+            <span className="text-[9px] uppercase tracking-wider text-[#949C96] leading-tight">{centerTitle}</span>
+            <span className="text-xs font-mono font-bold text-[#EAECE9] tabular-nums mt-0.5">{centerValue}</span>
           </div>
         </div>
 
         <div className="text-center -mt-1">
-          <div className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">{bottomLabel}</div>
-          <div className="text-xs font-mono font-semibold text-[#B3C58B] tabular-nums">{bottomValue}</div>
+          <div className="text-[10px] uppercase tracking-wider text-[#949C96]">{bottomLabel}</div>
+          <div className="text-xs font-mono font-semibold text-[#B8CE82] tabular-nums">{bottomValue}</div>
         </div>
       </div>
     </div>
@@ -287,19 +287,19 @@ export const VerticalHatchedTempColumns: React.FC<{
       {columns.map((col, idx) => (
         <div key={idx} className="flex flex-col items-center">
           {/* Top Temperature Pill */}
-          <div className="w-full py-1 rounded-t-xl bg-[#293834] text-center text-[11px] font-mono font-semibold text-[#E7ECE7] tabular-nums border-b border-[#46564D]">
+          <div className="w-full py-1 rounded-t-xl bg-[#2B302D] text-center text-[11px] font-mono font-semibold text-[#EAECE9] tabular-nums border-b border-white/[0.08]">
             {col.tempText}
           </div>
 
           {/* Hatched Vertical Bar Track */}
-          <div className="relative w-full h-28 rounded-b-xl overflow-hidden hatched-track bg-[#182321] border border-t-0 border-[#46564D] flex flex-col justify-end">
+          <div className="relative w-full h-28 rounded-b-xl overflow-hidden hatched-track bg-[#1B1F1D] border border-t-0 border-white/[0.07] flex flex-col justify-end">
             <div
               className="w-full rounded-t-sm transition-all duration-300"
               style={{
                 height: `${Math.max(18, Math.min(92, col.fillPct))}%`,
                 background: col.isWarning
                   ? 'linear-gradient(180deg, rgba(216,182,94,0.92) 0%, rgba(217,120,101,0.55) 100%)'
-                  : 'linear-gradient(180deg, rgba(179,197,139,0.88) 0%, rgba(130,169,149,0.45) 100%)',
+                  : 'linear-gradient(180deg, rgba(184,206,130,0.88) 0%, rgba(130,169,149,0.45) 100%)',
               }}
             />
 
@@ -307,14 +307,14 @@ export const VerticalHatchedTempColumns: React.FC<{
             {col.isWarning && (
               <div
                 title="Thermal Threshold Exceedance"
-                className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-[#D8B65E] text-[#111A19] rounded-lg px-2 py-1 shadow-md flex items-center justify-center"
+                className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-[#D8B65E] text-[#181B19] rounded-lg px-2 py-1 shadow-md flex items-center justify-center"
               >
                 <AlertTriangle className="w-3.5 h-3.5 stroke-[2.2]" />
               </div>
             )}
           </div>
 
-          <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA] mt-1.5 truncate">{col.label}</span>
+          <span className="text-[10px] uppercase tracking-wider text-[#949C96] mt-1.5 truncate">{col.label}</span>
         </div>
       ))}
     </div>
@@ -322,7 +322,7 @@ export const VerticalHatchedTempColumns: React.FC<{
 };
 
 /**
- * Double-ring circular gauge for dark glassmorphism HUD cards
+ * Double-ring circular gauge for Overview-themed dark glassmorphism HUD cards
  */
 export const DoubleRingGaugeLight: React.FC<{
   value: string;
@@ -368,22 +368,22 @@ export const DoubleRingGaugeLight: React.FC<{
       <div className="space-y-3">
         <div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xl font-mono font-bold text-[#E7ECE7] tabular-nums">{leftTopVal}</span>
+            <span className="text-xl font-mono font-bold text-[#EAECE9] tabular-nums">{leftTopVal}</span>
             <span className="w-4 h-4 rounded-full bg-[#82A995]/20 border border-[#82A995]/50 text-[#82A995] flex items-center justify-center">
               <ArrowUpRight className="w-2.5 h-2.5" />
             </span>
           </div>
-          <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA] block">{leftTopLabel}</span>
+          <span className="text-[11px] text-[#949C96] block">{leftTopLabel}</span>
         </div>
 
         <div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xl font-mono font-bold text-[#B3C58B] tabular-nums">{leftBottomVal}</span>
-            <span className="w-4 h-4 rounded-full bg-[#B3C58B]/20 border border-[#B3C58B]/50 text-[#B3C58B] flex items-center justify-center">
+            <span className="text-xl font-mono font-bold text-[#B8CE82] tabular-nums">{leftBottomVal}</span>
+            <span className="w-4 h-4 rounded-full bg-[#B8CE82]/20 border border-[#B8CE82]/50 text-[#B8CE82] flex items-center justify-center">
               <ArrowUpRight className="w-2.5 h-2.5" />
             </span>
           </div>
-          <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA] block">{leftBottomLabel}</span>
+          <span className="text-[11px] text-[#949C96] block">{leftBottomLabel}</span>
         </div>
       </div>
 
@@ -392,22 +392,22 @@ export const DoubleRingGaugeLight: React.FC<{
           <path
             d={arcPath(startAngle, endAngle, r)}
             fill="none"
-            stroke="#293834"
+            stroke="rgba(255,255,255,0.08)"
             strokeWidth="8"
             strokeLinecap="round"
           />
           <path
             d={arcPath(startAngle, activeEnd, r)}
             fill="none"
-            stroke="#B3C58B"
+            stroke="#B8CE82"
             strokeWidth="8"
             strokeLinecap="round"
           />
-          <circle cx={cx} cy={cy} r={32} fill="#182321" stroke="#46564D" />
+          <circle cx={cx} cy={cy} r={32} fill="#1B1F1D" stroke="rgba(255,255,255,0.08)" />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
-          <span className="text-xl font-mono font-bold text-[#E7ECE7] tabular-nums">{value}</span>
-          <span className="text-[9px] uppercase tracking-wider text-[#A6B4AA]">{unit}</span>
+          <span className="text-xl font-mono font-bold text-[#EAECE9] tabular-nums">{value}</span>
+          <span className="text-[9px] uppercase tracking-wider text-[#949C96]">{unit}</span>
         </div>
       </div>
     </div>
@@ -415,7 +415,7 @@ export const DoubleRingGaugeLight: React.FC<{
 };
 
 /**
- * Smooth dual-color Bezier spline chart with monospace axis readouts
+ * Smooth dual-color Bezier spline chart with monospace axis readouts matching Overview Flight Cycle Trend
  */
 export const SmoothBezierTrendChart: React.FC<{
   trajectory: TrajectoryPoint[];
@@ -475,7 +475,7 @@ export const SmoothBezierTrendChart: React.FC<{
                 y1={y}
                 x2={width - 8}
                 y2={y}
-                stroke="rgba(70, 86, 77, 0.5)"
+                stroke="rgba(255, 255, 255, 0.06)"
                 strokeWidth="1"
               />
               <text
@@ -483,7 +483,7 @@ export const SmoothBezierTrendChart: React.FC<{
                 y={y + 3}
                 fontSize="8"
                 fontFamily="JetBrains Mono, monospace"
-                fill="#A6B4AA"
+                fill="#949C96"
               >
                 {Math.round((1 - g) * 100)}
               </text>
@@ -497,7 +497,7 @@ export const SmoothBezierTrendChart: React.FC<{
           y1={padY - 4}
           x2={cursorX}
           y2={height - padY + 2}
-          stroke="rgba(179, 197, 139, 0.55)"
+          stroke="rgba(184, 206, 130, 0.45)"
           strokeWidth="1"
           strokeDasharray="3 3"
         />
@@ -506,7 +506,7 @@ export const SmoothBezierTrendChart: React.FC<{
         <path
           d={smoothSvgPath(rulPts)}
           fill="none"
-          stroke={sensorFaultActive ? '#D97865' : '#82A995'}
+          stroke={sensorFaultActive ? '#D97865' : '#B8CE82'}
           strokeWidth="2.2"
         />
 
@@ -523,7 +523,7 @@ export const SmoothBezierTrendChart: React.FC<{
             cx={rulPts[midIdx].x}
             cy={rulPts[midIdx].y}
             r="3.5"
-            fill="#82A995"
+            fill="#B8CE82"
             stroke="#111A19"
             strokeWidth="1.5"
           />

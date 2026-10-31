@@ -4,13 +4,12 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import {
   AlertTriangle,
-  ArrowUpRight,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   Droplets,
   Eye,
   EyeOff,
-  FileCheck2,
   Flame,
   Layers,
   Maximize2,
@@ -19,6 +18,7 @@ import {
   Play,
   RotateCcw,
   ShieldAlert,
+  Thermometer,
 } from 'lucide-react';
 import {
   EngineTelemetry,
@@ -26,36 +26,45 @@ import {
   TURBOFAN_STAGE_SPECS,
 } from '../services/prognosticsEngine';
 import { buildTrent1000CutawayModel } from './Trent1000ProceduralModel';
-import {
-  CircularCompassSpoolDial,
-  DottedArcEqualizerWidget,
-  VerticalHatchedTempColumns,
-} from '../components/TelemetryWidgets';
-import { ShootingStars } from '@/src/components/ui/shooting-stars';
-import { StarsBackground } from '@/src/components/ui/stars-background';
 
 interface DigitalTwinViewportProps {
   engine: EngineTelemetry;
   onWaterWash: (engineId: string) => void;
   onToggleSensorFault: (engineId: string) => void;
   onNavigateToDossier: () => void;
+  onNavigateToDiagnostics?: () => void;
   actionBanner: string | null;
 }
 
 const STAGE_ORDER: StageId[] = ['FAN', 'LPC', 'HPC', 'COMBUSTOR', 'HPT', 'LPT'];
+
+// 7-station bar matching the reference image: FAN | IPC | HPC | COMB | HPT | IPT | LPT
+const REFERENCE_STAGE_BAR: Array<{
+  key: string;
+  label: string;
+  stageId: StageId;
+}> = [
+  { key: 'FAN', label: 'FAN', stageId: 'FAN' },
+  { key: 'IPC', label: 'IPC', stageId: 'LPC' },
+  { key: 'HPC', label: 'HPC', stageId: 'HPC' },
+  { key: 'COMB', label: 'COMB', stageId: 'COMBUSTOR' },
+  { key: 'HPT', label: 'HPT', stageId: 'HPT' },
+  { key: 'IPT', label: 'IPT', stageId: 'LPT' },
+  { key: 'LPT', label: 'LPT', stageId: 'LPT' },
+];
 
 // Reusable Three.js vectors & colors outside the render loop
 const _worldPos = new THREE.Vector3();
 const _ndcPos = new THREE.Vector3();
 const _raycaster = new THREE.Raycaster();
 const _pointerNdc = new THREE.Vector2();
-const _highlightAmber = new THREE.Color('#facc15');
-const _highlightCrimson = new THREE.Color('#ef4444');
-const _highlightCyan = new THREE.Color('#00e5ff');
-const _blueprintTint = new THREE.Color('#0ea5e9');
-const _blueprintStrokeCyan = new THREE.Color('#00e5ff');
-const _blueprintStrokeAmber = new THREE.Color('#facc15');
-const _blueprintStrokeCrimson = new THREE.Color('#ef4444');
+const _highlightAmber = new THREE.Color('#D8B65E');
+const _highlightCrimson = new THREE.Color('#D97865');
+const _highlightSage = new THREE.Color('#B8CE82');
+const _blueprintTint = new THREE.Color('#82A995');
+const _blueprintStrokeSage = new THREE.Color('#B8CE82');
+const _blueprintStrokeAmber = new THREE.Color('#D8B65E');
+const _blueprintStrokeCrimson = new THREE.Color('#D97865');
 
 export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
   engine,
@@ -76,21 +85,23 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     LPT: null,
   });
 
-  const [selectedStage, setSelectedStage] = useState<StageId | null>('HPC');
-  const [cowlingOpen, setCowlingOpen] = useState<boolean>(true);
-  const [explodedSlider, setExplodedSlider] = useState<number>(0.42);
+  // Start in realistic metallic cutaway view (matching the reference photo) with FAN active pill
+  const [selectedStage, setSelectedStage] = useState<StageId | null>(null);
+  const [activeBarKey, setActiveBarKey] = useState<string>('FAN');
+  const [cowlingOpen, setCowlingOpen] = useState<boolean>(false);
+  const [explodedSlider, setExplodedSlider] = useState<number>(0.08);
   const [thermalHeatmap, setThermalHeatmap] = useState<boolean>(false);
-  const [blueprintXray, setBlueprintXray] = useState<boolean>(true);
+  const [blueprintXray, setBlueprintXray] = useState<boolean>(false);
   const [isSpinning, setIsSpinning] = useState<boolean>(true);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [hudCollapsed, setHudCollapsed] = useState<boolean>(false);
 
   const stateRef = useRef({
-    selectedStage: 'HPC' as StageId | null,
-    cowlingOpen: true,
-    explodedSlider: 0.42,
+    selectedStage: null as StageId | null,
+    cowlingOpen: false,
+    explodedSlider: 0.08,
     thermalHeatmap: false,
-    blueprintXray: true,
+    blueprintXray: false,
     isSpinning: true,
     n1RpmPct: engine.n1RpmPct,
     n2RpmPct: engine.n2RpmPct,
@@ -98,8 +109,8 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     t30: engine.t30,
     t50: engine.t50,
     cameraTransitionActive: true,
-    desiredCamPos: new THREE.Vector3(5.0, 2.05, 4.5),
-    desiredCamTarget: new THREE.Vector3(0, -0.2, 0.2),
+    desiredCamPos: new THREE.Vector3(11.6, 2.25, 11.1),
+    desiredCamTarget: new THREE.Vector3(0.05, -0.25, 0.0),
   });
 
   useEffect(() => {
@@ -128,26 +139,28 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     engine.t50,
   ]);
 
-  const handleSelectStage = (stage: StageId | null) => {
+  const handleSelectStage = (stage: StageId | null, barKey?: string) => {
     if (stage === null) {
       setSelectedStage(null);
-      setExplodedSlider(0.0);
+      setActiveBarKey('FAN');
+      setExplodedSlider(0.08);
       setCowlingOpen(false);
       setBlueprintXray(false);
-      stateRef.current.desiredCamPos.set(6.8, 2.5, 6.2);
-      stateRef.current.desiredCamTarget.set(0, -0.2, 0);
+      stateRef.current.desiredCamPos.set(11.6, 2.25, 11.1);
+      stateRef.current.desiredCamTarget.set(0.05, -0.25, 0);
       stateRef.current.cameraTransitionActive = true;
       return;
     }
 
     setSelectedStage(stage);
+    setActiveBarKey(barKey ?? stage);
     setCowlingOpen(true);
     setBlueprintXray(true);
-    setExplodedSlider(0.62);
+    setExplodedSlider(0.55);
 
     const spec = TURBOFAN_STAGE_SPECS[stage];
     const rotY = -Math.PI * 0.36;
-    const explodedZShift = spec.explodeMultipliers[stage] * 0.62 * 1.15;
+    const explodedZShift = spec.explodeMultipliers[stage] * 0.55 * 1.15;
     const localCam = new THREE.Vector3(
       spec.cameraPos[0],
       spec.cameraPos[1],
@@ -157,7 +170,7 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
 
     const localTarget = new THREE.Vector3(
       spec.cameraTarget[0],
-      spec.cameraTarget[1] - 0.25,
+      spec.cameraTarget[1] - 0.15,
       spec.cameraTarget[2] + explodedZShift
     );
     localTarget.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY);
@@ -169,11 +182,12 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
 
   const handleResetCamera = () => {
     setSelectedStage(null);
-    setCowlingOpen(true);
+    setActiveBarKey('FAN');
+    setCowlingOpen(false);
     setBlueprintXray(false);
-    setExplodedSlider(0.28);
-    stateRef.current.desiredCamPos.set(6.2, 2.35, 5.6);
-    stateRef.current.desiredCamTarget.set(0, -0.2, 0.0);
+    setExplodedSlider(0.08);
+    stateRef.current.desiredCamPos.set(11.6, 2.25, 11.1);
+    stateRef.current.desiredCamTarget.set(0.05, -0.25, 0.0);
     stateRef.current.cameraTransitionActive = true;
   };
 
@@ -195,12 +209,11 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     const width = container.clientWidth || 1200;
     const height = container.clientHeight || 720;
 
-    // Transparent WebGL backdrop so ShootingStars & StarsBackground shine behind the 3D engine
     const scene = new THREE.Scene();
     scene.background = null;
 
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 120);
-    camera.position.set(5.0, 2.05, 4.5);
+    const camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 120);
+    camera.position.set(11.6, 2.25, 11.1);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: !isSoftwareGl,
@@ -210,7 +223,7 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     renderer.setClearColor(0x000000, 0);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.28;
     renderer.setPixelRatio(isSoftwareGl ? 1 : Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     renderer.shadowMap.enabled = !isSoftwareGl;
@@ -223,8 +236,8 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
     pmremGenerator.dispose();
 
-    // 3-Point Aerospace Studio Lighting
-    const keyLight = new THREE.DirectionalLight('#ffffff', 2.8);
+    // Warm Industrial Studio Lighting (leaves 3D engine geometry untouched)
+    const keyLight = new THREE.DirectionalLight('#fff8eb', 2.9);
     keyLight.position.set(6, 10, 7);
     if (!isSoftwareGl) {
       keyLight.castShadow = true;
@@ -234,26 +247,20 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     }
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight('#38bdf8', 1.85);
+    const rimLight = new THREE.DirectionalLight('#b8ce82', 1.65);
     rimLight.position.set(-8, 6, -5);
     scene.add(rimLight);
 
-    const bounceLight = new THREE.DirectionalLight('#facc15', 0.85);
+    const bounceLight = new THREE.DirectionalLight('#d8b65e', 0.95);
     bounceLight.position.set(0, -7, 3);
     scene.add(bounceLight);
 
-    const hemiLight = new THREE.HemisphereLight('#e2e8f0', '#0f172a', 1.15);
+    const hemiLight = new THREE.HemisphereLight('#e7ece7', '#181b19', 1.2);
     scene.add(hemiLight);
 
-    // Subtle Blueprint Radial Floor Grid & Contact Shadow Disc beneath Engine
+    // Subtle Contact Shadow Disc beneath Engine
     const floorGroup = new THREE.Group();
-    floorGroup.position.y = -2.85;
-
-    const gridHelper = new THREE.PolarGridHelper(6.5, 16, 6, 64, '#1e293b', '#0ea5e9');
-    const gridMat = gridHelper.material as THREE.Material;
-    gridMat.transparent = true;
-    gridMat.opacity = 0.24;
-    floorGroup.add(gridHelper);
+    floorGroup.position.y = -2.65;
 
     const shadowCanvas = document.createElement('canvas');
     shadowCanvas.width = 128;
@@ -278,9 +285,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     floorGroup.add(shadowDisc);
     scene.add(floorGroup);
 
-    // Build Procedural Rolls-Royce Trent 1000 Cutaway Model
+    // Build Procedural Rolls-Royce Trent 1000 Cutaway Model (Untouched)
     const assembly = buildTrent1000CutawayModel(renderer);
-    assembly.rootGroup.position.y = -0.25;
+    assembly.rootGroup.position.y = 0.35;
     scene.add(assembly.rootGroup);
 
     // OrbitControls
@@ -288,9 +295,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
     controls.minDistance = 2.6;
-    controls.maxDistance = 15.0;
+    controls.maxDistance = 18.0;
     controls.maxPolarAngle = Math.PI * 0.62;
-    controls.target.set(0, -0.2, 0.2);
+    controls.target.set(0.05, -0.25, 0.0);
 
     const onControlStart = () => {
       stateRef.current.cameraTransitionActive = false;
@@ -334,7 +341,6 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     };
     window.addEventListener('resize', onResize);
 
-    // Frame pacing loop with software GL fenceSync support
     let isUnmounted = false;
     let frameId = 0;
     const clock = new THREE.Clock();
@@ -434,9 +440,6 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         });
       }
 
-      // =========================================================================
-      // ENHANCED NORMAL COLORS, CUSTOM GLSL THERMAL SHADER & BLUEPRINT X-RAY
-      // =========================================================================
       const isZoomedOrBlueprint = st.blueprintXray || st.selectedStage !== null;
       const elapsed = clock.elapsedTime;
       const normT24 = Math.max(0.0, Math.min(1.0, (st.t24 - 615) / 65));
@@ -449,7 +452,6 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         const isSelectedShroud =
           st.selectedStage !== null && item.stageId === st.selectedStage && item.isOuterShell;
 
-        // Drive custom GLSL thermal shader uniforms (Blue -> Cyan -> Emerald -> Amber -> Bright Crimson)
         item.shaderUniforms.uThermalActive.value = THREE.MathUtils.lerp(
           item.shaderUniforms.uThermalActive.value,
           st.thermalHeatmap ? 1.0 : 0.0,
@@ -460,7 +462,6 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         item.shaderUniforms.uT50Norm.value = normT50;
         item.shaderUniforms.uTime.value = elapsed;
 
-        // 1. Color & Emissive Selection (Thermal FLIR vs Normal / Selected Highlight)
         if (st.thermalHeatmap) {
           item.mat.color.lerp(item.thermalColor, 0.22);
           item.mat.emissive.lerp(item.thermalEmissive, 0.22);
@@ -474,14 +475,13 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
               ? _highlightCrimson
               : spec.severity === 'WARNING'
                 ? _highlightAmber
-                : _highlightCyan;
+                : _highlightSage;
           item.mat.color.lerp(item.baseColor, 0.2);
           item.mat.emissive.lerp(highlightColor, 0.25);
           item.mat.emissiveIntensity = 0.55;
         } else if (isZoomedOrBlueprint && (item.isOuterShell || st.selectedStage !== null)) {
-          // Outer shell & non-selected stages get a subtle CAD blueprint cyan tint
           item.mat.color.lerp(_blueprintTint, 0.16);
-          item.mat.emissive.lerp(_blueprintStrokeCyan, 0.16);
+          item.mat.emissive.lerp(_blueprintStrokeSage, 0.16);
           item.mat.emissiveIntensity = 0.18;
         } else {
           item.mat.color.lerp(item.baseColor, 0.2);
@@ -489,10 +489,8 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
           item.mat.emissiveIntensity = item.baseEmissiveIntensity;
         }
 
-        // 2. Transparency & Depth Write (Inner parts solid, Outer casings & unselected parts transparent!)
         let targetOpacity = 1.0;
         if (st.thermalHeatmap) {
-          // In Thermal FLIR mode, outer shells & cowlings become ultra-transparent blueprint wireframes so all 6 thermal stages glow vividly
           if (item.stageId === 'COWLING' || item.isOuterShell) {
             targetOpacity = 0.08;
           } else if (st.selectedStage !== null && item.stageId !== st.selectedStage) {
@@ -508,21 +506,25 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
           } else if (isSelectedShroud) {
             targetOpacity = 0.08;
           } else if (st.selectedStage !== null) {
-            // Unselected adjacent stages become translucent blueprint ghosts so the zoomed stage stands out
             targetOpacity = item.isOuterShell ? 0.06 : 0.16;
           } else {
-            // Full-engine Blueprint X-Ray mode (no single stage selected): outer shells transparent, inner rotors visible
             targetOpacity = item.isOuterShell ? 0.09 : 0.92;
           }
         } else {
-          targetOpacity = item.stageId === 'COWLING' && st.cowlingOpen ? 0.22 : 1.0;
+          if (item.stageId === 'COWLING') {
+            targetOpacity = 0.05;
+          } else if (item.isOuterShell) {
+            targetOpacity = item.stageId === 'FAN' ? 0.28 : 0.07;
+          } else {
+            targetOpacity = 1.0;
+          }
         }
 
-        item.mat.opacity = THREE.MathUtils.lerp(item.mat.opacity, targetOpacity, 0.24);
+        const opLerp = isSoftwareGl ? 0.85 : 0.24;
+        item.mat.opacity = THREE.MathUtils.lerp(item.mat.opacity, targetOpacity, opLerp);
         item.mat.depthWrite = item.mat.opacity > 0.65;
       });
 
-      // 3. Update Blueprint Edge & Contour Stroke Lines (THREE.LineSegments)
       assembly.blueprintStrokes.forEach((stroke) => {
         const isSelectedStageStroke =
           st.selectedStage !== null && stroke.stageId === st.selectedStage;
@@ -536,22 +538,20 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
                 ? _blueprintStrokeCrimson
                 : spec.severity === 'WARNING'
                   ? _blueprintStrokeAmber
-                  : _blueprintStrokeCyan;
+                  : _blueprintStrokeSage;
             stroke.mat.color.lerp(activeStrokeCol, 0.25);
             stroke.mat.opacity = stroke.isOuterShell ? 0.92 : 0.65;
           } else {
-            stroke.mat.color.lerp(_blueprintStrokeCyan, 0.2);
+            stroke.mat.color.lerp(_blueprintStrokeSage, 0.2);
             stroke.mat.opacity = stroke.stageId === 'COWLING' ? 0.72 : 0.58;
           }
         } else {
-          // Subtle technical edge accent in standard solid mode
           stroke.line.visible = true;
-          stroke.mat.color.lerp(stroke.baseColor, 0.2);
-          stroke.mat.opacity = stroke.isOuterShell ? 0.22 : 0.12;
+          stroke.mat.color.lerp(_blueprintStrokeSage, 0.2);
+          stroke.mat.opacity = stroke.isOuterShell ? 0.38 : 0.14;
         }
       });
 
-      // Project all 6 Stage Concentric Target Rings (`◎`) + Active Leader Line Callout
       const cWidth = container.clientWidth || 1200;
       const cHeight = container.clientHeight || 720;
 
@@ -571,16 +571,16 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
             rawSx >= 325 && rawSx <= cWidth - 325 && rawSy >= 40 && rawSy <= cHeight - 230;
           btn.style.opacity = inSafeCenter || st.selectedStage === stageId ? '1' : '0';
           btn.style.pointerEvents = inSafeCenter || st.selectedStage === stageId ? 'auto' : 'none';
-          btn.style.transform = `translate3d(${(sx - 16).toFixed(1)}px, ${(sy - 16).toFixed(1)}px, 0)`;
+          btn.style.transform = `translate3d(${(sx - 12).toFixed(1)}px, ${(sy - 12).toFixed(1)}px, 0)`;
         }
 
         if (st.selectedStage === stageId && pinOverlayRef.current && leaderLineRef.current) {
-          const cardWidth = 332;
+          const cardWidth = 324;
           const minCardX = 335;
           const maxCardX = Math.max(minCardX, cWidth - 315 - cardWidth - 16);
           const preferredX = sx > cWidth * 0.52 ? sx - cardWidth - 46 : sx + 46;
           const cardX = Math.max(minCardX, Math.min(maxCardX, preferredX));
-          const cardY = Math.max(24, Math.min(cHeight - 420, sy - 95));
+          const cardY = Math.max(24, Math.min(cHeight - 400, sy - 95));
 
           const attachX = sx > cardX + cardWidth * 0.5 ? cardX + cardWidth : cardX;
           const elbowX = sx + (attachX - sx) * 0.38;
@@ -632,30 +632,26 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
   const activeStageSpec = selectedStage ? TURBOFAN_STAGE_SPECS[selectedStage] : null;
   const stageCalloutMetrics = activeStageSpec ? activeStageSpec.getMetrics(engine) : null;
 
-  const tempColumns = [
+  // 16-bar HPC Efficiency progress segments matching reference image
+  const totalEffSegments = 16;
+  const activeEffSegments = Math.round((engine.hpcEfficiencyPct / 100) * totalEffSegments);
+
+  // Horizontal temperature/pressure bars matching reference image
+  const tempRows = [
     {
-      label: 'LPC T24',
-      tempText: `${Math.round(engine.t24)}°R`,
-      fillPct: ((engine.t24 - 600) / 85) * 100,
-      isWarning: engine.t24 >= 665,
+      label: 'T30',
+      value: `${Math.round(engine.t30).toLocaleString()} °R`,
+      pct: Math.max(25, Math.min(92, ((engine.t30 - 1500) / 140) * 100)),
     },
     {
-      label: 'HPC T30',
-      tempText: `${Math.round(engine.t30)}°R`,
-      fillPct: ((engine.t30 - 1520) / 110) * 100,
-      isWarning: engine.t30 >= 1590,
+      label: 'T50',
+      value: `${Math.round(engine.t50).toLocaleString()} °R`,
+      pct: Math.max(30, Math.min(95, ((engine.t50 - 1300) / 160) * 100)),
     },
     {
-      label: 'EGT T50',
-      tempText: `${Math.round(engine.t50)}°R`,
-      fillPct: ((engine.t50 - 1340) / 120) * 100,
-      isWarning: engine.t50 >= 1435,
-    },
-    {
-      label: 'SOAP Fe',
-      tempText: `${engine.soapOilPpm.fe.toFixed(0)}ppm`,
-      fillPct: (engine.soapOilPpm.fe / 20) * 100,
-      isWarning: engine.soapOilPpm.fe >= 16,
+      label: 'P30',
+      value: `${engine.p30.toFixed(1)} psia`,
+      pct: Math.max(25, Math.min(88, ((engine.p30 - 480) / 100) * 100)),
     },
   ];
 
@@ -664,18 +660,40 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       aria-label="3D Digital Twin Command Viewport"
       className={
         isFullscreen
-          ? 'fixed inset-0 z-50 bg-[#111A19] overflow-hidden'
+          ? 'fixed inset-0 z-50 bg-[#181B19] overflow-hidden'
           : 'relative w-full h-[calc(100vh-76px)] min-h-[730px] bg-transparent overflow-hidden select-none'
       }
     >
-      {/* Aceternity Shooting Stars & Stars Background Layer Behind the 3D Engine */}
-      <div
+      {/* Subtle Technical Leader Lines Behind/Above the 3D Engine (Matching Reference Image) */}
+      <svg
         aria-hidden="true"
-        className="absolute inset-0 pointer-events-none z-0 bg-[radial-gradient(ellipse_at_center,_rgba(179,197,139,0.11)_0%,_rgba(130,169,149,0.06)_45%,_rgba(17,26,25,0.96)_90%)]"
+        viewBox="0 0 1440 820"
+        className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-65"
       >
-        <StarsBackground starDensity={0.00024} />
-        <ShootingStars starColor="#B3C58B" trailColor="#82A995" minDelay={900} maxDelay={2800} />
-      </div>
+        {/* Top technical bracket callout lines above the turbofan */}
+        <polyline
+          points="560,190 615,155 715,155 735,235"
+          fill="none"
+          stroke="#B8CE82"
+          strokeWidth="1"
+          strokeOpacity="0.55"
+        />
+        <circle cx="560" cy="190" r="2.5" fill="#B8CE82" />
+        <polyline
+          points="665,195 705,170 795,170 815,245"
+          fill="none"
+          stroke="#949C96"
+          strokeWidth="0.9"
+          strokeOpacity="0.45"
+        />
+        <polyline
+          points="795,215 835,165 925,165 945,250"
+          fill="none"
+          stroke="#949C96"
+          strokeWidth="0.9"
+          strokeOpacity="0.45"
+        />
+      </svg>
 
       {/* Dedicated WebGL Mount Container */}
       <div
@@ -688,9 +706,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       {actionBanner && (
         <div
           role="status"
-          className="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-2xl bg-[#1C2926]/95 border border-[#46564D] text-[#E7ECE7] px-4 py-2 rounded-2xl shadow-2xl text-xs font-mono flex items-center gap-2"
+          className="absolute top-2 left-1/2 -translate-x-1/2 z-30 backdrop-blur-2xl bg-[#252927]/95 border border-white/15 text-[#EAECE9] px-4 py-2 rounded-full shadow-2xl text-xs flex items-center gap-2.5"
         >
-          <span className="px-2 py-0.5 rounded-md bg-[#B3C58B] text-[#111A19] font-bold text-[10px] uppercase tracking-wider">
+          <span className="px-2.5 py-0.5 rounded-full bg-[#B8CE82] text-[#181B19] font-bold text-[10px] uppercase tracking-wider">
             AMM 72-00-00
           </span>
           <span>{actionBanner}</span>
@@ -701,29 +719,29 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       {thermalHeatmap && !actionBanner && (
         <div
           data-testid="thermal-shader-legend"
-          className="absolute top-4 left-1/2 -translate-x-1/2 z-30 backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-2xl px-4 py-2 shadow-2xl flex items-center gap-3 text-[10px] font-mono uppercase tracking-wider text-[#E7ECE7]"
+          className="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-2xl bg-[#232725]/90 border border-white/15 rounded-full px-4 py-1.5 shadow-2xl flex items-center gap-3 text-[11px] font-mono text-[#EAECE9]"
         >
-          <span className="text-[#B3C58B] font-bold">GLSL FLIR SHADER</span>
-          <span className="text-[#A6B4AA]">
+          <span className="text-[#B8CE82] font-bold">GLSL FLIR SHADER</span>
+          <span className="text-[#949C96]">
             T24: <strong className="text-[#82A995]">{engine.t24.toFixed(1)}°R</strong>
           </span>
           <div
-            className="w-28 h-2 rounded-full border border-[#46564D]"
+            className="w-24 h-2 rounded-full border border-white/15"
             style={{
               background:
                 'linear-gradient(90deg, #1752eb 0%, #00e5ff 25%, #82A995 50%, #D8B65E 75%, #D97865 100%)',
             }}
           />
-          <span className="text-[#A6B4AA]">
+          <span className="text-[#949C96]">
             T30: <strong className="text-[#D8B65E]">{engine.t30.toFixed(1)}°R</strong>
           </span>
-          <span className="text-[#A6B4AA]">
+          <span className="text-[#949C96]">
             T50: <strong className="text-[#D97865]">{engine.t50.toFixed(1)}°R</strong>
           </span>
         </div>
       )}
 
-      {/* Concentric Target Rings (`◎`) Projected on the 3D Engine */}
+      {/* Subtle Target Rings Projected on the 3D Engine */}
       <div className="absolute inset-0 pointer-events-none z-20">
         {STAGE_ORDER.map((stageId) => {
           const isSelected = selectedStage === stageId;
@@ -735,17 +753,17 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
                 stageRingRefs.current[stageId] = el;
               }}
               type="button"
-              onClick={() => handleSelectStage(stageId)}
+              onClick={() => handleSelectStage(stageId, stageId)}
               aria-label={`Inspect ${spec.shortName}`}
-              className={`pointer-events-auto absolute top-0 left-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+              className={`pointer-events-auto absolute top-0 left-0 w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                 isSelected
-                  ? 'border-2 border-[#B3C58B] bg-[#293834]/80 shadow-[0_0_16px_rgba(179,197,139,0.65)]'
-                  : 'border border-[#82A995]/80 bg-[#1C2926]/70 hover:bg-[#293834]/80'
+                  ? 'border-2 border-[#B8CE82] bg-[#252927]/90 shadow-[0_0_14px_rgba(184,206,130,0.65)]'
+                  : 'border border-white/25 bg-[#1E2220]/60 hover:border-[#B8CE82]'
               }`}
             >
               <span
-                className={`w-2 h-2 rounded-full ${
-                  isSelected ? 'bg-[#B3C58B]' : 'bg-[#82A995]'
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isSelected ? 'bg-[#B8CE82]' : 'bg-[#EAECE9]/75'
                 }`}
               />
             </button>
@@ -753,7 +771,7 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         })}
       </div>
 
-      {/* SVG Leader Line & Floating Glassmorphic Callout Card */}
+      {/* SVG Leader Line & Floating Callout Card when a specific 3D stage is clicked */}
       {selectedStage && activeStageSpec && stageCalloutMetrics && (
         <div className="absolute inset-0 pointer-events-none z-20">
           <svg className="w-full h-full">
@@ -765,9 +783,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
                   ? '#D97865'
                   : activeStageSpec.severity === 'WARNING'
                     ? '#D8B65E'
-                    : '#B3C58B'
+                    : '#B8CE82'
               }
-              strokeWidth="1.8"
+              strokeWidth="1.5"
               points="0,0 0,0 0,0"
             />
           </svg>
@@ -775,40 +793,31 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
           <div
             ref={pinOverlayRef}
             data-testid="stage-pin-callout"
-            className="pointer-events-auto absolute top-0 left-0 w-[332px] backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] rounded-3xl p-4 shadow-[0_12px_40px_rgba(0,0,0,0.75)] text-[#E7ECE7]"
+            className="pointer-events-auto absolute top-0 left-0 w-[324px] backdrop-blur-2xl bg-[#232725]/95 border border-white/15 rounded-[24px] p-4 shadow-[0_16px_44px_rgba(0,0,0,0.75)] text-[#EAECE9]"
           >
-            {/* Header with circular icon badge */}
             <div className="flex items-start justify-between gap-2.5">
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 border ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
                     activeStageSpec.severity === 'NOMINAL'
-                      ? 'bg-[#82A995]/20 border-[#82A995]/60 text-[#82A995]'
+                      ? 'bg-[#B8CE82]/20 border-[#B8CE82]/50 text-[#B8CE82]'
                       : activeStageSpec.severity === 'WARNING'
-                        ? 'bg-[#D8B65E]/20 border-[#D8B65E]/60 text-[#D8B65E]'
-                        : 'bg-[#D97865]/20 border-[#D97865]/60 text-[#D97865]'
+                        ? 'bg-[#D8B65E]/20 border-[#D8B65E]/50 text-[#D8B65E]'
+                        : 'bg-[#D97865]/20 border-[#D97865]/50 text-[#D97865]'
                   }`}
                 >
                   <AlertTriangle className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span
-                      className={`text-[11px] font-mono font-bold uppercase tracking-wider ${
-                        activeStageSpec.severity === 'NOMINAL'
-                          ? 'text-[#82A995]'
-                          : activeStageSpec.severity === 'WARNING'
-                            ? 'text-[#D8B65E]'
-                            : 'text-[#D97865]'
-                      }`}
-                    >
+                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#B8CE82]">
                       {activeStageSpec.shortName} · {activeStageSpec.severity}
                     </span>
-                    <span className="px-1.5 py-0.5 rounded bg-[#293834] border border-[#46564D] text-[9px] font-mono uppercase tracking-wider text-[#B3C58B]">
+                    <span className="px-1.5 py-0.5 rounded bg-[#2E3330] border border-white/10 text-[9px] font-mono uppercase tracking-wider text-[#EAECE9]">
                       X-RAY STROKE
                     </span>
                   </div>
-                  <div className="text-xs font-mono font-semibold text-[#E7ECE7] mt-0.5">
+                  <div className="text-xs font-mono font-semibold text-[#EAECE9] mt-0.5">
                     {stageCalloutMetrics.primaryReadout}
                   </div>
                 </div>
@@ -818,20 +827,20 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
                 type="button"
                 onClick={() => handleSelectStage(null)}
                 aria-label="Close Stage Callout"
-                className="text-[#A6B4AA] hover:text-[#E7ECE7] text-xs p-1 cursor-pointer font-mono"
+                className="text-[#949C96] hover:text-[#EAECE9] text-xs p-1 cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="mt-2.5 pt-2.5 border-t border-[#46564D] text-[11px] text-[#E7ECE7] space-y-1.5">
+            <div className="mt-2.5 pt-2.5 border-t border-white/10 text-[11px] text-[#EAECE9] space-y-1.5">
               <div className="flex items-center justify-between font-mono text-[11px]">
-                <span className="text-[#A6B4AA]">{stageCalloutMetrics.secondaryReadout}</span>
-                <span className="font-bold text-[#B3C58B]">
+                <span className="text-[#949C96]">{stageCalloutMetrics.secondaryReadout}</span>
+                <span className="font-bold text-[#B8CE82]">
                   {stageCalloutMetrics.efficiencyOrMargin}
                 </span>
               </div>
-              <p className="leading-relaxed text-[#A6B4AA] text-[11px]">
+              <p className="leading-relaxed text-[#949C96] text-[11px]">
                 {stageCalloutMetrics.borescopeLog}
               </p>
             </div>
@@ -842,10 +851,10 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
                   type="button"
                   onClick={() => onWaterWash(engine.id)}
                   disabled={engine.waterWashApplied}
-                  className={`flex-1 py-1.5 px-3 rounded-xl text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`flex-1 py-1.5 px-3 rounded-xl text-[11px] font-semibold transition-all cursor-pointer ${
                     engine.waterWashApplied
-                      ? 'bg-[#82A995]/20 text-[#82A995] border border-[#82A995]/50 cursor-not-allowed'
-                      : 'bg-[#B3C58B] hover:bg-[#B3C58B]/90 text-[#111A19] shadow-md'
+                      ? 'bg-[#82A995]/20 text-[#82A995] border border-[#82A995]/40 cursor-not-allowed'
+                      : 'bg-[#B8CE82] hover:bg-[#B8CE82]/90 text-[#181B19]'
                   }`}
                 >
                   {engine.waterWashApplied ? 'Water Wash Completed' : stageCalloutMetrics.actionLabel}
@@ -854,7 +863,7 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
                 <button
                   type="button"
                   onClick={onNavigateToDossier}
-                  className="flex-1 py-1.5 px-3 rounded-xl text-[11px] font-mono font-bold uppercase tracking-wider bg-[#B3C58B] hover:bg-[#B3C58B]/90 text-[#111A19] transition-all cursor-pointer"
+                  className="flex-1 py-1.5 px-3 rounded-xl text-[11px] font-semibold bg-[#B8CE82] hover:bg-[#B8CE82]/90 text-[#181B19] transition-all cursor-pointer"
                 >
                   {stageCalloutMetrics.actionLabel}
                 </button>
@@ -862,7 +871,7 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
               <button
                 type="button"
                 onClick={onNavigateToDossier}
-                className="py-1.5 px-2.5 rounded-xl text-[11px] font-mono font-semibold uppercase tracking-wider bg-[#293834] hover:bg-[#293834]/80 text-[#E7ECE7] border border-[#46564D] cursor-pointer"
+                className="py-1.5 px-2.5 rounded-xl text-[11px] font-medium bg-[#2E3330] hover:bg-[#383E3A] text-[#EAECE9] border border-white/10 cursor-pointer"
               >
                 Form 8130-3
               </button>
@@ -872,384 +881,440 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       )}
 
       {/* =====================================================================
-          LEFT FLOATING GLASSMORPHISM HUD PANEL ("Status" & "High-risk alarms")
+          LEFT COLUMN (MATCHES REFERENCE: "Engine Health at a Glance" + "Flight Cycle Trend")
          ===================================================================== */}
       {!hudCollapsed && (
         <aside
           aria-label="Active Engine Prognostics HUD"
-          className="absolute top-4 left-5 z-20 w-[304px] backdrop-blur-2xl bg-[#1C2926]/85 border border-[#46564D] rounded-3xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.65)] space-y-3.5 text-[#E7ECE7]"
+          className="absolute top-4 left-6 lg:left-8 z-20 w-[300px] space-y-6 pointer-events-none"
         >
-          {/* Card Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E7ECE7]">
-                Status
-              </h2>
-              <span className="px-2.5 py-0.5 rounded-lg bg-[#293834] border border-[#46564D] text-[10px] font-mono font-semibold uppercase tracking-wider text-[#B3C58B]">
-                Active · {engine.id}
-              </span>
+          {/* Top-Left Editorial Hero Block */}
+          <div className="pointer-events-auto space-y-2.5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#232725]/90 border border-white/15 text-xs text-[#EAECE9]">
+              <span className="w-2 h-2 rounded-full bg-[#B8CE82]" />
+              <span>Trent 1000</span>
             </div>
-            <span className="text-[11px] font-mono font-semibold text-[#A6B4AA]">{engine.tailId}</span>
+
+            <h2 className="text-[36px] leading-[1.12] font-normal tracking-tight text-[#EAECE9]">
+              Engine Health
+              <br />
+              at a Glance
+            </h2>
+
+            <p className="text-[13px] text-[#949C96]">
+              Digital Twin &amp; Predictive Maintenance
+            </p>
           </div>
 
-          {/* Key-Value Rows */}
-          <div className="space-y-2 text-xs pt-0.5">
+          {/* Middle-Left Card: Flight Cycle Trend */}
+          <div className="pointer-events-auto backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
-                Flight Cycle / LLP
-              </span>
-              <span className="font-mono font-semibold text-[#E7ECE7] tabular-nums">
-                {engine.flightCycles}c · {engine.llpAccumulatedCycles.toLocaleString()}c
-              </span>
+              <h3 className="text-[14px] font-normal text-[#EAECE9]">Flight Cycle Trend</h3>
+              <span className="text-[13px] font-medium text-[#B8CE82] tabular-nums">+2.8% ↑</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
-                Conformal RUL (90%)
-              </span>
-              <span className="font-mono font-bold text-[#B3C58B] tabular-nums">
-                {engine.sensorFaultActive ? 'ABSTAIN [0–125c]' : `${engine.conformalRul.toFixed(1)} cycles`}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
-                90% Interval Bounds
-              </span>
-              <span className="font-mono font-semibold text-[#82A995] tabular-nums">
-                [{engine.conformalLower90.toFixed(1)}, {engine.conformalUpper90.toFixed(1)}]c
-              </span>
-            </div>
-          </div>
 
-          {/* Dual Pill Bars ("DO-178C Sensor Fault" bar + Warning bar) */}
-          <div className="space-y-2 pt-0.5">
-            <div className="flex items-center justify-between bg-[#182321] border border-[#46564D] rounded-xl px-3.5 py-2 text-xs">
-              <span className="text-[10px] uppercase tracking-wider text-[#A6B4AA]">
-                DO-178C Sensor Fault
-              </span>
-              <span
-                className={`font-mono font-bold ${
-                  engine.sensorFaultActive ? 'text-[#D97865]' : 'text-[#82A995]'
-                }`}
+            {/* Smooth Spline Area Chart (Jun - Oct, 8.0 - 16.0) */}
+            <div className="pt-1">
+              <svg
+                viewBox="0 0 250 120"
+                className="w-full h-[116px] overflow-visible"
+                aria-label="Flight Cycle Trend Chart"
               >
-                {engine.sensorFaultActive ? 'FAULT_ABSTAIN' : 'NOMINAL'}
-              </span>
+                <defs>
+                  <linearGradient id="cycleTrendFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#B8CE82" stopOpacity="0.28" />
+                    <stop offset="100%" stopColor="#B8CE82" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+
+                {/* Horizontal Grid Lines & Y-Axis Labels */}
+                <line x1="34" y1="16" x2="242" y2="16" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                <text x="0" y="20" fontSize="10" fill="#949C96" className="font-mono">
+                  16.0
+                </text>
+
+                <line x1="34" y1="54" x2="242" y2="54" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+                <text x="0" y="58" fontSize="10" fill="#949C96" className="font-mono">
+                  12.0
+                </text>
+
+                <line x1="34" y1="92" x2="242" y2="92" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+                <text x="5" y="96" fontSize="10" fill="#949C96" className="font-mono">
+                  8.0
+                </text>
+
+                {/* Left Vertical Axis Line */}
+                <line x1="34" y1="12" x2="34" y2="92" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+
+                {/* Area under curve */}
+                <path
+                  d="M 40 86 C 65 82, 82 54, 110 52 C 142 50, 165 48, 190 40 C 210 34, 224 27, 236 22 L 236 92 L 40 92 Z"
+                  fill="url(#cycleTrendFill)"
+                />
+
+                {/* Smooth Sage-Lime Trend Curve */}
+                <path
+                  d="M 40 86 C 65 82, 82 54, 110 52 C 142 50, 165 48, 190 40 C 210 34, 224 27, 236 22"
+                  fill="none"
+                  stroke="#B8CE82"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                />
+
+                {/* Glowing End Point at Oct */}
+                <circle cx="236" cy="22" r="4.5" fill="#B8CE82" />
+
+                {/* X-Axis Month Labels */}
+                <text x="36" y="112" fontSize="10" fill="#949C96">
+                  Jun
+                </text>
+                <text x="84" y="112" fontSize="10" fill="#949C96">
+                  Jul
+                </text>
+                <text x="130" y="112" fontSize="10" fill="#949C96">
+                  Aug
+                </text>
+                <text x="178" y="112" fontSize="10" fill="#949C96">
+                  Sep
+                </text>
+                <text x="224" y="112" fontSize="10" fill="#949C96">
+                  Oct
+                </text>
+              </svg>
             </div>
-
-            <div className="flex items-center justify-between bg-[#D8B65E] rounded-xl px-3.5 py-2 text-xs shadow-sm">
-              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#111A19]">
-                Warnings · {engine.urgency}
-              </span>
-              <span className="font-mono font-bold text-[#111A19]">
-                {engine.urgency === 'NOMINAL' ? '0' : '1'}
-              </span>
-            </div>
-          </div>
-
-          {/* High-Risk Alarms Critical Banner */}
-          <div className="pt-1 border-t border-[#46564D] space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-[#A6B4AA]">
-                High-risk alarms
-              </span>
-              <button
-                type="button"
-                onClick={onNavigateToDossier}
-                className="text-[10px] font-mono uppercase tracking-wider text-[#B3C58B] hover:text-[#E7ECE7] cursor-pointer"
-              >
-                Dossier details ›
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between gap-2.5 bg-[#D97865]/15 border border-[#D97865]/50 rounded-2xl p-2.5">
-              <div className="w-7 h-7 rounded-full bg-[#D97865] text-[#111A19] flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-3.5 h-3.5" />
-              </div>
-              <div className="text-[11px] leading-snug text-[#E7ECE7] flex-1 font-mono">
-                HPC T30 reaches <strong className="text-[#D97865]">{engine.t30.toFixed(1)}°R</strong> (
-                {engine.t30CreepDelta >= 0 ? '+' : ''}
-                {engine.t30CreepDelta.toFixed(1)}°R creep).
-              </div>
-              <ArrowUpRight className="w-4 h-4 text-[#D97865] shrink-0" />
-            </div>
-          </div>
-
-          {/* Interactive Maintenance & Safety Actions */}
-          <div className="pt-1 space-y-1.5">
-            <button
-              type="button"
-              onClick={() => onWaterWash(engine.id)}
-              disabled={engine.waterWashApplied}
-              className={`w-full py-2 px-3 rounded-xl text-[11px] font-mono font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                engine.waterWashApplied
-                  ? 'bg-[#82A995]/20 text-[#82A995] border border-[#82A995]/50 cursor-not-allowed'
-                  : 'bg-[#B3C58B] hover:bg-[#B3C58B]/90 text-[#111A19] shadow-md'
-              }`}
-            >
-              <Droplets className="w-3.5 h-3.5" />
-              <span>
-                {engine.waterWashApplied
-                  ? 'Water Wash Applied (+32c)'
-                  : 'Perform Compressor Water Wash'}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onToggleSensorFault(engine.id)}
-              className={`w-full py-1.5 px-3 rounded-xl text-[11px] font-mono font-semibold uppercase tracking-wider flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
-                engine.sensorFaultActive
-                  ? 'bg-[#D97865] text-[#111A19] border-[#D97865] font-bold'
-                  : 'bg-[#293834] hover:bg-[#293834]/80 text-[#E7ECE7] border-[#46564D]'
-              }`}
-            >
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>
-                {engine.sensorFaultActive
-                  ? 'Clear DO-178C Sensor Fault'
-                  : 'Simulate Sensor Fault'}
-              </span>
-            </button>
           </div>
         </aside>
       )}
 
       {/* =====================================================================
-          RIGHT FLOATING GLASSMORPHISM HUD PANEL ("Overview")
+          RIGHT COLUMN (MATCHES REFERENCE: "Operational Status" + "HPC Efficiency")
          ===================================================================== */}
       {!hudCollapsed && (
         <aside
           aria-label="Spool and Gas-Path Gauges HUD"
-          className="absolute top-4 right-5 z-20 w-[296px] backdrop-blur-2xl bg-[#1C2926]/85 border border-[#46564D] rounded-3xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.65)] text-[#E7ECE7]"
+          className="absolute top-4 right-6 lg:right-8 z-20 w-[308px] space-y-4 pointer-events-none"
         >
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E7ECE7]">
-              Overview
-            </h2>
-            <ArrowUpRight className="w-4 h-4 text-[#B3C58B]" />
+          {/* Top-Right Card: Operational Status */}
+          <div className="pointer-events-auto backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[14px] font-normal text-[#EAECE9]">Operational Status</span>
+              <span
+                className={`px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                  engine.sensorFaultActive
+                    ? 'bg-[#D97865] text-[#181B19]'
+                    : 'bg-[#B8CE82] text-[#181B19]'
+                }`}
+              >
+                {engine.sensorFaultActive ? 'FAULT_ABSTAIN' : 'ACTIVE'}
+              </span>
+            </div>
+
+            <div className="flex items-end justify-between pt-1">
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[38px] leading-none font-normal tracking-tight text-[#EAECE9] tabular-nums">
+                    {engine.sensorFaultActive ? 'ABSTAIN' : engine.conformalRul.toFixed(1)}
+                  </span>
+                  {!engine.sensorFaultActive && (
+                    <span className="text-[15px] text-[#EAECE9]">cycles</span>
+                  )}
+                </div>
+                <div className="text-[12px] text-[#949C96] mt-1.5">RUL (90% PI)</div>
+              </div>
+
+              {/* Bracketed Prediction Interval [ 5.1 - 12.9 ] */}
+              <div className="text-[13px] font-mono text-[#EAECE9] tabular-nums flex items-center gap-1 pb-1">
+                <span className="text-[#949C96] text-base leading-none">[</span>
+                <span>
+                  {engine.conformalLower90.toFixed(1)} – {engine.conformalUpper90.toFixed(1)}
+                </span>
+                <span className="text-[#949C96] text-base leading-none">]</span>
+              </div>
+            </div>
+
+            {/* Moat 1: Kinematic Degradation Velocity & EKF Gate */}
+            <div className="pt-2 border-t border-white/[0.07] flex items-center justify-between text-[11px] font-mono">
+              <span className="text-[#949C96]">Kinematic Wear V_k:</span>
+              <span className={`font-semibold tabular-nums ${engine.sensorFaultActive ? 'text-[#D97865]' : 'text-[#B8CE82]'}`}>
+                {engine.sensorFaultActive ? 'FAULT_ABSTAIN' : `-0.042 %/c`}
+              </span>
+            </div>
+
+            {/* Subtle Quick Interactive Actions Row (Preserves Water Wash & Sensor Fault Testing) */}
+            <div className="pt-2 border-t border-white/[0.07] flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onWaterWash(engine.id)}
+                disabled={engine.waterWashApplied}
+                className={`flex-1 py-1.5 px-2.5 rounded-xl text-[10px] font-mono uppercase tracking-wider font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                  engine.waterWashApplied
+                    ? 'bg-[#82A995]/20 text-[#82A995] border border-[#82A995]/40 cursor-not-allowed'
+                    : 'bg-[#2E3330] hover:bg-[#B8CE82] text-[#EAECE9] hover:text-[#181B19] border border-white/10'
+                }`}
+              >
+                <Droplets className="w-3 h-3 shrink-0" />
+                <span>{engine.waterWashApplied ? 'Washed (+32c)' : 'Perform Water Wash'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onToggleSensorFault(engine.id)}
+                className={`py-1.5 px-2.5 rounded-xl text-[10px] font-mono uppercase tracking-wider font-semibold flex items-center justify-center gap-1 border transition-all cursor-pointer ${
+                  engine.sensorFaultActive
+                    ? 'bg-[#D97865] text-[#181B19] border-[#D97865]'
+                    : 'bg-[#2E3330] hover:bg-[#383E3A] text-[#949C96] hover:text-[#EAECE9] border border-white/10'
+                }`}
+              >
+                <ShieldAlert className="w-3 h-3 shrink-0" />
+                <span>{engine.sensorFaultActive ? 'Clear Fault' : 'Simulate Sensor Fault'}</span>
+              </button>
+            </div>
           </div>
 
-          <DottedArcEqualizerWidget
-            powerLabel="HPC Efficiency"
-            powerValue={engine.hpcEfficiencyPct.toFixed(1)}
-            powerUnit="%"
-            fraction={engine.hpcEfficiencyPct / 100}
-            metricLeftLabel="Overall Pressure (OPR)"
-            metricLeftValue={`${engine.overallPressureRatio.toFixed(1)} : 1`}
-            metricRightLabel="Core P30 Pressure"
-            metricRightValue={`${engine.p30.toFixed(1)} psia (${engine.p30LossPct.toFixed(2)}%)`}
-            trajectory={engine.trajectory}
-          />
+          {/* Middle-Right Card: HPC Efficiency */}
+          <div className="pointer-events-auto backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] space-y-3.5">
+            <div className="text-[14px] font-normal text-[#EAECE9]">HPC Efficiency</div>
+
+            <div className="text-[32px] leading-none font-normal tracking-tight text-[#EAECE9] tabular-nums">
+              {engine.hpcEfficiencyPct.toFixed(1)}{' '}
+              <span className="text-[20px] text-[#EAECE9]">%</span>
+            </div>
+
+            {/* 16-Block Segmented Horizontal Bar */}
+            <div className="grid grid-cols-16 gap-1.5 pt-1" aria-label="HPC Efficiency Segmented Bar">
+              {Array.from({ length: totalEffSegments }, (_, idx) => {
+                const isFilled = idx < activeEffSegments;
+                return (
+                  <div
+                    key={idx}
+                    className={`h-5 rounded-[2px] transition-colors ${
+                      isFilled ? 'bg-[#B8CE82]' : 'bg-[#353B37]'
+                    }`}
+                  />
+                );
+              })}
+            </div>
+          </div>
         </aside>
       )}
 
       {/* =====================================================================
-          BOTTOM 3-CARD DOCK ("Rotor & Spools" | "Stage & Nacelle" | "Temperatures")
+          CENTER-BOTTOM STAGE BAR + BOTTOM 3-CARD DOCK (MATCHES REFERENCE)
          ===================================================================== */}
-      <div className="absolute bottom-4 left-5 right-5 z-20 flex flex-col items-center gap-2 pointer-events-none">
-        {/* Collapse/Expand HUD Pill */}
-        <button
-          type="button"
-          onClick={() => setHudCollapsed((v) => !v)}
-          className="pointer-events-auto px-3.5 py-1 rounded-full backdrop-blur-2xl bg-[#1C2926]/90 border border-[#46564D] text-[10px] font-mono uppercase tracking-wider text-[#A6B4AA] hover:text-[#E7ECE7] flex items-center gap-1.5 shadow-lg cursor-pointer"
-        >
-          {hudCollapsed ? (
-            <>
-              <ChevronUp className="w-3.5 h-3.5 text-[#B3C58B]" />
-              <span>Restore Telemetry HUD</span>
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-3.5 h-3.5 text-[#B3C58B]" />
-              <span>Hide HUD (Cinema Inspection Mode)</span>
-            </>
-          )}
-        </button>
-
+      <div className="absolute bottom-4 left-6 right-6 lg:left-8 lg:right-8 z-20 flex flex-col items-center gap-3.5 pointer-events-none">
+        {/* Center 7-Stage Selector Strip with Angled Bracket Lines (FAN | IPC | HPC | COMB | HPT | IPT | LPT) */}
         {!hudCollapsed && (
-          <div className="pointer-events-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-            {/* Bottom Left Card: Rotor & Spools */}
-            <div className="lg:col-span-4 backdrop-blur-2xl bg-[#1C2926]/85 border border-[#46564D] rounded-3xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.65)] text-[#E7ECE7] flex flex-col justify-between">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E7ECE7]">
-                    Rotor &amp; Spools
-                  </h3>
-                  <span className="px-2 py-0.5 rounded-md bg-[#293834] border border-[#46564D] text-[10px] font-mono uppercase tracking-wider text-[#B3C58B]">
-                    3-Shaft Control
-                  </span>
-                </div>
-                <ArrowUpRight className="w-4 h-4 text-[#B3C58B]" />
-              </div>
-
-              <CircularCompassSpoolDial
-                centerTitle="Core N2"
-                centerValue={`${engine.n2RpmPct.toFixed(1)}%`}
-                bottomLabel="Fan N1 Speed"
-                bottomValue={`${engine.n1RpmPct.toFixed(1)}% RPM`}
-                angleDeg={135 + (engine.n2RpmPct - 95) * 18}
-                leftReadouts={[
-                  { label: 'Fan N1 Spool', value: `${engine.n1RpmPct.toFixed(1)}%` },
-                  { label: 'IPC N2 Spool', value: `${engine.n2RpmPct.toFixed(1)}%` },
-                  { label: 'Cruise SFC', value: `${engine.sfc.toFixed(3)}` },
-                ]}
-              />
-            </div>
-
-            {/* Bottom Center Card: Stage & Nacelle + Blueprint X-Ray & Thermal Controls */}
-            <div className="lg:col-span-5 backdrop-blur-2xl bg-[#1C2926]/85 border border-[#46564D] rounded-3xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.65)] text-[#E7ECE7] flex flex-col justify-between gap-2.5">
-              <div className="flex items-center justify-between gap-1.5">
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E7ECE7] whitespace-nowrap">
-                    Stage &amp; Nacelle
-                  </h3>
-                  <span className="px-1.5 py-0.5 rounded-md bg-[#82A995]/20 border border-[#82A995]/50 text-[9px] font-mono uppercase tracking-wider text-[#82A995] whitespace-nowrap">
-                    On Wing
-                  </span>
-                </div>
-
-                {/* Viewport Mode Toggles: Blueprint X-Ray, Cowling, Thermal Map, Spin, Reset, Fullscreen */}
-                <div className="flex items-center gap-1 shrink-0">
+          <div className="pointer-events-auto flex flex-col items-center gap-2">
+            {/* Bracket Line Row & Pill Buttons */}
+            <div
+              role="group"
+              aria-label="Engine Stage Auto-Zoom"
+              className="flex items-center gap-1 sm:gap-2 px-3 py-1.5 rounded-full bg-[#1E2220]/75 backdrop-blur-xl border border-white/[0.07]"
+            >
+              {REFERENCE_STAGE_BAR.map((item) => {
+                const isSelected = activeBarKey === item.key;
+                return (
                   <button
+                    key={item.key}
                     type="button"
-                    onClick={() => setBlueprintXray((v) => !v)}
-                    className={`px-2 py-1 rounded-lg text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap ${
-                      blueprintXray || selectedStage !== null
-                        ? 'bg-[#B3C58B] text-[#111A19] font-bold shadow-sm'
-                        : 'bg-[#293834] text-[#A6B4AA] hover:text-[#E7ECE7] border border-[#46564D]'
+                    onClick={() => handleSelectStage(item.stageId, item.key)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#B8CE82] text-[#181B19] font-semibold shadow-[0_0_16px_rgba(184,206,130,0.35)]'
+                        : 'text-[#949C96] hover:text-[#EAECE9]'
                     }`}
                   >
-                    <Layers className="w-3 h-3 shrink-0" />
-                    <span>Blueprint</span>
+                    {item.label}
                   </button>
+                );
+              })}
 
-                  <button
-                    type="button"
-                    onClick={() => setCowlingOpen((v) => !v)}
-                    className={`px-2 py-1 rounded-lg text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap ${
-                      cowlingOpen
-                        ? 'bg-[#82A995] text-[#111A19] font-bold shadow-sm'
-                        : 'bg-[#293834] text-[#A6B4AA] hover:text-[#E7ECE7] border border-[#46564D]'
-                    }`}
-                  >
-                    {cowlingOpen ? <Eye className="w-3 h-3 shrink-0" /> : <EyeOff className="w-3 h-3 shrink-0" />}
-                    <span>Cowling</span>
-                  </button>
+              <span className="text-white/15 px-1">|</span>
 
-                  <button
-                    type="button"
-                    onClick={() => setThermalHeatmap((v) => !v)}
-                    className={`px-2 py-1 rounded-lg text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap ${
-                      thermalHeatmap
-                        ? 'bg-[#D97865] text-[#111A19] font-bold shadow-sm'
-                        : 'bg-[#293834] text-[#A6B4AA] hover:text-[#E7ECE7] border border-[#46564D]'
-                    }`}
-                  >
-                    <Flame className="w-3 h-3 shrink-0" />
-                    <span>Thermal</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsSpinning((v) => !v)}
-                    aria-label={isSpinning ? 'Pause Spool Rotation' : 'Play Spool Rotation'}
-                    className="p-1 rounded-lg bg-[#293834] hover:bg-[#293834]/80 border border-[#46564D] text-[#E7ECE7] cursor-pointer"
-                  >
-                    {isSpinning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleResetCamera}
-                    aria-label="Reset 3D Camera"
-                    className="p-1 rounded-lg bg-[#293834] hover:bg-[#293834]/80 border border-[#46564D] text-[#E7ECE7] cursor-pointer"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsFullscreen((v) => !v)}
-                    aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-                    className="p-1 rounded-lg bg-[#293834] hover:bg-[#293834]/80 border border-[#46564D] text-[#E7ECE7] cursor-pointer"
-                  >
-                    {isFullscreen ? (
-                      <Minimize2 className="w-3.5 h-3.5" />
-                    ) : (
-                      <Maximize2 className="w-3.5 h-3.5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* 6 Interactive Turbofan Stage Pills */}
-              <div
-                className="grid grid-cols-3 sm:grid-cols-6 gap-1.5"
-                role="group"
-                aria-label="Engine Stage Auto-Zoom"
+              {/* Compact 3D Viewport Mode Toggles (Blueprint, Cowling, Thermal, Spin, Reset, Fullscreen) */}
+              <button
+                type="button"
+                onClick={() => setBlueprintXray((v) => !v)}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors ${
+                  blueprintXray || selectedStage !== null
+                    ? 'bg-[#B8CE82]/25 text-[#B8CE82] border border-[#B8CE82]/50 font-semibold'
+                    : 'text-[#949C96] hover:text-[#EAECE9]'
+                }`}
               >
-                {STAGE_ORDER.map((stageId) => {
-                  const spec = TURBOFAN_STAGE_SPECS[stageId];
-                  const isActive = selectedStage === stageId;
-                  return (
-                    <button
-                      key={stageId}
-                      type="button"
-                      onClick={() => handleSelectStage(stageId)}
-                      className={`py-2 px-1 rounded-xl text-[9.5px] font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap text-center ${
-                        isActive
-                          ? 'bg-[#B3C58B] text-[#111A19] font-bold shadow-sm'
-                          : 'bg-[#293834] text-[#A6B4AA] hover:text-[#E7ECE7] border border-[#46564D]'
-                      }`}
-                    >
-                      {spec.shortName}
-                    </button>
-                  );
-                })}
-              </div>
+                <Layers className="w-3 h-3" />
+                <span>Blueprint</span>
+              </button>
 
-              {/* Axial Split Scrubber Bar & Telemetry Readout Row */}
-              <div className="bg-[#182321] border border-[#46564D] rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2.5 flex-1">
-                  <label
-                    htmlFor="axial-explode-slider"
-                    className="text-[10px] uppercase tracking-wider text-[#A6B4AA] whitespace-nowrap"
-                  >
-                    Axial Split
-                  </label>
-                  <input
-                    id="axial-explode-slider"
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.02}
-                    value={explodedSlider}
-                    onChange={(e) => setExplodedSlider(parseFloat(e.target.value))}
-                    className="w-full accent-[#B3C58B] cursor-pointer"
-                  />
-                  <span className="text-[11px] font-mono font-bold text-[#B3C58B] tabular-nums w-9 text-right">
-                    {Math.round(explodedSlider * 100)}%
+              <button
+                type="button"
+                onClick={() => setCowlingOpen((v) => !v)}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors ${
+                  cowlingOpen
+                    ? 'text-[#EAECE9]'
+                    : 'text-[#949C96] hover:text-[#EAECE9]'
+                }`}
+              >
+                {cowlingOpen ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                <span>Cowling</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setThermalHeatmap((v) => !v)}
+                className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-colors ${
+                  thermalHeatmap
+                    ? 'bg-[#D97865] text-[#181B19] font-semibold'
+                    : 'text-[#949C96] hover:text-[#EAECE9]'
+                }`}
+              >
+                <Flame className="w-3 h-3" />
+                <span>Thermal</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsSpinning((v) => !v)}
+                aria-label={isSpinning ? 'Pause Spool Rotation' : 'Play Spool Rotation'}
+                className="p-1 text-[#949C96] hover:text-[#EAECE9] cursor-pointer"
+              >
+                {isSpinning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetCamera}
+                aria-label="Reset 3D Camera"
+                className="p-1 text-[#949C96] hover:text-[#EAECE9] cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsFullscreen((v) => !v)}
+                aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                className="p-1 text-[#949C96] hover:text-[#EAECE9] cursor-pointer"
+              >
+                {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setHudCollapsed(true)}
+                title="Hide HUD (Cinema Inspection Mode)"
+                className="p-1 text-[#949C96] hover:text-[#EAECE9] cursor-pointer"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {hudCollapsed && (
+          <button
+            type="button"
+            onClick={() => setHudCollapsed(false)}
+            className="pointer-events-auto px-4 py-1.5 rounded-full backdrop-blur-2xl bg-[#232725]/90 border border-white/15 text-xs font-mono uppercase tracking-wider text-[#EAECE9] flex items-center gap-1.5 shadow-lg cursor-pointer"
+          >
+            <ChevronUp className="w-3.5 h-3.5 text-[#B8CE82]" />
+            <span>Restore Telemetry HUD</span>
+          </button>
+        )}
+
+        {/* Bottom 3-Card Row (Matches Reference: Rolls-Royce Trent 1000 | Temperatures | High-Risk Alarms) */}
+        {!hudCollapsed && (
+          <div className="pointer-events-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            {/* Bottom-Left Card: Rolls-Royce Trent 1000 Specs */}
+            <div className="lg:col-span-5 backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex items-center justify-between gap-5">
+              {/* Left RR Monogram & Engine Model Title */}
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="w-12 h-14 rounded-xl bg-[#1D211F] border border-white/15 flex items-center justify-center select-none shadow-inner">
+                  <span className="font-serif text-2xl font-bold tracking-tighter text-[#EAECE9]">
+                    RR
                   </span>
                 </div>
+                <div>
+                  <div className="text-xs text-[#949C96]">Rolls-Royce</div>
+                  <div className="text-xl font-medium text-[#EAECE9] tracking-tight mt-0.5">
+                    Trent 1000
+                  </div>
+                </div>
+              </div>
 
-                <div className="text-[10px] uppercase tracking-wider text-[#A6B4AA] border-l border-[#46564D] pl-3 whitespace-nowrap">
-                  Vib:{' '}
-                  <strong className="font-mono text-[#82A995]">
-                    {engine.vibrationIps.toFixed(2)} ips
-                  </strong>
+              <div className="w-px h-16 bg-white/[0.08] shrink-0" />
+
+              {/* Right 3 Spec Rows */}
+              <div className="flex-1 space-y-2 text-xs">
+                <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
+                  <span className="text-[#949C96]">Thrust</span>
+                  <span className="font-mono text-[#EAECE9] tabular-nums">68,000 – 78,000 lbf</span>
+                </div>
+                <div className="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
+                  <span className="text-[#949C96]">Bypass Ratio</span>
+                  <span className="font-mono text-[#EAECE9] tabular-nums">10.0 : 1</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#949C96]">Overall PR</span>
+                  <span className="font-mono text-[#EAECE9] tabular-nums">
+                    ~ {engine.overallPressureRatio.toFixed(0)} : 1
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Right Card: Temperatures */}
-            <div className="lg:col-span-3 backdrop-blur-2xl bg-[#1C2926]/85 border border-[#46564D] rounded-3xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.65)] text-[#E7ECE7] flex flex-col justify-between">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#E7ECE7]">
-                  Temperatures
-                </h3>
-                <ArrowUpRight className="w-4 h-4 text-[#B3C58B]" />
+            {/* Bottom-Center Card: Temperatures */}
+            <div className="lg:col-span-4 backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between space-y-3">
+              <div className="flex items-center gap-2">
+                <Thermometer className="w-4 h-4 text-[#949C96]" />
+                <h3 className="text-[14px] font-normal text-[#EAECE9]">Temperatures</h3>
               </div>
 
-              <VerticalHatchedTempColumns columns={tempColumns} />
+              <div className="space-y-2.5">
+                {tempRows.map((row) => (
+                  <div key={row.label} className="grid grid-cols-12 items-center gap-2 text-xs">
+                    <span className="col-span-2 text-[#949C96] font-mono">{row.label}</span>
+                    <span className="col-span-4 text-[#EAECE9] font-mono tabular-nums">
+                      {row.value}
+                    </span>
+                    <div className="col-span-6 h-2 rounded-full bg-[#323734] overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#B8CE82] shadow-[0_0_10px_rgba(184,206,130,0.45)] transition-all duration-300"
+                        style={{ width: `${row.pct}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom-Right Card: High-Risk Alarms */}
+            <div className="lg:col-span-3 backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-[#949C96]" />
+                  <h3 className="text-[14px] font-normal text-[#EAECE9]">High-Risk Alarms</h3>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#4A322E] text-[#F2D5CF] text-xs font-mono font-semibold">
+                  {engine.urgency === 'NOMINAL' ? '0' : '1'}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={onNavigateToDossier}
+                className="w-full text-left bg-[#352624]/85 hover:bg-[#3F2D2A] border border-[#5C3B36] rounded-2xl px-3.5 py-3 flex items-center justify-between gap-2.5 transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-4 h-4 text-[#D97865] shrink-0" />
+                  <div className="text-xs leading-snug text-[#EAECE9]">
+                    <div>HPC T30 exceeds threshold</div>
+                    <div className="text-[#949C96] font-mono tabular-nums mt-0.5">
+                      ({engine.t30.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} °R)
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-[#949C96] group-hover:text-[#EAECE9] shrink-0" />
+              </button>
             </div>
           </div>
         )}
@@ -1257,4 +1322,3 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     </section>
   );
 };
-

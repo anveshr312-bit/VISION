@@ -1,6 +1,6 @@
 "use client";
 import { cn } from "@/src/lib/utils";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useId } from "react";
 
 interface ShootingStar {
   id: number;
@@ -41,21 +41,24 @@ const getRandomStartPoint = () => {
       return { x: 0, y: 0, angle: 45 };
   }
 };
+
 export const ShootingStars: React.FC<ShootingStarsProps> = ({
   minSpeed = 10,
   maxSpeed = 30,
   minDelay = 1200,
   maxDelay = 4200,
-  starColor = "#9E00FF",
-  trailColor = "#2EB9DF",
+  starColor = "#B8CE82",
+  trailColor = "#82A995",
   starWidth = 10,
   starHeight = 1,
   className,
 }) => {
   const [star, setStar] = useState<ShootingStar | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const gradientId = useId();
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
     const createStar = () => {
       const { x, y, angle } = getRandomStartPoint();
       const newStar: ShootingStar = {
@@ -70,12 +73,14 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
       setStar(newStar);
 
       const randomDelay = Math.random() * (maxDelay - minDelay) + minDelay;
-      setTimeout(createStar, randomDelay);
+      timeoutId = setTimeout(createStar, randomDelay);
     };
 
     createStar();
 
-    return () => {};
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [minSpeed, maxSpeed, minDelay, maxDelay]);
 
   useEffect(() => {
@@ -126,14 +131,14 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
           y={star.y}
           width={starWidth * star.scale}
           height={starHeight}
-          fill="url(#gradient)"
+          fill={`url(#${gradientId})`}
           transform={`rotate(${star.angle}, ${
             star.x + (starWidth * star.scale) / 2
           }, ${star.y + starHeight / 2})`}
         />
       )}
       <defs>
-        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style={{ stopColor: trailColor, stopOpacity: 0 }} />
           <stop
             offset="100%"

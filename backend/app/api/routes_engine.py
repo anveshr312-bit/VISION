@@ -90,7 +90,7 @@ async def get_physical_dossier(
         )
 
     pred = inference_service.predict_rul(unit_id=unit_id, subset=subset)
-    rul = pred.predicted_rul if pred else 50.0
+    rul = pred.rul_point_estimate if pred else 50.0
 
     # 1. Structural Life-Limited Parts (LLP) Regulatory Clock
     hpt_disk_limit = 15000
@@ -194,7 +194,7 @@ async def perform_water_wash(
         )
 
     pred = inference_service.predict_rul(unit_id=unit_id, subset=subset)
-    original_rul = pred.predicted_rul if pred else 50.0
+    original_rul = pred.rul_point_estimate if pred else 50.0
     cycles_gained = 32.0
     restored_rul = min(125.0, original_rul + cycles_gained)
 
