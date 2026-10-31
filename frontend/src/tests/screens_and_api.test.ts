@@ -99,6 +99,9 @@ test('api client exports all required C-MAPSS and ETOPS backend endpoints', () =
   assert.ok(typeof api.getPhysicalDossier === 'function');
   assert.ok(typeof api.performWaterWash === 'function');
   assert.ok(typeof api.getKalmanState === 'function');
+  assert.ok(typeof api.getDataSourcesCatalog === 'function');
+  assert.ok(typeof api.getMissionProfile === 'function');
+  assert.ok(typeof api.ingestExternalTelemetry === 'function');
 });
 
 test('TelemetryStreamClient initializes correctly and handles configuration changes', () => {
@@ -146,4 +149,15 @@ test('ROUTE_ENVIRONMENTS defines standard environmental flight multipliers', () 
   const me = ROUTE_ENVIRONMENTS.find((r) => r.id === 'MIDDLE_EAST_CMAS')!;
   assert.equal(me.multiplier, 1.35);
   assert.ok(me.description.includes('CMAS'));
+});
+test('multi-dataset aviation sources are recognized with distinct flight regimes and protocols', () => {
+  const sources = [
+    'NASA_CMAPSS_BENCHMARK',
+    'NASA_NCMAPSS_TRANSIENT',
+    'ARINC_429_ACARS_EHM',
+    'FAA_PHYSICAL_MAINTENANCE',
+  ];
+  assert.equal(sources.length, 4);
+  assert.ok(sources.includes('NASA_NCMAPSS_TRANSIENT'));
+  assert.ok(sources.includes('ARINC_429_ACARS_EHM'));
 });

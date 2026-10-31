@@ -128,6 +128,34 @@ class ApiClient {
   async getKalmanState(unitId, subset = 'FD001') {
     return this._request(`/engine/${unitId}/kalman-state?subset=${subset}`);
   }
+
+  /**
+   * Fetch certified aviation data sources catalog (C-MAPSS, N-CMAPSS, ARINC 429 ACARS, FAA Part 33.70)
+   */
+  async getDataSourcesCatalog() {
+    return this._request('/data-sources/catalog');
+  }
+
+  /**
+   * Fetch N-CMAPSS 1 Hz transient commercial flight mission profile (LHR to JFK)
+   */
+  async getMissionProfile(durationSeconds = 240) {
+    return this._request(`/data-sources/mission-profile?duration_seconds=${durationSeconds}`);
+  }
+
+  /**
+   * Ingest external ARINC 429 / ACARS / N-CMAPSS telemetry frame
+   */
+  async ingestExternalTelemetry(payload, sourceType = 'ARINC_429_ACARS_EHM', unitId = 34) {
+    return this._request('/data-sources/ingest', {
+      method: 'POST',
+      body: JSON.stringify({
+        source_type: sourceType,
+        unit_id: unitId,
+        payload,
+      }),
+    });
+  }
 }
 
 export const api = new ApiClient();
