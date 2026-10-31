@@ -64,15 +64,32 @@ class InferenceService:
         # In-Memory Registries
         self._datasets: Dict[str, Tuple[pd.DataFrame, pd.DataFrame, np.ndarray]] = {}
         self._models: Dict[str, BaselineGBM] = {}
+        self._deep_models: Dict[str, Any] = {}
         self._preprocessors: Dict[str, CmapssPreprocessor] = {}
         self._conformal_calibrators: Dict[str, MondrianConformalCalibrator] = {}
         self._fleet_cache: Dict[str, FleetOverviewResponse] = {}
+        self._water_washed_units: set = set()
 
         self.decision_service = DecisionService(artifacts_dir=self.artifacts_dir)
 
         # Pre-warm default subset
         self.warmup_subset(settings.DEFAULT_SUBSET)
         self._initialized = True
+
+    def record_water_wash(self, unit_id: int, subset: str = "FD001") -> None:
+        """Persist water wash event so subsequent inferences reflect restored health."""
+        self._water_washed_units.add((int(unit_id), subset.upper()))
+
+    def is_water_washed(self, unit_id: int, subset: str = "FD001") -> bool:
+        """Check whether unit has undergone an active compressor water wash."""
+        return (int(unit_id), subset.upper()) in self._water_washed_units
+
+    def reset_water_wash(self, unit_id: Optional[int] = None, subset: str = "FD001") -> None:
+        """Reset water wash status for testing."""
+        if unit_id is None:
+            self._water_washed_units.clear()
+        else:
+            self._water_washed_units.discard((int(unit_id), subset.upper()))
 
     def warmup_subset(self, subset: str = "FD001") -> None:
         """Load datasets, fitted models, and conformal tables for designated subset."""
@@ -92,6 +109,15 @@ class InferenceService:
         model_path = self.artifacts_dir / f"baseline_{sub}.joblib"
         if model_path.exists():
             self._models[sub] = BaselineGBM.load(model_path)
+
+        # 2b. Load Deep AeroTCN Sequence Model if available
+        deep_path = self.artifacts_dir / f"deep_tcn_{sub}.pt"
+        if deep_path.exists():
+            try:
+                from ml.models.deep_sequence import load_torch_model
+                self._deep_models[sub] = load_torch_model(deep_path)
+            except Exception as e:
+                print(f"[InferenceService] Note: Could not load AeroTCN model for {sub}: {e}")
 
         # 3. Load Preprocessor
         prep_path = self.artifacts_dir / f"preprocessor_{sub}.joblib"

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --experimental-strip-types --test src/services/prognosticsEngine.test.ts src/tests/screens_and_api.test.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",

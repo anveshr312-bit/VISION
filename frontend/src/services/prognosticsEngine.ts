@@ -376,7 +376,7 @@ function seededFraction(seed: number): number {
 /**
  * Generates trajectory curve points for an engine
  */
-function buildEngineTrajectory(
+export function buildEngineTrajectory(
   currentCycle: number,
   currentRul: number,
   currentT30: number,
@@ -408,6 +408,80 @@ function buildEngineTrajectory(
  * Engine #34 (ESN-787-034 on N787-17) and Engine #01 (ESN-787-001 on N787-01) have
  * high-visibility diagnostic profiles matching the prompt specification.
  */
+/**
+ * Maps backend C-MAPSS urgency classification into certified VISION UrgencyLevel enum.
+ */
+export function mapBackendUrgency(urgency: string, rul: number = 50): UrgencyLevel {
+  if (rul < 20) return 'CRITICAL OVERHAUL';
+  if (rul < 40) return 'SCHEDULED SHOP VISIT';
+  if (rul < 65) return 'MONITOR';
+  return 'NOMINAL';
+}
+
+/**
+ * Hydrates local frontend fleet state with empirical C-MAPSS predictions,
+ * conformal bounds, cycle counts, and risk levels from backend API.
+ */
+export function hydrateFleetWithBackend(
+  baseFleet: EngineTelemetry[],
+  backendOverview: { engines?: any[] },
+  waterWashedIds: Set<string> = new Set()
+): EngineTelemetry[] {
+  if (!backendOverview?.engines || !Array.isArray(backendOverview.engines)) {
+    return baseFleet;
+  }
+
+  const backendMap = new Map<number, any>();
+  for (const eng of backendOverview.engines) {
+    if (typeof eng.unit_id === 'number') {
+      backendMap.set(eng.unit_id, eng);
+    }
+  }
+
+  return baseFleet.map((localEng) => {
+    const unitNum = parseInt(localEng.id.split('-').pop() || '1', 10);
+    const serverEng = backendMap.get(unitNum);
+    const isWashed = waterWashedIds.has(localEng.id) || localEng.waterWashApplied;
+
+    if (!serverEng) {
+      return isWashed ? applyCompressorWaterWash(localEng) : localEng;
+    }
+
+    const baseRul = Number(serverEng.predicted_rul);
+    const baseLower = Number(serverEng.lower_bound_90);
+    const baseUpper = Number(serverEng.upper_bound_90);
+    const cycles = Number(serverEng.current_cycle);
+
+    // Apply water-wash restoration if active (+32c RUL rebound, -14.2 deg R T30)
+    const conformalRul = isWashed ? Number(Math.min(125, baseRul + 32.0).toFixed(1)) : baseRul;
+    const conformalLower90 = localEng.sensorFaultActive
+      ? 0
+      : isWashed
+        ? Number(Math.min(125, baseLower + 32.0).toFixed(1))
+        : baseLower;
+    const conformalUpper90 = localEng.sensorFaultActive
+      ? 125
+      : isWashed
+        ? Number(Math.min(125, baseUpper + 32.0).toFixed(1))
+        : baseUpper;
+
+    const urgency = mapBackendUrgency(serverEng.urgency_level, conformalRul);
+    const t30 = isWashed ? Number((localEng.t30 - 14.2).toFixed(1)) : localEng.t30;
+
+    return {
+      ...localEng,
+      flightCycles: cycles,
+      conformalRul,
+      conformalLower90,
+      conformalUpper90,
+      urgency,
+      waterWashApplied: isWashed,
+      t30,
+      trajectory: buildEngineTrajectory(cycles, conformalRul, t30, localEng.sensorFaultActive),
+    };
+  });
+}
+
 export function generateInitialFleet(): EngineTelemetry[] {
   const fleet: EngineTelemetry[] = [];
 

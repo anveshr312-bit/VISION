@@ -7,7 +7,7 @@ import {
   pairFleetIntoEtopsWings,
   calculateEconomicSandbox,
   evaluateDualConstraintAirworthiness,
-} from './prognosticsEngine';
+} from './prognosticsEngine.ts';
 
 test('generateInitialFleet creates 100 deterministic engines with exact ESN-787-034 telemetry', () => {
   const fleet = generateInitialFleet();

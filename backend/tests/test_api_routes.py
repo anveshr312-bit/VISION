@@ -247,5 +247,40 @@ def test_engine_water_wash():
     assert data["restored_rul"] > data["original_rul"]
     assert "maintenance_signoff" in data
 
+def test_engine_kalman_state():
+    """Verify live EKF state tracking, degradation kinematics, and incident brief."""
+    response = client.get("/api/engine/34/kalman-state?subset=FD001")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["unit_id"] == 34
+    assert data["subset"] == "FD001"
+    assert "latest_state" in data
+    assert "delta_eta_hpc" in data["latest_state"]
+    assert "mahalanobis_distance_sq" in data["latest_state"]
+    assert "degradation_velocity" in data
+    assert "velocity_pct_per_cycle" in data["degradation_velocity"]
+    assert "acceleration_pct_per_cycle2" in data["degradation_velocity"]
+    assert data["degradation_velocity"]["status"] in ["STABLE", "MONITORING", "ELEVATED", "ACCELERATION_ALERT"]
+    assert "incident_brief" in data
+    assert data["certification_standard"] == "RTCA DO-178C Level B / FAA AC 20-193 Gas-Path Filter"
 
 
+def test_multi_subset_availability():
+    """Verify trained empirical models exist and respond for FD002, FD003, and FD004."""
+    for sub, expected_count in [("FD002", 259), ("FD003", 100), ("FD004", 248)]:
+        response = client.get(f"/api/fleet/overview?subset={sub}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["subset"] == sub
+        assert data["total_engines"] == expected_count
+        assert len(data["engines"]) == expected_count
+
+
+def test_water_wash_state_persistence():
+    """Verify that water wash maintenance state persists in backend engine registry."""
+    wash_resp = client.post("/api/engine/15/water-wash?subset=FD001")
+    assert wash_resp.status_code == 200
+
+    kalman_resp = client.get("/api/engine/15/kalman-state?subset=FD001")
+    assert kalman_resp.status_code == 200
+    assert kalman_resp.json().get("water_wash_active") is True

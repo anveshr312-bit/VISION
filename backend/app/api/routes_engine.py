@@ -198,6 +198,9 @@ async def perform_water_wash(
     cycles_gained = 32.0
     restored_rul = min(125.0, original_rul + cycles_gained)
 
+    # Persist the maintenance action in the backend registry
+    inference_service.record_water_wash(unit_id=unit_id, subset=subset)
+
     return {
         "unit_id": unit_id,
         "subset": subset.upper(),
@@ -285,6 +288,10 @@ async def get_kalman_state(
     pred = inference_service.predict_rul(unit_id=unit_id, subset=subset)
     rul_point = pred.rul_point_estimate if pred else 50.0
     rul_lower = pred.lower_bound_90 if pred else max(0.0, rul_point - 12.0)
+    is_washed = inference_service.is_water_washed(unit_id=unit_id, subset=subset)
+    if is_washed:
+        rul_point = min(125.0, rul_point + 32.0)
+        rul_lower = min(125.0, rul_lower + 32.0)
 
     hpt_disk_limit = 15000
     base_cycles = 14200 + ((unit_id * 17) % 650)
@@ -322,6 +329,7 @@ async def get_kalman_state(
             "status": velocity_status,
         },
         "incident_brief": incident_brief,
+        "water_wash_active": is_washed,
         "certification_standard": "RTCA DO-178C Level B / FAA AC 20-193 Gas-Path Filter",
     }
 

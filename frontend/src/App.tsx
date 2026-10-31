@@ -3,14 +3,48 @@ import {
   Search,
   Bell,
   X,
+  Radio,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  Activity,
 } from 'lucide-react';
 import { api } from './services/api.js';
+import { TelemetryStreamClient } from './services/streamClient.js';
 import {
   EngineTelemetry,
   generateInitialFleet,
   applyCompressorWaterWash,
   toggleSensorFaultAbstain,
+  hydrateFleetWithBackend,
+  buildEngineTrajectory,
 } from './services/prognosticsEngine';
+
+const WATER_WASH_STORAGE_KEY = 'vision_water_washed_units';
+
+function getStoredWaterWashedUnits(): Set<string> {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const raw = localStorage.getItem(WATER_WASH_STORAGE_KEY);
+      if (raw) return new Set(JSON.parse(raw));
+    }
+  } catch {
+    // fallback
+  }
+  return new Set();
+}
+
+function persistWaterWashUnit(engineId: string) {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const current = getStoredWaterWashedUnits();
+      current.add(engineId);
+      localStorage.setItem(WATER_WASH_STORAGE_KEY, JSON.stringify(Array.from(current)));
+    }
+  } catch {
+    // fallback
+  }
+}
 import { DigitalTwinViewport } from './components_3d/DigitalTwinViewport';
 import { FleetEtopsScreen } from './components/FleetEtopsScreen';
 import { EconomicSandboxScreen } from './components/EconomicSandboxScreen';
@@ -28,24 +62,94 @@ type ScreenTab =
   | 'AIRWORTHINESS';
 
 export default function App() {
-  const [fleet, setFleet] = useState<EngineTelemetry[]>(() => generateInitialFleet());
+  const [fleet, setFleet] = useState<EngineTelemetry[]>(() => {
+    const base = generateInitialFleet();
+    const washed = getStoredWaterWashedUnits();
+    if (washed.size > 0) {
+      return base.map((e) => (washed.has(e.id) ? applyCompressorWaterWash(e) : e));
+    }
+    return base;
+  });
   const [selectedEngineId, setSelectedEngineId] = useState<string>('ESN-787-034');
   const [activeTab, setActiveTab] = useState<ScreenTab>('DIGITAL_TWIN');
   const [actionBanner, setActionBanner] = useState<string | null>(null);
   const [showStarDemoModal, setShowStarDemoModal] = useState<boolean>(false);
   const [backendOnline, setBackendOnline] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<'IDLE' | 'SYNCING' | 'SYNCED' | 'STANDALONE_EDGE'>('SYNCING');
+  const [isLiveStreaming, setIsLiveStreaming] = useState<boolean>(false);
+  const [streamTicks, setStreamTicks] = useState<number>(0);
 
   useEffect(() => {
+    setIsSyncing(true);
+    setSyncStatus('SYNCING');
     api.getHealth()
-      .then(() => {
+      .then(async () => {
         setBackendOnline(true);
         console.log('[VISION] Connected to FastAPI backend');
+        try {
+          const overview = await api.getFleetOverview('FD001');
+          if (overview && Array.isArray(overview.engines)) {
+            const washed = getStoredWaterWashedUnits();
+            setFleet((prev) => hydrateFleetWithBackend(prev, overview, washed));
+            setSyncStatus('SYNCED');
+            setActionBanner('Synchronized 100 Trent 1000 engines with C-MAPSS FD001 empirical inference backend');
+          } else {
+            setSyncStatus('STANDALONE_EDGE');
+          }
+        } catch (e: any) {
+          console.warn('[VISION] Fleet hydration note:', e.message);
+          setSyncStatus('STANDALONE_EDGE');
+        } finally {
+          setIsSyncing(false);
+        }
       })
       .catch((err) => {
         setBackendOnline(false);
+        setSyncStatus('STANDALONE_EDGE');
+        setIsSyncing(false);
         console.warn('[VISION] Operating in standalone edge mode:', err.message);
       });
   }, []);
+
+  // Real-Time SSE Telemetry Stream Listener (RTCA DO-178C Level B Streaming)
+  useEffect(() => {
+    if (!backendOnline || !isLiveStreaming) return;
+
+    const targetUnit = parseInt(selectedEngineId.split('-').pop() || '34', 10);
+    const stream = new TelemetryStreamClient({
+      units: [targetUnit],
+      subset: 'FD001',
+      speed: 1.0,
+      onCycleUpdate: (payload: any) => {
+        if (!payload || !payload.unit_id) return;
+        setStreamTicks((c) => c + 1);
+        setFleet((prev) =>
+          prev.map((eng) => {
+            const num = parseInt(eng.id.replace(/\D/g, ''), 10);
+            if (num === payload.unit_id) {
+              const rul = payload.predicted_rul ?? eng.conformalRul;
+              const lower = payload.conformal_lower_90 ?? eng.conformalLower90;
+              const upper = payload.conformal_upper_90 ?? eng.conformalUpper90;
+              const cyc = payload.cycle ?? eng.flightCycles;
+              return {
+                ...eng,
+                flightCycles: cyc,
+                conformalRul: rul,
+                conformalLower90: lower,
+                conformalUpper90: upper,
+                trajectory: buildEngineTrajectory(cyc, rul, eng.t30, eng.sensorFaultActive),
+              };
+            }
+            return eng;
+          })
+        );
+      },
+    });
+
+    stream.connect();
+    return () => stream.disconnect();
+  }, [backendOnline, isLiveStreaming, selectedEngineId]);
 
   const activeEngine = useMemo(
     () => fleet.find((e) => e.id === selectedEngineId) ?? fleet[33] ?? fleet[0],
@@ -84,11 +188,12 @@ export default function App() {
     setFleet((prev) =>
       prev.map((eng) => (eng.id === activeEngine.id ? applyCompressorWaterWash(eng) : eng))
     );
+    persistWaterWashUnit(activeEngine.id);
     setActionBanner(
       `${activeEngine.id}: AMM 72-00-00 Compressor Water Wash complete (+32.0c RUL rebound, −14.2°R T30 drop, +1.25% P30 recovery)`
     );
     // Wireframe with backend API (sync if online)
-    const unitNum = parseInt(activeEngine.id.replace(/\D/g, ''), 10) || 1;
+    const unitNum = parseInt(activeEngine.id.split('-').pop() || '1', 10);
     api.performWaterWash(unitNum, 'FD001').catch(() => {});
   };
 
@@ -272,8 +377,41 @@ export default function App() {
           </button>
         </nav>
 
-        {/* Right: Search Icon, Notification Bell with Coral Dot, and Profile Avatar */}
-        <div className="flex items-center gap-4 shrink-0">
+        {/* Right: Telemetry Sync Status, SSE Stream Toggle, Search, Bell, Profile */}
+        <div className="flex items-center gap-3 shrink-0">
+          {/* C-MAPSS Backend Sync Status Badge (Gap 12 Loading/Status indicator) */}
+          {isSyncing ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono bg-[#B8CE82]/10 text-[#B8CE82] border border-[#B8CE82]/30 shadow-sm animate-pulse">
+              <RefreshCw className="w-3 h-3 animate-spin text-[#B8CE82]" />
+              <span className="hidden sm:inline">Syncing C-MAPSS...</span>
+            </div>
+          ) : syncStatus === 'SYNCED' ? (
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono bg-[#82A995]/15 text-[#B8CE82] border border-[#B8CE82]/25">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#B8CE82] shadow-[0_0_6px_#B8CE82]" />
+              <span>FD001 Model Live</span>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono bg-[#D97865]/15 text-[#E5A894] border border-[#D97865]/25">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D97865]" />
+              <span>Standalone Edge</span>
+            </div>
+          )}
+
+          {/* SSE Live Telemetry Stream Toggle (Gap 5) */}
+          <button
+            type="button"
+            onClick={() => setIsLiveStreaming(!isLiveStreaming)}
+            disabled={!backendOnline}
+            title={backendOnline ? (isLiveStreaming ? "Pause Live SSE Telemetry Stream" : "Connect Real-Time SSE Telemetry Stream") : "SSE Streaming requires active backend"}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-medium transition-all cursor-pointer border ${
+              isLiveStreaming
+                ? 'bg-[#B8CE82]/20 text-[#B8CE82] border-[#B8CE82]/50 shadow-[0_0_10px_rgba(184,206,130,0.25)]'
+                : 'bg-[#232725]/80 text-[#949C96] border-white/10 hover:text-[#EAECE9] hover:border-white/20'
+            } ${!backendOnline ? 'opacity-40 cursor-not-allowed' : ''}`}
+          >
+            <Radio className={`w-3 h-3 ${isLiveStreaming ? 'animate-pulse text-[#B8CE82]' : 'text-[#949C96]'}`} />
+            <span className="hidden sm:inline">{isLiveStreaming ? `SSE Active (${streamTicks})` : 'SSE Stream'}</span>
+          </button>
           <button
             type="button"
             onClick={() => setActiveTab('FLEET_ETOPS')}
