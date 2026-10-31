@@ -1,0 +1,1966 @@
+{
+  "subset": "FD001",
+  "lead_time_cycles": 15,
+  "cost_parameters": {
+    "catastrophic_failure_cost_Cf": 100000.0,
+    "wasted_cycle_cost_cw": 100.0,
+    "cost_ratio_gamma": 0.001
+  },
+  "curves": {
+    "fixed": [
+      {
+        "threshold": 80.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 111.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 1113100.0,
+        "avg_cost_per_engine": 11131.0
+      },
+      {
+        "threshold": 82.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 109.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 1093100.0,
+        "avg_cost_per_engine": 10931.0
+      },
+      {
+        "threshold": 84.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 107.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 1073100.0,
+        "avg_cost_per_engine": 10731.0
+      },
+      {
+        "threshold": 86.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 105.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 1053100.0,
+        "avg_cost_per_engine": 10531.0
+      },
+      {
+        "threshold": 88.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 103.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 1033100.0,
+        "avg_cost_per_engine": 10331.0
+      },
+      {
+        "threshold": 90.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 101.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 1013100.0,
+        "avg_cost_per_engine": 10131.0
+      },
+      {
+        "threshold": 92.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 99.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 993100.0,
+        "avg_cost_per_engine": 9931.0
+      },
+      {
+        "threshold": 94.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 97.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 973100.0,
+        "avg_cost_per_engine": 9731.0
+      },
+      {
+        "threshold": 96.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 95.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 953100.0,
+        "avg_cost_per_engine": 9531.0
+      },
+      {
+        "threshold": 98.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 93.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 933100.0,
+        "avg_cost_per_engine": 9331.0
+      },
+      {
+        "threshold": 100.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 91.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 913100.0,
+        "avg_cost_per_engine": 9131.0
+      },
+      {
+        "threshold": 102.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 89.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 893100.0,
+        "avg_cost_per_engine": 8931.0
+      },
+      {
+        "threshold": 104.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 87.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 873100.0,
+        "avg_cost_per_engine": 8731.0
+      },
+      {
+        "threshold": 106.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 85.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 853100.0,
+        "avg_cost_per_engine": 8531.0
+      },
+      {
+        "threshold": 108.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 83.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 833100.0,
+        "avg_cost_per_engine": 8331.0
+      },
+      {
+        "threshold": 110.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 81.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 813100.0,
+        "avg_cost_per_engine": 8131.0
+      },
+      {
+        "threshold": 112.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 79.31,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 793100.0,
+        "avg_cost_per_engine": 7931.0
+      },
+      {
+        "threshold": 114.0,
+        "failure_count": 1,
+        "failure_rate": 0.01,
+        "mean_wasted_cycles": 77.32,
+        "clopper_pearson_ub": 0.0383,
+        "total_cost": 873200.0,
+        "avg_cost_per_engine": 8732.0
+      },
+      {
+        "threshold": 116.0,
+        "failure_count": 1,
+        "failure_rate": 0.01,
+        "mean_wasted_cycles": 75.34,
+        "clopper_pearson_ub": 0.0383,
+        "total_cost": 853400.0,
+        "avg_cost_per_engine": 8534.0
+      },
+      {
+        "threshold": 118.0,
+        "failure_count": 1,
+        "failure_rate": 0.01,
+        "mean_wasted_cycles": 73.36,
+        "clopper_pearson_ub": 0.0383,
+        "total_cost": 833600.0,
+        "avg_cost_per_engine": 8336.0
+      },
+      {
+        "threshold": 120.0,
+        "failure_count": 2,
+        "failure_rate": 0.02,
+        "mean_wasted_cycles": 71.38,
+        "clopper_pearson_ub": 0.0523,
+        "total_cost": 913800.0,
+        "avg_cost_per_engine": 9138.0
+      },
+      {
+        "threshold": 122.0,
+        "failure_count": 4,
+        "failure_rate": 0.04,
+        "mean_wasted_cycles": 69.42,
+        "clopper_pearson_ub": 0.0783,
+        "total_cost": 1094200.0,
+        "avg_cost_per_engine": 10942.0
+      },
+      {
+        "threshold": 124.0,
+        "failure_count": 4,
+        "failure_rate": 0.04,
+        "mean_wasted_cycles": 67.5,
+        "clopper_pearson_ub": 0.0783,
+        "total_cost": 1075000.0,
+        "avg_cost_per_engine": 10750.0
+      },
+      {
+        "threshold": 126.0,
+        "failure_count": 4,
+        "failure_rate": 0.04,
+        "mean_wasted_cycles": 65.58,
+        "clopper_pearson_ub": 0.0783,
+        "total_cost": 1055800.0,
+        "avg_cost_per_engine": 10558.0
+      },
+      {
+        "threshold": 128.0,
+        "failure_count": 4,
+        "failure_rate": 0.04,
+        "mean_wasted_cycles": 63.66,
+        "clopper_pearson_ub": 0.0783,
+        "total_cost": 1036600.0,
+        "avg_cost_per_engine": 10366.0
+      },
+      {
+        "threshold": 130.0,
+        "failure_count": 4,
+        "failure_rate": 0.04,
+        "mean_wasted_cycles": 61.74,
+        "clopper_pearson_ub": 0.0783,
+        "total_cost": 1017400.0,
+        "avg_cost_per_engine": 10174.0
+      },
+      {
+        "threshold": 132.0,
+        "failure_count": 6,
+        "failure_rate": 0.06,
+        "mean_wasted_cycles": 59.82,
+        "clopper_pearson_ub": 0.1029,
+        "total_cost": 1198200.0,
+        "avg_cost_per_engine": 11982.0
+      },
+      {
+        "threshold": 134.0,
+        "failure_count": 6,
+        "failure_rate": 0.06,
+        "mean_wasted_cycles": 57.94,
+        "clopper_pearson_ub": 0.1029,
+        "total_cost": 1179400.0,
+        "avg_cost_per_engine": 11794.0
+      },
+      {
+        "threshold": 136.0,
+        "failure_count": 7,
+        "failure_rate": 0.07,
+        "mean_wasted_cycles": 56.07,
+        "clopper_pearson_ub": 0.1149,
+        "total_cost": 1260700.0,
+        "avg_cost_per_engine": 12607.0
+      },
+      {
+        "threshold": 138.0,
+        "failure_count": 8,
+        "failure_rate": 0.08,
+        "mean_wasted_cycles": 54.21,
+        "clopper_pearson_ub": 0.1267,
+        "total_cost": 1342100.0,
+        "avg_cost_per_engine": 13421.0
+      },
+      {
+        "threshold": 140.0,
+        "failure_count": 11,
+        "failure_rate": 0.11,
+        "mean_wasted_cycles": 52.39,
+        "clopper_pearson_ub": 0.1613,
+        "total_cost": 1623900.0,
+        "avg_cost_per_engine": 16239.0
+      },
+      {
+        "threshold": 142.0,
+        "failure_count": 13,
+        "failure_rate": 0.13,
+        "mean_wasted_cycles": 50.63,
+        "clopper_pearson_ub": 0.1839,
+        "total_cost": 1806300.0,
+        "avg_cost_per_engine": 18063.0
+      },
+      {
+        "threshold": 144.0,
+        "failure_count": 16,
+        "failure_rate": 0.16,
+        "mean_wasted_cycles": 48.92,
+        "clopper_pearson_ub": 0.2172,
+        "total_cost": 2089200.0,
+        "avg_cost_per_engine": 20892.0
+      },
+      {
+        "threshold": 146.0,
+        "failure_count": 16,
+        "failure_rate": 0.16,
+        "mean_wasted_cycles": 47.24,
+        "clopper_pearson_ub": 0.2172,
+        "total_cost": 2072400.0,
+        "avg_cost_per_engine": 20724.0
+      },
+      {
+        "threshold": 148.0,
+        "failure_count": 18,
+        "failure_rate": 0.18,
+        "mean_wasted_cycles": 45.56,
+        "clopper_pearson_ub": 0.239,
+        "total_cost": 2255600.0,
+        "avg_cost_per_engine": 22556.0
+      },
+      {
+        "threshold": 150.0,
+        "failure_count": 19,
+        "failure_rate": 0.19,
+        "mean_wasted_cycles": 43.92,
+        "clopper_pearson_ub": 0.2499,
+        "total_cost": 2339200.0,
+        "avg_cost_per_engine": 23392.0
+      },
+      {
+        "threshold": 152.0,
+        "failure_count": 20,
+        "failure_rate": 0.2,
+        "mean_wasted_cycles": 42.31,
+        "clopper_pearson_ub": 0.2607,
+        "total_cost": 2423100.0,
+        "avg_cost_per_engine": 24231.0
+      },
+      {
+        "threshold": 154.0,
+        "failure_count": 21,
+        "failure_rate": 0.21,
+        "mean_wasted_cycles": 40.72,
+        "clopper_pearson_ub": 0.2714,
+        "total_cost": 2507200.0,
+        "avg_cost_per_engine": 25072.0
+      },
+      {
+        "threshold": 156.0,
+        "failure_count": 23,
+        "failure_rate": 0.23,
+        "mean_wasted_cycles": 39.16,
+        "clopper_pearson_ub": 0.2928,
+        "total_cost": 2691600.0,
+        "avg_cost_per_engine": 26916.0
+      },
+      {
+        "threshold": 158.0,
+        "failure_count": 24,
+        "failure_rate": 0.24,
+        "mean_wasted_cycles": 37.63,
+        "clopper_pearson_ub": 0.3034,
+        "total_cost": 2776300.0,
+        "avg_cost_per_engine": 27763.0
+      },
+      {
+        "threshold": 160.0,
+        "failure_count": 25,
+        "failure_rate": 0.25,
+        "mean_wasted_cycles": 36.12,
+        "clopper_pearson_ub": 0.314,
+        "total_cost": 2861200.0,
+        "avg_cost_per_engine": 28612.0
+      },
+      {
+        "threshold": 162.0,
+        "failure_count": 25,
+        "failure_rate": 0.25,
+        "mean_wasted_cycles": 34.62,
+        "clopper_pearson_ub": 0.314,
+        "total_cost": 2846200.0,
+        "avg_cost_per_engine": 28462.0
+      },
+      {
+        "threshold": 164.0,
+        "failure_count": 27,
+        "failure_rate": 0.27,
+        "mean_wasted_cycles": 33.13,
+        "clopper_pearson_ub": 0.3351,
+        "total_cost": 3031300.0,
+        "avg_cost_per_engine": 30313.0
+      },
+      {
+        "threshold": 166.0,
+        "failure_count": 30,
+        "failure_rate": 0.3,
+        "mean_wasted_cycles": 31.69,
+        "clopper_pearson_ub": 0.3664,
+        "total_cost": 3316900.0,
+        "avg_cost_per_engine": 33169.0
+      },
+      {
+        "threshold": 168.0,
+        "failure_count": 30,
+        "failure_rate": 0.3,
+        "mean_wasted_cycles": 30.29,
+        "clopper_pearson_ub": 0.3664,
+        "total_cost": 3302900.0,
+        "avg_cost_per_engine": 33029.0
+      },
+      {
+        "threshold": 170.0,
+        "failure_count": 33,
+        "failure_rate": 0.33,
+        "mean_wasted_cycles": 28.89,
+        "clopper_pearson_ub": 0.3975,
+        "total_cost": 3588900.0,
+        "avg_cost_per_engine": 35889.0
+      },
+      {
+        "threshold": 172.0,
+        "failure_count": 33,
+        "failure_rate": 0.33,
+        "mean_wasted_cycles": 27.55,
+        "clopper_pearson_ub": 0.3975,
+        "total_cost": 3575500.0,
+        "avg_cost_per_engine": 35755.0
+      },
+      {
+        "threshold": 174.0,
+        "failure_count": 37,
+        "failure_rate": 0.37,
+        "mean_wasted_cycles": 26.24,
+        "clopper_pearson_ub": 0.4384,
+        "total_cost": 3962400.0,
+        "avg_cost_per_engine": 39624.0
+      },
+      {
+        "threshold": 176.0,
+        "failure_count": 38,
+        "failure_rate": 0.38,
+        "mean_wasted_cycles": 24.98,
+        "clopper_pearson_ub": 0.4486,
+        "total_cost": 4049800.0,
+        "avg_cost_per_engine": 40498.0
+      },
+      {
+        "threshold": 178.0,
+        "failure_count": 41,
+        "failure_rate": 0.41,
+        "mean_wasted_cycles": 23.76,
+        "clopper_pearson_ub": 0.4789,
+        "total_cost": 4337600.0,
+        "avg_cost_per_engine": 43376.0
+      },
+      {
+        "threshold": 180.0,
+        "failure_count": 47,
+        "failure_rate": 0.47,
+        "mean_wasted_cycles": 22.6,
+        "clopper_pearson_ub": 0.5389,
+        "total_cost": 4926000.0,
+        "avg_cost_per_engine": 49260.0
+      },
+      {
+        "threshold": 182.0,
+        "failure_count": 48,
+        "failure_rate": 0.48,
+        "mean_wasted_cycles": 21.55,
+        "clopper_pearson_ub": 0.5488,
+        "total_cost": 5015500.0,
+        "avg_cost_per_engine": 50155.0
+      },
+      {
+        "threshold": 184.0,
+        "failure_count": 52,
+        "failure_rate": 0.52,
+        "mean_wasted_cycles": 20.52,
+        "clopper_pearson_ub": 0.5882,
+        "total_cost": 5405200.0,
+        "avg_cost_per_engine": 54052.0
+      },
+      {
+        "threshold": 186.0,
+        "failure_count": 55,
+        "failure_rate": 0.55,
+        "mean_wasted_cycles": 19.58,
+        "clopper_pearson_ub": 0.6175,
+        "total_cost": 5695800.0,
+        "avg_cost_per_engine": 56958.0
+      },
+      {
+        "threshold": 188.0,
+        "failure_count": 58,
+        "failure_rate": 0.58,
+        "mean_wasted_cycles": 18.71,
+        "clopper_pearson_ub": 0.6465,
+        "total_cost": 5987100.0,
+        "avg_cost_per_engine": 59871.0
+      },
+      {
+        "threshold": 190.0,
+        "failure_count": 58,
+        "failure_rate": 0.58,
+        "mean_wasted_cycles": 17.87,
+        "clopper_pearson_ub": 0.6465,
+        "total_cost": 5978700.0,
+        "avg_cost_per_engine": 59787.0
+      },
+      {
+        "threshold": 192.0,
+        "failure_count": 60,
+        "failure_rate": 0.6,
+        "mean_wasted_cycles": 17.03,
+        "clopper_pearson_ub": 0.6658,
+        "total_cost": 6170300.0,
+        "avg_cost_per_engine": 61703.0
+      },
+      {
+        "threshold": 194.0,
+        "failure_count": 62,
+        "failure_rate": 0.62,
+        "mean_wasted_cycles": 16.24,
+        "clopper_pearson_ub": 0.6849,
+        "total_cost": 6362400.0,
+        "avg_cost_per_engine": 63624.0
+      },
+      {
+        "threshold": 196.0,
+        "failure_count": 63,
+        "failure_rate": 0.63,
+        "mean_wasted_cycles": 15.49,
+        "clopper_pearson_ub": 0.6944,
+        "total_cost": 6454900.0,
+        "avg_cost_per_engine": 64549.0
+      },
+      {
+        "threshold": 198.0,
+        "failure_count": 68,
+        "failure_rate": 0.68,
+        "mean_wasted_cycles": 14.75,
+        "clopper_pearson_ub": 0.7416,
+        "total_cost": 6947500.0,
+        "avg_cost_per_engine": 69475.0
+      },
+      {
+        "threshold": 200.0,
+        "failure_count": 71,
+        "failure_rate": 0.71,
+        "mean_wasted_cycles": 14.13,
+        "clopper_pearson_ub": 0.7695,
+        "total_cost": 7241300.0,
+        "avg_cost_per_engine": 72413.0
+      },
+      {
+        "threshold": 202.0,
+        "failure_count": 73,
+        "failure_rate": 0.73,
+        "mean_wasted_cycles": 13.56,
+        "clopper_pearson_ub": 0.7879,
+        "total_cost": 7435600.0,
+        "avg_cost_per_engine": 74356.0
+      },
+      {
+        "threshold": 204.0,
+        "failure_count": 73,
+        "failure_rate": 0.73,
+        "mean_wasted_cycles": 13.02,
+        "clopper_pearson_ub": 0.7879,
+        "total_cost": 7430200.0,
+        "avg_cost_per_engine": 74302.0
+      },
+      {
+        "threshold": 206.0,
+        "failure_count": 73,
+        "failure_rate": 0.73,
+        "mean_wasted_cycles": 12.48,
+        "clopper_pearson_ub": 0.7879,
+        "total_cost": 7424800.0,
+        "avg_cost_per_engine": 74248.0
+      },
+      {
+        "threshold": 208.0,
+        "failure_count": 74,
+        "failure_rate": 0.74,
+        "mean_wasted_cycles": 11.95,
+        "clopper_pearson_ub": 0.7971,
+        "total_cost": 7519500.0,
+        "avg_cost_per_engine": 75195.0
+      },
+      {
+        "threshold": 210.0,
+        "failure_count": 74,
+        "failure_rate": 0.74,
+        "mean_wasted_cycles": 11.43,
+        "clopper_pearson_ub": 0.7971,
+        "total_cost": 7514300.0,
+        "avg_cost_per_engine": 75143.0
+      },
+      {
+        "threshold": 212.0,
+        "failure_count": 74,
+        "failure_rate": 0.74,
+        "mean_wasted_cycles": 10.91,
+        "clopper_pearson_ub": 0.7971,
+        "total_cost": 7509100.0,
+        "avg_cost_per_engine": 75091.0
+      },
+      {
+        "threshold": 214.0,
+        "failure_count": 75,
+        "failure_rate": 0.75,
+        "mean_wasted_cycles": 10.39,
+        "clopper_pearson_ub": 0.8062,
+        "total_cost": 7603900.0,
+        "avg_cost_per_engine": 76039.0
+      },
+      {
+        "threshold": 216.0,
+        "failure_count": 79,
+        "failure_rate": 0.79,
+        "mean_wasted_cycles": 9.9,
+        "clopper_pearson_ub": 0.8423,
+        "total_cost": 7999000.0,
+        "avg_cost_per_engine": 79990.0
+      },
+      {
+        "threshold": 218.0,
+        "failure_count": 79,
+        "failure_rate": 0.79,
+        "mean_wasted_cycles": 9.48,
+        "clopper_pearson_ub": 0.8423,
+        "total_cost": 7994800.0,
+        "avg_cost_per_engine": 79948.0
+      }
+    ],
+    "naive": [
+      {
+        "threshold": 0.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 1.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 2.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 3.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 4.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 5.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 6.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 7.0,
+        "failure_count": 99,
+        "failure_rate": 0.99,
+        "mean_wasted_cycles": 0.02,
+        "clopper_pearson_ub": 0.9989,
+        "total_cost": 9900200.0,
+        "avg_cost_per_engine": 99002.0
+      },
+      {
+        "threshold": 8.0,
+        "failure_count": 98,
+        "failure_rate": 0.98,
+        "mean_wasted_cycles": 0.04,
+        "clopper_pearson_ub": 0.9947,
+        "total_cost": 9800400.0,
+        "avg_cost_per_engine": 98004.0
+      },
+      {
+        "threshold": 9.0,
+        "failure_count": 95,
+        "failure_rate": 0.95,
+        "mean_wasted_cycles": 0.1,
+        "clopper_pearson_ub": 0.9755,
+        "total_cost": 9501000.0,
+        "avg_cost_per_engine": 95010.0
+      },
+      {
+        "threshold": 10.0,
+        "failure_count": 92,
+        "failure_rate": 0.92,
+        "mean_wasted_cycles": 0.17,
+        "clopper_pearson_ub": 0.9529,
+        "total_cost": 9201700.0,
+        "avg_cost_per_engine": 92017.0
+      },
+      {
+        "threshold": 11.0,
+        "failure_count": 86,
+        "failure_rate": 0.86,
+        "mean_wasted_cycles": 0.4,
+        "clopper_pearson_ub": 0.9035,
+        "total_cost": 8604000.0,
+        "avg_cost_per_engine": 86040.0
+      },
+      {
+        "threshold": 12.0,
+        "failure_count": 77,
+        "failure_rate": 0.77,
+        "mean_wasted_cycles": 0.81,
+        "clopper_pearson_ub": 0.8244,
+        "total_cost": 7708100.0,
+        "avg_cost_per_engine": 77081.0
+      },
+      {
+        "threshold": 13.0,
+        "failure_count": 69,
+        "failure_rate": 0.69,
+        "mean_wasted_cycles": 0.96,
+        "clopper_pearson_ub": 0.7509,
+        "total_cost": 6909600.0,
+        "avg_cost_per_engine": 69096.0
+      },
+      {
+        "threshold": 14.0,
+        "failure_count": 61,
+        "failure_rate": 0.61,
+        "mean_wasted_cycles": 1.7,
+        "clopper_pearson_ub": 0.6753,
+        "total_cost": 6117000.0,
+        "avg_cost_per_engine": 61170.0
+      },
+      {
+        "threshold": 15.0,
+        "failure_count": 53,
+        "failure_rate": 0.53,
+        "mean_wasted_cycles": 1.98,
+        "clopper_pearson_ub": 0.598,
+        "total_cost": 5319800.0,
+        "avg_cost_per_engine": 53198.0
+      },
+      {
+        "threshold": 16.0,
+        "failure_count": 44,
+        "failure_rate": 0.44,
+        "mean_wasted_cycles": 2.52,
+        "clopper_pearson_ub": 0.5091,
+        "total_cost": 4425200.0,
+        "avg_cost_per_engine": 44252.0
+      },
+      {
+        "threshold": 17.0,
+        "failure_count": 32,
+        "failure_rate": 0.32,
+        "mean_wasted_cycles": 3.01,
+        "clopper_pearson_ub": 0.3871,
+        "total_cost": 3230100.0,
+        "avg_cost_per_engine": 32301.0
+      },
+      {
+        "threshold": 18.0,
+        "failure_count": 19,
+        "failure_rate": 0.19,
+        "mean_wasted_cycles": 4.13,
+        "clopper_pearson_ub": 0.2499,
+        "total_cost": 1941300.0,
+        "avg_cost_per_engine": 19413.0
+      },
+      {
+        "threshold": 19.0,
+        "failure_count": 13,
+        "failure_rate": 0.13,
+        "mean_wasted_cycles": 4.9,
+        "clopper_pearson_ub": 0.1839,
+        "total_cost": 1349000.0,
+        "avg_cost_per_engine": 13490.0
+      },
+      {
+        "threshold": 20.0,
+        "failure_count": 9,
+        "failure_rate": 0.09,
+        "mean_wasted_cycles": 5.78,
+        "clopper_pearson_ub": 0.1384,
+        "total_cost": 957800.0,
+        "avg_cost_per_engine": 9578.0
+      },
+      {
+        "threshold": 21.0,
+        "failure_count": 9,
+        "failure_rate": 0.09,
+        "mean_wasted_cycles": 6.48,
+        "clopper_pearson_ub": 0.1384,
+        "total_cost": 964800.0,
+        "avg_cost_per_engine": 9648.0
+      },
+      {
+        "threshold": 22.0,
+        "failure_count": 5,
+        "failure_rate": 0.05,
+        "mean_wasted_cycles": 7.54,
+        "clopper_pearson_ub": 0.0908,
+        "total_cost": 575400.0,
+        "avg_cost_per_engine": 5754.0
+      },
+      {
+        "threshold": 23.0,
+        "failure_count": 2,
+        "failure_rate": 0.02,
+        "mean_wasted_cycles": 9.02,
+        "clopper_pearson_ub": 0.0523,
+        "total_cost": 290200.0,
+        "avg_cost_per_engine": 2902.0
+      },
+      {
+        "threshold": 24.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 10.0,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 100000.0,
+        "avg_cost_per_engine": 1000.0
+      },
+      {
+        "threshold": 25.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 10.71,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 107100.0,
+        "avg_cost_per_engine": 1071.0
+      },
+      {
+        "threshold": 26.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 11.96,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 119600.0,
+        "avg_cost_per_engine": 1196.0
+      },
+      {
+        "threshold": 27.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 13.03,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 130300.0,
+        "avg_cost_per_engine": 1303.0
+      },
+      {
+        "threshold": 28.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 14.01,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 140100.0,
+        "avg_cost_per_engine": 1401.0
+      },
+      {
+        "threshold": 29.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 15.03,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 150300.0,
+        "avg_cost_per_engine": 1503.0
+      },
+      {
+        "threshold": 30.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 16.06,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 160600.0,
+        "avg_cost_per_engine": 1606.0
+      },
+      {
+        "threshold": 31.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 17.2,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 172000.0,
+        "avg_cost_per_engine": 1720.0
+      },
+      {
+        "threshold": 32.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 18.6,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 186000.0,
+        "avg_cost_per_engine": 1860.0
+      },
+      {
+        "threshold": 33.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 19.87,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 198700.0,
+        "avg_cost_per_engine": 1987.0
+      },
+      {
+        "threshold": 34.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 20.71,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 207100.0,
+        "avg_cost_per_engine": 2071.0
+      },
+      {
+        "threshold": 35.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 22.16,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 221600.0,
+        "avg_cost_per_engine": 2216.0
+      },
+      {
+        "threshold": 36.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 24.36,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 243600.0,
+        "avg_cost_per_engine": 2436.0
+      },
+      {
+        "threshold": 37.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 25.28,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 252800.0,
+        "avg_cost_per_engine": 2528.0
+      },
+      {
+        "threshold": 38.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 25.81,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 258100.0,
+        "avg_cost_per_engine": 2581.0
+      },
+      {
+        "threshold": 39.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 26.81,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 268100.0,
+        "avg_cost_per_engine": 2681.0
+      },
+      {
+        "threshold": 40.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 27.81,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 278100.0,
+        "avg_cost_per_engine": 2781.0
+      },
+      {
+        "threshold": 41.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 28.56,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 285600.0,
+        "avg_cost_per_engine": 2856.0
+      },
+      {
+        "threshold": 42.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 29.59,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 295900.0,
+        "avg_cost_per_engine": 2959.0
+      },
+      {
+        "threshold": 43.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 31.23,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 312300.0,
+        "avg_cost_per_engine": 3123.0
+      },
+      {
+        "threshold": 44.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 32.07,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 320700.0,
+        "avg_cost_per_engine": 3207.0
+      }
+    ],
+    "lower90": [
+      {
+        "threshold": 0.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 1.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 2.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 3.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 4.0,
+        "failure_count": 99,
+        "failure_rate": 0.99,
+        "mean_wasted_cycles": 0.02,
+        "clopper_pearson_ub": 0.9989,
+        "total_cost": 9900200.0,
+        "avg_cost_per_engine": 99002.0
+      },
+      {
+        "threshold": 5.0,
+        "failure_count": 96,
+        "failure_rate": 0.96,
+        "mean_wasted_cycles": 0.08,
+        "clopper_pearson_ub": 0.9824,
+        "total_cost": 9600800.0,
+        "avg_cost_per_engine": 96008.0
+      },
+      {
+        "threshold": 6.0,
+        "failure_count": 95,
+        "failure_rate": 0.95,
+        "mean_wasted_cycles": 0.1,
+        "clopper_pearson_ub": 0.9755,
+        "total_cost": 9501000.0,
+        "avg_cost_per_engine": 95010.0
+      },
+      {
+        "threshold": 7.0,
+        "failure_count": 89,
+        "failure_rate": 0.89,
+        "mean_wasted_cycles": 0.26,
+        "clopper_pearson_ub": 0.9287,
+        "total_cost": 8902600.0,
+        "avg_cost_per_engine": 89026.0
+      },
+      {
+        "threshold": 8.0,
+        "failure_count": 82,
+        "failure_rate": 0.82,
+        "mean_wasted_cycles": 0.56,
+        "clopper_pearson_ub": 0.8689,
+        "total_cost": 8205600.0,
+        "avg_cost_per_engine": 82056.0
+      },
+      {
+        "threshold": 9.0,
+        "failure_count": 68,
+        "failure_rate": 0.68,
+        "mean_wasted_cycles": 1.28,
+        "clopper_pearson_ub": 0.7416,
+        "total_cost": 6812800.0,
+        "avg_cost_per_engine": 68128.0
+      },
+      {
+        "threshold": 10.0,
+        "failure_count": 49,
+        "failure_rate": 0.49,
+        "mean_wasted_cycles": 2.18,
+        "clopper_pearson_ub": 0.5587,
+        "total_cost": 4921800.0,
+        "avg_cost_per_engine": 49218.0
+      },
+      {
+        "threshold": 11.0,
+        "failure_count": 29,
+        "failure_rate": 0.29,
+        "mean_wasted_cycles": 3.58,
+        "clopper_pearson_ub": 0.356,
+        "total_cost": 2935800.0,
+        "avg_cost_per_engine": 29358.0
+      },
+      {
+        "threshold": 12.0,
+        "failure_count": 17,
+        "failure_rate": 0.17,
+        "mean_wasted_cycles": 4.36,
+        "clopper_pearson_ub": 0.2281,
+        "total_cost": 1743600.0,
+        "avg_cost_per_engine": 17436.0
+      },
+      {
+        "threshold": 13.0,
+        "failure_count": 11,
+        "failure_rate": 0.11,
+        "mean_wasted_cycles": 5.44,
+        "clopper_pearson_ub": 0.1613,
+        "total_cost": 1154400.0,
+        "avg_cost_per_engine": 11544.0
+      },
+      {
+        "threshold": 14.0,
+        "failure_count": 9,
+        "failure_rate": 0.09,
+        "mean_wasted_cycles": 5.89,
+        "clopper_pearson_ub": 0.1384,
+        "total_cost": 958900.0,
+        "avg_cost_per_engine": 9589.0
+      },
+      {
+        "threshold": 15.0,
+        "failure_count": 6,
+        "failure_rate": 0.06,
+        "mean_wasted_cycles": 6.77,
+        "clopper_pearson_ub": 0.1029,
+        "total_cost": 667700.0,
+        "avg_cost_per_engine": 6677.0
+      },
+      {
+        "threshold": 16.0,
+        "failure_count": 5,
+        "failure_rate": 0.05,
+        "mean_wasted_cycles": 7.81,
+        "clopper_pearson_ub": 0.0908,
+        "total_cost": 578100.0,
+        "avg_cost_per_engine": 5781.0
+      },
+      {
+        "threshold": 17.0,
+        "failure_count": 1,
+        "failure_rate": 0.01,
+        "mean_wasted_cycles": 9.45,
+        "clopper_pearson_ub": 0.0383,
+        "total_cost": 194500.0,
+        "avg_cost_per_engine": 1945.0
+      },
+      {
+        "threshold": 18.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 10.33,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 103300.0,
+        "avg_cost_per_engine": 1033.0
+      },
+      {
+        "threshold": 19.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 11.15,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 111500.0,
+        "avg_cost_per_engine": 1115.0
+      },
+      {
+        "threshold": 20.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 13.86,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 138600.0,
+        "avg_cost_per_engine": 1386.0
+      },
+      {
+        "threshold": 21.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 16.23,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 162300.0,
+        "avg_cost_per_engine": 1623.0
+      },
+      {
+        "threshold": 22.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 18.2,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 182000.0,
+        "avg_cost_per_engine": 1820.0
+      },
+      {
+        "threshold": 23.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 20.27,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 202700.0,
+        "avg_cost_per_engine": 2027.0
+      },
+      {
+        "threshold": 24.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 21.3,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 213000.0,
+        "avg_cost_per_engine": 2130.0
+      },
+      {
+        "threshold": 25.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 23.93,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 239300.0,
+        "avg_cost_per_engine": 2393.0
+      },
+      {
+        "threshold": 26.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 24.88,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 248800.0,
+        "avg_cost_per_engine": 2488.0
+      },
+      {
+        "threshold": 27.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 25.47,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 254700.0,
+        "avg_cost_per_engine": 2547.0
+      },
+      {
+        "threshold": 28.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 26.29,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 262900.0,
+        "avg_cost_per_engine": 2629.0
+      },
+      {
+        "threshold": 29.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 27.05,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 270500.0,
+        "avg_cost_per_engine": 2705.0
+      },
+      {
+        "threshold": 30.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 28.38,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 283800.0,
+        "avg_cost_per_engine": 2838.0
+      },
+      {
+        "threshold": 31.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 28.92,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 289200.0,
+        "avg_cost_per_engine": 2892.0
+      },
+      {
+        "threshold": 32.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 32.74,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 327400.0,
+        "avg_cost_per_engine": 3274.0
+      },
+      {
+        "threshold": 33.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 35.72,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 357200.0,
+        "avg_cost_per_engine": 3572.0
+      },
+      {
+        "threshold": 34.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 38.59,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 385900.0,
+        "avg_cost_per_engine": 3859.0
+      },
+      {
+        "threshold": 35.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 41.81,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 418100.0,
+        "avg_cost_per_engine": 4181.0
+      },
+      {
+        "threshold": 36.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 43.59,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 435900.0,
+        "avg_cost_per_engine": 4359.0
+      },
+      {
+        "threshold": 37.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 45.08,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 450800.0,
+        "avg_cost_per_engine": 4508.0
+      },
+      {
+        "threshold": 38.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 46.07,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 460700.0,
+        "avg_cost_per_engine": 4607.0
+      },
+      {
+        "threshold": 39.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 47.36,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 473600.0,
+        "avg_cost_per_engine": 4736.0
+      },
+      {
+        "threshold": 40.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 48.33,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 483300.0,
+        "avg_cost_per_engine": 4833.0
+      },
+      {
+        "threshold": 41.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 49.4,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 494000.0,
+        "avg_cost_per_engine": 4940.0
+      },
+      {
+        "threshold": 42.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 50.41,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 504100.0,
+        "avg_cost_per_engine": 5041.0
+      },
+      {
+        "threshold": 43.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 51.5,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 515000.0,
+        "avg_cost_per_engine": 5150.0
+      },
+      {
+        "threshold": 44.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 52.68,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 526800.0,
+        "avg_cost_per_engine": 5268.0
+      }
+    ],
+    "lower90_persist3": [
+      {
+        "threshold": 0.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 1.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 2.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 3.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 4.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 5.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 6.0,
+        "failure_count": 100,
+        "failure_rate": 1.0,
+        "mean_wasted_cycles": 0.0,
+        "clopper_pearson_ub": 1.0,
+        "total_cost": 10000000.0,
+        "avg_cost_per_engine": 100000.0
+      },
+      {
+        "threshold": 7.0,
+        "failure_count": 97,
+        "failure_rate": 0.97,
+        "mean_wasted_cycles": 0.03,
+        "clopper_pearson_ub": 0.9889,
+        "total_cost": 9700300.0,
+        "avg_cost_per_engine": 97003.0
+      },
+      {
+        "threshold": 8.0,
+        "failure_count": 97,
+        "failure_rate": 0.97,
+        "mean_wasted_cycles": 0.03,
+        "clopper_pearson_ub": 0.9889,
+        "total_cost": 9700300.0,
+        "avg_cost_per_engine": 97003.0
+      },
+      {
+        "threshold": 9.0,
+        "failure_count": 95,
+        "failure_rate": 0.95,
+        "mean_wasted_cycles": 0.09,
+        "clopper_pearson_ub": 0.9755,
+        "total_cost": 9500900.0,
+        "avg_cost_per_engine": 95009.0
+      },
+      {
+        "threshold": 10.0,
+        "failure_count": 88,
+        "failure_rate": 0.88,
+        "mean_wasted_cycles": 0.33,
+        "clopper_pearson_ub": 0.9204,
+        "total_cost": 8803300.0,
+        "avg_cost_per_engine": 88033.0
+      },
+      {
+        "threshold": 11.0,
+        "failure_count": 70,
+        "failure_rate": 0.7,
+        "mean_wasted_cycles": 1.12,
+        "clopper_pearson_ub": 0.7602,
+        "total_cost": 7011200.0,
+        "avg_cost_per_engine": 70112.0
+      },
+      {
+        "threshold": 12.0,
+        "failure_count": 56,
+        "failure_rate": 0.56,
+        "mean_wasted_cycles": 1.77,
+        "clopper_pearson_ub": 0.6272,
+        "total_cost": 5617700.0,
+        "avg_cost_per_engine": 56177.0
+      },
+      {
+        "threshold": 13.0,
+        "failure_count": 51,
+        "failure_rate": 0.51,
+        "mean_wasted_cycles": 1.98,
+        "clopper_pearson_ub": 0.5784,
+        "total_cost": 5119800.0,
+        "avg_cost_per_engine": 51198.0
+      },
+      {
+        "threshold": 14.0,
+        "failure_count": 44,
+        "failure_rate": 0.44,
+        "mean_wasted_cycles": 2.56,
+        "clopper_pearson_ub": 0.5091,
+        "total_cost": 4425600.0,
+        "avg_cost_per_engine": 44256.0
+      },
+      {
+        "threshold": 15.0,
+        "failure_count": 30,
+        "failure_rate": 0.3,
+        "mean_wasted_cycles": 3.29,
+        "clopper_pearson_ub": 0.3664,
+        "total_cost": 3032900.0,
+        "avg_cost_per_engine": 30329.0
+      },
+      {
+        "threshold": 16.0,
+        "failure_count": 23,
+        "failure_rate": 0.23,
+        "mean_wasted_cycles": 3.94,
+        "clopper_pearson_ub": 0.2928,
+        "total_cost": 2339400.0,
+        "avg_cost_per_engine": 23394.0
+      },
+      {
+        "threshold": 17.0,
+        "failure_count": 14,
+        "failure_rate": 0.14,
+        "mean_wasted_cycles": 5.25,
+        "clopper_pearson_ub": 0.195,
+        "total_cost": 1452500.0,
+        "avg_cost_per_engine": 14525.0
+      },
+      {
+        "threshold": 18.0,
+        "failure_count": 12,
+        "failure_rate": 0.12,
+        "mean_wasted_cycles": 6.21,
+        "clopper_pearson_ub": 0.1726,
+        "total_cost": 1262100.0,
+        "avg_cost_per_engine": 12621.0
+      },
+      {
+        "threshold": 19.0,
+        "failure_count": 6,
+        "failure_rate": 0.06,
+        "mean_wasted_cycles": 6.82,
+        "clopper_pearson_ub": 0.1029,
+        "total_cost": 668200.0,
+        "avg_cost_per_engine": 6682.0
+      },
+      {
+        "threshold": 20.0,
+        "failure_count": 5,
+        "failure_rate": 0.05,
+        "mean_wasted_cycles": 7.7,
+        "clopper_pearson_ub": 0.0908,
+        "total_cost": 577000.0,
+        "avg_cost_per_engine": 5770.0
+      },
+      {
+        "threshold": 21.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 9.86,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 98600.0,
+        "avg_cost_per_engine": 986.0
+      },
+      {
+        "threshold": 22.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 11.52,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 115200.0,
+        "avg_cost_per_engine": 1152.0
+      },
+      {
+        "threshold": 23.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 13.69,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 136900.0,
+        "avg_cost_per_engine": 1369.0
+      },
+      {
+        "threshold": 24.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 15.55,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 155500.0,
+        "avg_cost_per_engine": 1555.0
+      },
+      {
+        "threshold": 25.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 16.72,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 167200.0,
+        "avg_cost_per_engine": 1672.0
+      },
+      {
+        "threshold": 26.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 17.74,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 177400.0,
+        "avg_cost_per_engine": 1774.0
+      },
+      {
+        "threshold": 27.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 18.7,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 187000.0,
+        "avg_cost_per_engine": 1870.0
+      },
+      {
+        "threshold": 28.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 19.53,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 195300.0,
+        "avg_cost_per_engine": 1953.0
+      },
+      {
+        "threshold": 29.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 20.83,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 208300.0,
+        "avg_cost_per_engine": 2083.0
+      },
+      {
+        "threshold": 30.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 21.4,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 214000.0,
+        "avg_cost_per_engine": 2140.0
+      },
+      {
+        "threshold": 31.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 22.34,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 223400.0,
+        "avg_cost_per_engine": 2234.0
+      },
+      {
+        "threshold": 32.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 23.71,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 237100.0,
+        "avg_cost_per_engine": 2371.0
+      },
+      {
+        "threshold": 33.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 25.07,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 250700.0,
+        "avg_cost_per_engine": 2507.0
+      },
+      {
+        "threshold": 34.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 27.25,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 272500.0,
+        "avg_cost_per_engine": 2725.0
+      },
+      {
+        "threshold": 35.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 29.54,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 295400.0,
+        "avg_cost_per_engine": 2954.0
+      },
+      {
+        "threshold": 36.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 31.75,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 317500.0,
+        "avg_cost_per_engine": 3175.0
+      },
+      {
+        "threshold": 37.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 34.07,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 340700.0,
+        "avg_cost_per_engine": 3407.0
+      },
+      {
+        "threshold": 38.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 35.89,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 358900.0,
+        "avg_cost_per_engine": 3589.0
+      },
+      {
+        "threshold": 39.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 37.75,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 377500.0,
+        "avg_cost_per_engine": 3775.0
+      },
+      {
+        "threshold": 40.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 38.66,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 386600.0,
+        "avg_cost_per_engine": 3866.0
+      },
+      {
+        "threshold": 41.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 40.39,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 403900.0,
+        "avg_cost_per_engine": 4039.0
+      },
+      {
+        "threshold": 42.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 40.81,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 408100.0,
+        "avg_cost_per_engine": 4081.0
+      },
+      {
+        "threshold": 43.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 41.76,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 417600.0,
+        "avg_cost_per_engine": 4176.0
+      },
+      {
+        "threshold": 44.0,
+        "failure_count": 0,
+        "failure_rate": 0.0,
+        "mean_wasted_cycles": 42.5,
+        "clopper_pearson_ub": 0.0228,
+        "total_cost": 425000.0,
+        "avg_cost_per_engine": 4250.0
+      }
+    ]
+  },
+  "risk_controlled_thresholds": {
+    "eps_005": {
+      "fixed": {
+        "optimal_threshold": 118.0,
+        "mean_wasted_cycles": 73.36,
+        "empirical_failures": 1,
+        "empirical_failure_rate": 0.01,
+        "clopper_pearson_ub": 0.0383,
+        "target_eps": 0.05,
+        "confidence": 0.9,
+        "is_certified": true,
+        "n_trials": 100
+      },
+      "naive": {
+        "optimal_threshold": 24.0,
+        "mean_wasted_cycles": 10.0,
+        "empirical_failures": 0,
+        "empirical_failure_rate": 0.0,
+        "clopper_pearson_ub": 0.0228,
+        "target_eps": 0.05,
+        "confidence": 0.9,
+        "is_certified": true,
+        "n_trials": 100
+      },
+      "lower90": {
+        "optimal_threshold": 17.0,
+        "mean_wasted_cycles": 9.45,
+        "empirical_failures": 1,
+        "empirical_failure_rate": 0.01,
+        "clopper_pearson_ub": 0.0383,
+        "target_eps": 0.05,
+        "confidence": 0.9,
+        "is_certified": true,
+        "n_trials": 100
+      },
+      "lower90_persist3": {
+        "optimal_threshold": 21.0,
+        "mean_wasted_cycles": 9.86,
+        "empirical_failures": 0,
+        "empirical_failure_rate": 0.0,
+        "clopper_pearson_ub": 0.0228,
+        "target_eps": 0.05,
+        "confidence": 0.9,
+        "is_certified": true,
+        "n_trials": 100
+      }
+    }
+  },
+  "comparison_table": [
+    {
+      "policy_key": "fixed",
+      "policy_name": "Fixed-Interval (Calendar-Based)",
+      "optimal_threshold": 118.0,
+      "empirical_failure_rate": 0.01,
+      "clopper_pearson_ub": 0.0383,
+      "mean_wasted_cycles": 73.36,
+      "avg_cost_per_engine": 8336.0,
+      "wasted_reduction_vs_fixed": 1.0,
+      "is_risk_certified": true
+    },
+    {
+      "policy_key": "naive",
+      "policy_name": "Naive Point-RUL Threshold",
+      "optimal_threshold": 24.0,
+      "empirical_failure_rate": 0.0,
+      "clopper_pearson_ub": 0.0228,
+      "mean_wasted_cycles": 10.0,
+      "avg_cost_per_engine": 1000.0,
+      "wasted_reduction_vs_fixed": 7.34,
+      "is_risk_certified": true
+    },
+    {
+      "policy_key": "lower90",
+      "policy_name": "Conformal 90% Lower-Bound Trigger",
+      "optimal_threshold": 17.0,
+      "empirical_failure_rate": 0.01,
+      "clopper_pearson_ub": 0.0383,
+      "mean_wasted_cycles": 9.45,
+      "avg_cost_per_engine": 1945.0,
+      "wasted_reduction_vs_fixed": 7.76,
+      "is_risk_certified": true
+    },
+    {
+      "policy_key": "lower90_persist3",
+      "policy_name": "Conformal LB + 3-Cycle Persistence",
+      "optimal_threshold": 21.0,
+      "empirical_failure_rate": 0.0,
+      "clopper_pearson_ub": 0.0228,
+      "mean_wasted_cycles": 9.86,
+      "avg_cost_per_engine": 986.0,
+      "wasted_reduction_vs_fixed": 7.44,
+      "is_risk_certified": true
+    }
+  ],
+  "wasted_life_reduction_factor": 7.76,
+  "metadata": {
+    "n_engines": 100,
+    "lead_time": 15,
+    "risk_target_eps": 0.05,
+    "confidence": 0.9,
+    "elapsed_seconds": 0.36
+  }
+}

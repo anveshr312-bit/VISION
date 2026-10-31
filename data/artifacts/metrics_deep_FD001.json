@@ -1,0 +1,16 @@
+{
+  "subset": "FD001",
+  "model_type": "tcn",
+  "test_rmse": 13.8601,
+  "test_mae": 10.0257,
+  "test_nasa_score": 303.04,
+  "coverage_80_percent": 82.0,
+  "coverage_90_percent": 92.0,
+  "avg_interval_width_80": 29.15,
+  "n_train_engines": 100,
+  "n_test_engines": 100,
+  "window_size": 30,
+  "epochs": 15,
+  "elapsed_seconds": 148.35,
+  "artifact_file": "C:\\Users\\anves\\Downloads\\VISION\\data\\artifacts\\deep_tcn_FD001.pt"
+}

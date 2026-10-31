@@ -1,0 +1,1514 @@
+================================================================================
+VISION: COMPLETE ANTIGRAVITY IDE SEQUENTIAL PROMPT PACK
+Vital Intelligence for System Integrity, Observation & Nostics
+Intelligent Predictive Maintenance, Remaining Useful Life (RUL) Estimator & 
+Interactive 3D Turbofan Digital Twin for Aero-Engines
+================================================================================
+Target Working Directory: C:\Users\anves\Downloads\VISION
+Target Platform: Windows 11 / PowerShell / Google Antigravity IDE
+Dataset: NASA C-MAPSS Turbofan Jet Engine Degradation Simulation Dataset
+Execution Mode: Sequential (Prompt 01 through Prompt 20)
+Autonomous Tools: Graphify (Knowledge Graph) & Ponytail (Pragmatic Simplicity)
+Scientific Integrity: Strict Dual-Mode (Empirical C-MAPSS vs Demonstration/Simulation)
+================================================================================
+
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. MASTER ARCHITECTURAL BLUEPRINT & MODULAR DIRECTORY LAYOUT
+2. AUTONOMOUS TOOLING INTEGRATION PROTOCOL (PONYTAIL & GRAPHIFY)
+3. SEQUENTIAL DEVELOPMENT PROMPTS (PROMPT 01 - PROMPT 20)
+   - Prompt 01: Project Architecture, Monorepo Layout & Tooling Setup
+   - Prompt 02: Python & Node.js Environment & Dependency Configuration
+   - Prompt 03: NASA C-MAPSS Dataset Ingestion & Automated Verification
+   - Prompt 04: Data Preprocessing, Regime Normalization & Leakage-Free Protocol
+   - Prompt 05: Baseline RUL Model & Cross-Validation Benchmarking
+   - Prompt 06: Deep Sequence & Heterogeneous Prognostics Core
+   - Prompt 07: Conformal Prediction, Calibration & Uncertainty Bands
+   - Prompt 08: Economic Maintenance Optimization & Risk-Controlled Decision Engine
+   - Prompt 09: Backend API Architecture & Pydantic Data Contracts
+   - Prompt 10: Procedural 3D Turbofan Engine Architecture (Three.js)
+   - Prompt 11: Interactive 3D Component Inspection & Telemetry Visualizer
+   - Prompt 12: Dual-Mode Telemetry & Scientific Integrity Architecture
+   - Prompt 13: Modern Frontend Dashboard Layout & Fleet Risk Board
+   - Prompt 14: Engine Detail View, Sensor Telemetry Charts & RUL Fan Chart
+   - Prompt 15: What-If Maintenance Scheduling & Economic Simulation UI
+   - Prompt 16: Telemetry Streaming Replay Engine & Live Re-ranking
+   - Prompt 17: Comprehensive Automated Testing Suite
+   - Prompt 18: End-to-End System Integration, Error Handling & Logging
+   - Prompt 19: Hackathon Demonstration Mode, Pitch Script & Visual Polish
+   - Prompt 20: Final Structural Verification, Codebase Cleanliness & Architecture Audit
+4. EXTERNAL REQUIREMENTS CHECKLIST & MANUAL SETUP RUNBOOK
+5. LOCAL EXECUTION & OFFLINE VERIFICATION GUIDE
+================================================================================
+
+
+================================================================================
+1. MASTER ARCHITECTURAL BLUEPRINT & MODULAR DIRECTORY LAYOUT
+================================================================================
+The project uses a clean, decoupled monorepo architecture:
+- Python (FastAPI + Scikit-Learn/PyTorch) for the high-performance ML & Decision engine.
+- Node.js (React + Vite + TailwindCSS + Three.js) for the interactive 3D digital twin & dashboard.
+
+DIRECTORY TREE:
+VISION/
+├── .env.example                     # Template environment variables (local ports, debug flags)
+├── .gitignore                       # Git exclusions (venv, node_modules, weights, dataset zips)
+├── README.md                        # Project overview, architecture documentation, quickstart
+├── VISION_PHM_ANTIGRAVITY_PROMPTS.txt # Master prompt sequence (this file)
+│
+├── backend/                         # FastAPI Application & Business Logic
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py                  # API entry point, CORS, lifecycle hooks
+│   │   ├── config.py                # Pydantic Settings (paths, thresholds, cost params)
+│   │   ├── api/                     # REST API Route Controllers
+│   │   │   ├── __init__.py
+│   │   │   ├── routes_fleet.py      # Fleet overview, health indices, risk ranking
+│   │   │   ├── routes_engine.py     # Engine telemetry, sensor trajectories, component maps
+│   │   │   ├── routes_predict.py    # RUL prediction, conformal bands, hazard rates
+│   │   │   ├── routes_decision.py   # Cost model, optimal stopping, maintenance scheduling
+│   │   │   └── routes_stream.py     # Real-time telemetry replay stream (SSE/WebSocket)
+│   │   ├── schemas/                 # Pydantic Schemas & DTO Contracts
+│   │   │   ├── __init__.py
+│   │   │   ├── telemetry.py         # Sensor readings, operating settings
+│   │   │   ├── prediction.py        # RUL, confidence intervals, conformal lower bounds
+│   │   │   └── maintenance.py       # Interventions, cost tradeoffs, hangar slot assignments
+│   │   └── services/                # Business & Orchestration Services
+│   │       ├── __init__.py
+│   │       ├── inference_service.py # Model loading, cached inference, ensemble dispatch
+│   │       ├── decision_service.py  # Risk-controlled triggers & cost optimization
+│   │       └── stream_service.py    # Simulated flight-cycle telemetry playback
+│   ├── tests/                       # Backend Unit & Integration Tests
+│   │   ├── test_api_routes.py       # FastAPI endpoint tests
+│   │   ├── test_schemas.py          # Validation & serialization tests
+│   │   └── test_decision_logic.py   # Optimal stopping & Clopper-Pearson unit tests
+│   └── requirements.txt             # Python dependencies
+│
+├── ml/                              # Machine Learning & Prognostics Pipeline
+│   ├── config.py                    # ML constants (RUL_CAP=125, SENSORS_KEEP, REGIMES=6)
+│   ├── data_loader.py               # Space-separated C-MAPSS parser & validation
+│   ├── preprocessor.py              # K-Means regime clustering, train-only normalization
+│   ├── feature_engineering.py       # Rolling stats (mean_5, delta_5_30, std_10), cycle index
+│   ├── models/                      # Model Implementations
+│   │   ├── __init__.py
+│   │   ├── baseline_gbm.py          # HistGradientBoosting / LightGBM regressor
+│   │   ├── deep_sequence.py         # 1D-CNN / Temporal Convolutional Network (TCN) / BiGRU
+│   │   └── quantile_heads.py        # Pinball loss & multi-quantile regressors
+│   ├── uncertainty/                 # Calibrated Uncertainty Quantification
+│   │   ├── __init__.py
+│   │   ├── conformal_mondrian.py    # Split-conformal Mondrian intervals (bucketed by RUL)
+│   │   └── clopper_pearson.py       # Binomial confidence bounds for risk-controlled triggers
+│   ├── evaluation.py                # RMSE, NASA Asymmetric Score, Coverage (PICP), Width (MPIW)
+│   ├── train.py                     # CLI pipeline: preprocessing -> training -> calibration -> export
+│   └── tests/                       # ML Unit Tests
+│       ├── test_no_leakage.py       # Verifies train-only statistics on test sets
+│       ├── test_conformal.py        # Verifies interval coverage logic
+│       └── test_metrics.py          # Verifies NASA asymmetric loss & RMSE
+│
+├── frontend/                        # React + Vite + TailwindCSS Dashboard & 3D Twin
+│   ├── package.json                 # Node dependencies (Three.js, Lucide-react, Tailwind, Recharts)
+│   ├── vite.config.js               # Vite configuration with proxy to backend
+│   ├── index.html                   # HTML template
+│   ├── src/
+│   │   ├── main.jsx                 # React root
+│   │   ├── App.jsx                  # Main dashboard layout, tabs, state management
+│   │   ├── index.css                # Tailwind styling & dark aero-theme variables
+│   │   ├── components/              # UI Components
+│   │   │   ├── Header.jsx           # App title, mode badge, connection status
+│   │   │   ├── FleetTable.jsx       # Ranked fleet risk board with search/sort
+│   │   │   ├── EngineDetail.jsx     # Selected engine summary, health status, warnings
+│   │   │   ├── SensorChart.jsx      # Multi-sensor telemetry line charts with zoom
+│   │   │   ├── RulFanChart.jsx      # RUL point estimate with 80%/90%/95% confidence fan
+│   │   │   ├── DecisionSliders.jsx  # Interactive cost-ratio (Cf/cw) & risk-tolerance sliders
+│   │   │   └── ModeToggle.jsx       # Empirical C-MAPSS vs Demonstration/Simulation switch
+│   │   ├── components_3d/           # Three.js Turbofan Digital Twin
+│   │   │   ├── TurbofanCanvas.jsx   # Three.js canvas, OrbitControls, camera rigs
+│   │   │   ├── TurbofanModel.jsx    # Procedural 3D engine meshes (Fan, LPC, HPC, Combustor, HPT, LPT)
+│   │   │   ├── ComponentGlow.jsx    # Component selection highlighter & thermal heatmap shader
+│   │   │   └── ComponentTooltip.jsx # Overlay showing selected component sensors & health
+│   │   ├── services/                # API Client
+│   │   │   ├── api.js               # Axios / Fetch client with backend endpoints
+│   │   │   └── streamClient.js      # SSE / WebSocket subscriber for streaming updates
+│   │   └── utils/
+│   │       ├── formatters.js        # Cycles, hours, percentage formatting
+│   │       └── sensorNames.js       # Aerospace labels (T24, T30, P30, Nf, Nc, BPR, etc.)
+│   └── tests/                       # Frontend Component & Smoke Tests
+│       └── DashboardSmoke.test.jsx
+│
+├── data/                            # Dataset & Model Artifacts (Ignored in Git)
+│   ├── raw/                         # Raw NASA C-MAPSS text files (FD001 - FD004)
+│   ├── processed/                   # Processed cached CSV/Parquet & normalizers
+│   └── artifacts/                   # Trained model weights, conformal tables, metrics.json
+│
+└── scripts/                         # Operational & Automation Shell/Python Scripts
+    ├── setup_env.bat                # Windows setup script (Python venv + npm install)
+    ├── download_cmapss.py           # Automated C-MAPSS downloader with checksums
+    ├── run_pipeline.py              # End-to-end ML train & calibrate command
+    ├── start_backend.bat            # Uvicorn FastAPI startup
+    ├── start_frontend.bat           # Vite dev server startup
+    └── start_all.bat                # Unified launcher for demo
+
+
+================================================================================
+2. AUTONOMOUS TOOLING INTEGRATION PROTOCOL (PONYTAIL & GRAPHIFY)
+================================================================================
+The Antigravity development environment includes specialized capabilities:
+1. PONYTAIL SKILL: Enforces pragmatic, YAGNI-driven, minimal senior-developer engineering.
+   - Use standard library and built-ins before custom code.
+   - No speculative abstractions (no interfaces with single implementations, no unneeded boilerplate).
+   - "Deletion over addition. Boring over clever."
+   - Keep the hackathon prototype functional, testable, and lean.
+
+2. GRAPHIFY SKILL / MCP: Builds and queries codebase architecture knowledge graphs.
+   - Graphify turns files into an AST knowledge graph in `graphify-out/`.
+   - Run `graphify update .` after significant structural updates to map cross-module relationships.
+   - Query dependencies using `graphify query "<question>"` when navigating complex interfaces.
+   - Neither tool is a runtime dependency for the user; they are agent-internal development accelerators.
+
+INSTRUCTION FOR ANTIGRAVITY AGENT:
+Throughout execution of this prompt pack:
+- Keep implementations compact and robust according to Ponytail principles.
+- Avoid introducing heavyweight databases (e.g., PostgreSQL/Redis) when SQLite/in-memory caches serve the hackathon scope cleanly.
+- After creating core modules (Prompts 01, 09, 13, 20), trigger Graphify indexing to verify module boundaries.
+
+
+================================================================================
+3. SEQUENTIAL DEVELOPMENT PROMPTS
+================================================================================
+
+--------------------------------------------------------------------------------
+PROMPT 01: Project Architecture, Monorepo Layout & Tooling Setup
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Initialize the empty workspace `C:\Users\anves\Downloads\VISION` into a clean, modular monorepo structure. Establish root documentation, environment templates, Git ignore rules, and initial development configs.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `VISION/README.md`
+- `VISION/.env.example`
+- `VISION/.gitignore`
+- Monorepo folder hierarchy: `backend/app/api`, `backend/app/schemas`, `backend/app/services`, `backend/tests`, `ml/models`, `ml/uncertainty`, `ml/tests`, `frontend/src/components`, `frontend/src/components_3d`, `data/raw`, `data/processed`, `data/artifacts`, `scripts/`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Create all directory trees specified in the Master Architecture Blueprint.
+2. Create `.gitignore` ignoring:
+   - Python: `__pycache__/`, `*.pyc`, `.venv/`, `env/`, `*.egg-info/`, `.pytest_cache/`
+   - Node: `node_modules/`, `dist/`, `.vite/`
+   - Data & Artifacts: `data/raw/*.txt`, `data/raw/*.zip`, `data/processed/*.parquet`, `data/artifacts/*.joblib`, `data/artifacts/*.pt` (preserve `.gitkeep` files)
+   - System & Secrets: `.env`, `.DS_Store`, `Thumbs.db`
+3. Create `.env.example`:
+   ```env
+   # VISION: Vital Intelligence for System Integrity, Observation & Nostics
+# Configuration
+   API_HOST=127.0.0.1
+   API_PORT=8000
+   VITE_API_URL=http://127.0.0.1:8000
+   DEBUG=True
+   CMAPSS_DIR=data/raw
+   DEFAULT_SUBSET=FD001
+   RUL_CAP=125
+   ```
+4. Create `README.md` detailing:
+   - Project Name: VISION (Vital Intelligence for System Integrity, Observation & Nostics)
+   - High-level architecture: FastAPI ML Engine + React/Vite 3D Turbofan Digital Twin
+   - Problem Statement: PS 12 - Aero-Engine RUL & Predictive Maintenance
+   - Setup instructions and execution roadmap.
+
+TECHNICAL CONSTRAINTS:
+- Do not create unnecessary subfolders. Follow the Ponytail ladder: minimal files that establish clear module boundaries.
+- Ensure PowerShell path compatibility (use forward slashes or escaped backslashes).
+
+ACCEPTANCE CRITERIA:
+- Running `tree /F` or PowerShell `Get-ChildItem -Recurse` displays the complete expected layout.
+- `.gitignore` properly excludes virtual environments and dataset files.
+- `.env.example` contains all default parameters.
+
+TESTS / VERIFICATION STEPS:
+Execute in PowerShell:
+```powershell
+Get-ChildItem -Path . -Recurse -Directory | Select-Object FullName
+Test-Path ".env.example", ".gitignore", "README.md"
+```
+Verify that all folders exist and root files return `True`.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If folder creation fails due to permissions, verify that PowerShell is running in `C:\Users\anves\Downloads\VISION`. If `.gitignore` doesn't hide test files, verify root placement.
+
+--------------------------------------------------------------------------------
+PROMPT 02: Python & Node.js Environment & Dependency Configuration
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Configure the development environments for both Python (backend + ML) and Node.js (frontend). Create lock-free, clean dependency files that install reliably on Windows 11.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `backend/requirements.txt`
+- `frontend/package.json`
+- `frontend/vite.config.js`
+- `frontend/tailwind.config.js`
+- `frontend/postcss.config.js`
+- `scripts/setup_env.bat`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Create `backend/requirements.txt` with tested compatible versions:
+   ```txt
+   fastapi>=0.110.0,<0.120.0
+   uvicorn[standard]>=0.28.0,<0.35.0
+   pydantic>=2.6.0,<3.0.0
+   pydantic-settings>=2.2.0
+   numpy>=1.26.0,<2.3.0
+   pandas>=2.2.0,<3.0.0
+   scipy>=1.12.0,<2.0.0
+   scikit-learn>=1.4.0,<2.0.0
+   joblib>=1.3.2
+   torch>=2.2.0,<2.6.0 --index-url https://download.pytorch.org/whl/cpu; sys_platform == 'win32'
+   pytest>=8.0.0
+   requests>=2.31.0
+   python-multipart>=0.0.9
+   ```
+   Note: PyTorch is specified for CPU to keep installation fast and free of CUDA bloat. If torch installation fails, pure scikit-learn/numpy fallbacks must be supported.
+
+2. Create `frontend/package.json`:
+   ```json
+   {
+     "name": "vision-phm-frontend",
+     "private": true,
+     "version": "1.0.0",
+     "type": "module",
+     "scripts": {
+       "dev": "vite",
+       "build": "vite build",
+       "preview": "vite preview"
+     },
+     "dependencies": {
+       "react": "^18.3.1",
+       "react-dom": "^18.3.1",
+       "three": "^0.164.1",
+       "lucide-react": "^0.378.0",
+       "clsx": "^2.1.1",
+       "tailwind-merge": "^2.3.0"
+     },
+     "devDependencies": {
+       "@vitejs/plugin-react": "^4.2.1",
+       "autoprefixer": "^10.4.19",
+       "postcss": "^8.4.38",
+       "tailwindcss": "^3.4.3",
+       "vite": "^5.2.11"
+     }
+   }
+   ```
+
+3. Create `frontend/vite.config.js` with API proxy:
+   ```javascript
+   import { defineConfig } from 'vite';
+   import react from '@vitejs/plugin-react';
+
+   export default defineConfig({
+     plugins: [react()],
+     server: {
+       port: 5173,
+       proxy: {
+         '/api': {
+           target: 'http://127.0.0.1:8000',
+           changeOrigin: true,
+         },
+         '/stream': {
+           target: 'http://127.0.0.1:8000',
+           changeOrigin: true,
+         }
+       }
+     }
+   });
+   ```
+
+4. Create `frontend/tailwind.config.js` configured with aviation dark theme palette (`#0f172a`, `#1e293b`, `#38bdf8`, `#22c55e`, `#f59e0b`, `#ef4444`).
+
+5. Create `scripts/setup_env.bat` that automates:
+   - Creating Python venv: `python -m venv .venv`
+   - Activating venv and upgrading pip: `call .venv\Scripts\activate.bat && pip install --upgrade pip`
+   - Installing requirements: `pip install -r backend/requirements.txt`
+   - Installing frontend dependencies: `cd frontend && npm install && cd ..`
+
+TECHNICAL CONSTRAINTS:
+- Windows PowerShell and cmd compatible scripts.
+- Zero external paid packages.
+- Ensure Vite proxies both REST API and streaming endpoints to prevent CORS issues.
+
+ACCEPTANCE CRITERIA:
+- Running `scripts/setup_env.bat` completes without fatal errors.
+- Python environment has `fastapi`, `numpy`, `pandas`, `sklearn`, `scipy` importable.
+- Node environment has `three`, `react`, `lucide-react` in `frontend/node_modules`.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+# Test Python imports
+& .venv/Scripts/python -c "import fastapi, numpy, pandas, sklearn, scipy; print('Python dependencies: OK')"
+# Test Node modules
+cd frontend; node -e "require('three'); console.log('Node dependencies: OK')"; cd ..
+```
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If `torch` download times out, replace the torch requirement in `backend/requirements.txt` with standard PyTorch CPU index or proceed with the standard scikit-learn + numpy architecture which is 100% self-sufficient.
+
+--------------------------------------------------------------------------------
+PROMPT 03: NASA C-MAPSS Dataset Ingestion & Automated Verification
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Implement an automated, idempotent dataset acquisition script that downloads the official NASA C-MAPSS turbofan engine degradation dataset, extracts all 12 core files into `data/raw/`, and runs strict schema and integrity verification.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `scripts/download_cmapss.py`
+- `ml/data_loader.py`
+- `data/raw/` (destination for txt files)
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `scripts/download_cmapss.py`:
+   - Primary download source: Direct NASA Open Data archive (`https://data.nasa.gov/docs/legacy/CMAPSSData.zip`).
+   - Backup mirror source: PHM Society AWS S3 mirror (`https://phm-datasets.s3.amazonaws.com/NASA/6.+Turbofan+Engine+Degradation+Simulation+Data+Set.zip`).
+   - If offline or air-gapped, check if files already exist in `data/raw/` or `C:\Users\anves\Downloads\VISION\output\cmapss\` (or allow manual copy).
+   - Unpack ZIP and verify the presence of all 12 files:
+     - `train_FD001.txt`, `train_FD002.txt`, `train_FD003.txt`, `train_FD004.txt`
+     - `test_FD001.txt`, `test_FD002.txt`, `test_FD003.txt`, `test_FD004.txt`
+     - `RUL_FD001.txt`, `RUL_FD002.txt`, `RUL_FD003.txt`, `RUL_FD004.txt`
+   - Print clean summary table of file sizes and line counts.
+
+2. Implement `ml/data_loader.py`:
+   - Provide standard schema column names:
+     `COLS = ["unit", "cycle", "op1", "op2", "op3"] + [f"s{i}" for i in range(1, 22)]`
+   - Define informative sensors list:
+     `SENSORS_KEEP = ["s2", "s3", "s4", "s7", "s8", "s9", "s11", "s12", "s13", "s14", "s15", "s17", "s20", "s21"]`
+   - Sensor names dictionary mapping C-MAPSS sensor codes to true physical aerospace names:
+     - `s2`: "T24 - LPC Outlet Temp (°R)"
+     - `s3`: "T30 - HPC Outlet Temp (°R)"
+     - `s4`: "T50 - LPT Outlet Temp (°R)"
+     - `s7`: "P30 - HPC Outlet Pressure (psia)"
+     - `s8`: "Nf - Physical Fan Speed (rpm)"
+     - `s9`: "Nc - Physical Core Speed (rpm)"
+     - `s11`: "Ps30 - Static HPC Outlet Pressure (psia)"
+     - `s12`: "phi - Fuel Flow Ratio to Ps30 (pps/psi)"
+     - `s13`: "NRf - Corrected Fan Speed (rpm)"
+     - `s14`: "NRc - Corrected Core Speed (rpm)"
+     - `s15`: "BPR - Bypass Ratio"
+     - `s17`: "htBleed - Bleed Enthalpy"
+     - `s20`: "W31 - HPT Coolant Bleed (lbm/s)"
+     - `s21`: "W32 - LPT Coolant Bleed (lbm/s)"
+   - Function `load_subset(subset_name: str, data_dir: str = "data/raw") -> tuple[pd.DataFrame, pd.DataFrame, np.ndarray]`:
+     - Reads space-delimited text (`sep=r"\s+"`).
+     - Calculates actual training RUL: `max_cycle_per_unit - current_cycle`.
+     - Returns `(train_df, test_df, ground_truth_rul)`.
+   - Function `verify_dataset_integrity(data_dir: str = "data/raw") -> dict`:
+     - Validates engine counts:
+       - FD001: 100 train, 100 test
+       - FD002: 260 train, 259 test
+       - FD003: 100 train, 100 test
+       - FD004: 248 train, 249 test
+
+TECHNICAL CONSTRAINTS:
+- Handle potential trailing whitespace or multiple spaces in raw text files.
+- Zero data leakage: Ground-truth test RUL must never be merged into `test_df` during loading.
+- Scientific integrity: Document clearly that C-MAPSS does not contain vibration or oil pressure channels.
+
+ACCEPTANCE CRITERIA:
+- Running `python scripts/download_cmapss.py` results in 12 non-empty `.txt` files in `data/raw/`.
+- Calling `data_loader.load_subset("FD001")` returns valid dataframes with correct dimensions.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+& .venv/Scripts/python scripts/download_cmapss.py
+& .venv/Scripts/python -c "from ml.data_loader import verify_dataset_integrity; res = verify_dataset_integrity(); print(res)"
+```
+Output must show `{'status': 'PASSED', 'FD001': 'OK', 'FD002': 'OK', 'FD003': 'OK', 'FD004': 'OK'}`.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If the download URL is unreachable, have `download_cmapss.py` prompt the user or search local paths (e.g. `output/` or `cmapss/`) to copy existing C-MAPSS files into `data/raw/`.
+
+--------------------------------------------------------------------------------
+PROMPT 04: Data Preprocessing, Regime Normalization & Leakage-Free Protocol
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build a mathematically rigorous, leakage-safe preprocessing and feature engineering pipeline. Implement K-Means operational regime clustering for multi-regime subsets (FD002, FD004), train-only normalization, rolling statistical windowing, and piecewise-linear RUL capping at 125 cycles.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `ml/config.py`
+- `ml/preprocessor.py`
+- `ml/feature_engineering.py`
+- `ml/tests/test_no_leakage.py`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `ml/config.py`:
+   - `RUL_CAP = 125` (Standard industrial threshold capping flat healthy phase).
+   - `N_REGIMES = { 'FD001': 1, 'FD002': 6, 'FD003': 1, 'FD004': 6 }`
+   - `ROLLING_WINDOWS = [5, 10, 30]`
+
+2. Implement `ml/preprocessor.py`:
+   - Class `CmapssPreprocessor`:
+     - `fit(train_df: pd.DataFrame)`:
+       - If `n_regimes > 1`: Fit `sklearn.cluster.KMeans(n_clusters=6, n_init=10, random_state=42)` on operational settings `['op1', 'op2', 'op3']`.
+       - Compute per-regime mean and standard deviation for each informative sensor on training engines only. If std is 0, replace with 1.
+       - If `n_regimes == 1`: Compute global mean and std on training engines only.
+     - `transform(df: pd.DataFrame) -> pd.DataFrame`:
+       - Assign regime clusters using fitted KMeans.
+       - Standardize sensors using training-derived regime statistics: `(sensor - mu_train) / sd_train`.
+       - Never fit or update statistics on test data.
+     - `save(path: str)` / `load(path: str)` using joblib.
+
+3. Implement `ml/feature_engineering.py`:
+   - Function `extract_causal_features(df: pd.DataFrame) -> pd.DataFrame`:
+     - Group strictly by engine `unit`.
+     - For each of the 14 sensors, compute strictly backward-looking causal rolling features:
+       - `mean_5`: 5-cycle rolling mean (`rolling(5, min_periods=1).mean()`).
+       - `mean_30`: 30-cycle rolling mean (`rolling(30, min_periods=1).mean()`).
+       - `delta_5_30`: Gradient feature (`mean_5 - mean_30`) indicating acceleration of degradation.
+       - `std_10`: 10-cycle rolling standard deviation (`rolling(10, min_periods=2).std().fillna(0)`).
+       - Raw sensor value at cycle `t`.
+     - Retain `cycle` as an explicit feature.
+     - Total feature count: 14 sensors * 4 features + 1 cycle = 57 causal features.
+
+4. Implement `ml/tests/test_no_leakage.py`:
+   - Verifies that shuffling or altering future cycles of a test engine does NOT change earlier features.
+   - Verifies that test set sensor values do not influence normalization means or standard deviations.
+
+TECHNICAL CONSTRAINTS:
+- Absolute causality: No centered rolling windows (`center=False` mandatory).
+- Never fit normalizers on test engines.
+
+ACCEPTANCE CRITERIA:
+- Preprocessor achieves the measured -2.3 RMSE reduction on FD002 and -3.2 on FD004 when per-regime normalization is active vs global.
+- Leakage unit test passes with zero failures.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+& .venv/Scripts/python -m pytest ml/tests/test_no_leakage.py -v
+& .venv/Scripts/python -c "from ml.data_loader import load_subset; from ml.preprocessor import CmapssPreprocessor; tr, te, _ = load_subset('FD002'); p = CmapssPreprocessor(n_regimes=6).fit(tr); tr_n = p.transform(tr); te_n = p.transform(te); print('Preprocess FD002: SUCCESS', tr_n.shape, te_n.shape)"
+```
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If `KMeans` raises warning about memory leaks on Windows, ensure explicit `n_init=10` is set. If unit tests report future leakage, verify that pandas rolling windows do not have `closed='left'` or negative indexing.
+
+--------------------------------------------------------------------------------
+PROMPT 05: Baseline RUL Model & Cross-Validation Benchmarking
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build, evaluate, and benchmark a high-performance Tabular/Gradient-Boosting RUL regressor. Implement 5-fold Engine-Grouped Cross-Validation (`GroupKFold`), asymmetric NASA scoring, and bootstrap confidence intervals.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `ml/models/baseline_gbm.py`
+- `ml/evaluation.py`
+- `ml/train_baseline.py`
+- `data/artifacts/baseline_FD001.joblib`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `ml/models/baseline_gbm.py`:
+   - `HistGradientBoostingRegressor` (or LightGBM) configured with:
+     - `max_iter=300`, `learning_rate=0.06`, `max_leaf_nodes=31`, `min_samples_leaf=40`, `l2_regularization=1.0`, `random_state=42`.
+   - Native handling of non-linear interactions across the 57 causal features.
+
+2. Implement `ml/evaluation.py`:
+   - `compute_rmse(y_true, y_pred) -> float`: Root Mean Squared Error.
+   - `compute_nasa_score(y_true, y_pred) -> float`:
+     - Asymmetric penalty: $s = \sum \exp(-d/13) - 1$ if $d < 0$ (early warning), else $\exp(d/10) - 1$ (late warning). Penalizes late predictions exponentially harder.
+   - `compute_bootstrap_ci(y_true, y_pred, n_bootstraps=2000, ci=95) -> tuple[float, float]`:
+     - Resamples test engines with replacement to report true sampling uncertainty.
+
+3. Implement `ml/train_baseline.py`:
+   - CLI script: `python -m ml.train_baseline --subset FD001`
+   - Applies 5-fold `GroupKFold(n_splits=5)` grouping on engine `unit`.
+   - Records out-of-fold (OOF) cross-validation predictions for all training cycles.
+   - Fits model on full training set, evaluates on official last-cycle test windows.
+   - Saves model artifact to `data/artifacts/baseline_{subset}.joblib` and metrics to `data/artifacts/metrics_{subset}.json`.
+
+TECHNICAL CONSTRAINTS:
+- Capping rule: Labels must be capped at $y = \min(\text{RUL}, 125)$ both during training and evaluation.
+- Test evaluation must use strictly the last available cycle per test unit to match the NASA official test protocol.
+
+ACCEPTANCE CRITERIA:
+- Achieves benchmark accuracy on official test sets:
+  - FD001 Test RMSE: 13.5 - 14.5 cycles (NASA score ~300)
+  - FD002 Test RMSE: 13.8 - 14.8 cycles (per-regime)
+  - FD003 Test RMSE: 12.8 - 13.8 cycles
+  - FD004 Test RMSE: 15.0 - 16.0 cycles (per-regime)
+- Model artifacts successfully saved and reloadable.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+& .venv/Scripts/python -m ml.train_baseline --subset FD001
+& .venv/Scripts/python -c "import joblib, json; m = joblib.load('data/artifacts/baseline_FD001.joblib'); metrics = json.load(open('data/artifacts/metrics_FD001.json')); print('Baseline FD001 test RMSE:', metrics['test_rmse'], 'NASA score:', metrics['test_nasa_score'])"
+```
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If test RMSE exceeds 16 on FD001, verify that only the 14 informative sensors are used and that the target RUL is capped at 125. Verify that `GroupKFold` splits engines rather than individual rows.
+
+--------------------------------------------------------------------------------
+PROMPT 06: Deep Sequence & Heterogeneous Prognostics Core
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Implement deep time-series sequence models (Temporal Convolutional Network / 1D-CNN and Bidirectional GRU with Attention) and quantile regression heads. This provides heterogeneous modeling capability alongside the baseline gradient-boosted trees.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `ml/models/deep_sequence.py`
+- `ml/models/quantile_heads.py`
+- `ml/train_deep.py`
+- `data/artifacts/deep_tcn_FD001.pt` or fallback joblib ensemble
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement sequence generator in `ml/models/deep_sequence.py`:
+   - Slides a temporal window of $W = 30$ or $50$ cycles over the normalized 14 sensor channels.
+   - Padded with edge replication if sequence length < $W$ for early cycles.
+   - PyTorch architecture (with automatic graceful fallback to a multi-quantile gradient boosting ensemble if PyTorch is absent):
+     - `AeroTCN`: 1D Dilated Causal Convolutions with residual connections (dilations: 1, 2, 4, 8), kernel size 3, dropout 0.2.
+     - `AeroBiGRU`: 2-layer Bidirectional GRU (hidden dim 64) with temporal additive attention pooling.
+     - Loss: Huber loss + asymmetric late penalty $\lambda \cdot \max(\hat{y} - y, 0)^2$.
+
+2. Implement `ml/models/quantile_heads.py`:
+   - Multi-quantile pinball loss:
+     $$\mathcal{L}_q(y, \hat{y}) = \max(q(y - \hat{y}), (1 - q)(\hat{y} - y))$$
+   - Trains quantile estimators for $\tau \in [0.05, 0.10, 0.50, 0.90, 0.95]$.
+   - Yields empirical predictive distribution without making rigid Gaussian assumptions.
+
+3. Implement `ml/train_deep.py`:
+   - Supports training both TCN/BiGRU and quantile ensemble on engine-grouped splits.
+   - Saves model weights and inference metadata into `data/artifacts/`.
+
+TECHNICAL CONSTRAINTS:
+- Windows CPU execution must train within 3-5 minutes.
+- Causal temporal padding only (no future cycle visibility).
+- If PyTorch is unavailable in the environment, implement multi-quantile gradient boosting (`GradientBoostingRegressor(loss='quantile', alpha=q)`) as a zero-dependency drop-in.
+
+ACCEPTANCE CRITERIA:
+- Running `train_deep.py` produces trained weights for FD001.
+- Inference function produces point RUL prediction plus 10th and 90th percentile bounds.
+- Model adheres to the 125 RUL cap.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+& .venv/Scripts/python -m ml.train_deep --subset FD001 --epochs 15
+& .venv/Scripts/python -c "from ml.models.quantile_heads import predict_quantiles; print('Quantile inference: READY')"
+```
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If PyTorch tensor operations fail or take too long on CPU, switch to the scikit-learn quantile gradient boosting fallback (`QuantileEnsemble` class), which trains in under 20 seconds on CPU.
+
+--------------------------------------------------------------------------------
+PROMPT 07: Conformal Prediction, Calibration & Uncertainty Bands
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build a mathematically proven uncertainty calibration engine using Mondrian Split-Conformal Prediction. Provide finite-sample, distribution-free coverage guarantees for RUL estimates with lower-bound safety certificates.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `ml/uncertainty/conformal_mondrian.py`
+- `ml/uncertainty/evaluate_calibration.py`
+- `data/artifacts/conformal_tables_FD001.json`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `ml/uncertainty/conformal_mondrian.py`:
+   - Class `MondrianConformalCalibrator`:
+     - Discretize predicted RUL into bins to account for heteroscedasticity (larger error at high RUL, tighter error near failure):
+       `EDGES = [15, 30, 50, 75, 100, 115]` cycles.
+     - Calibrate on Out-Of-Fold (OOF) cross-validation residuals:
+       $$r_i = |\hat{y}_i - y_i| \quad \text{(two-sided)}, \quad r_i^{lb} = \hat{y}_i - y_i \quad \text{(one-sided lower bound)}$$
+     - For each bin $b$ and nominal miscoverage level $\alpha$ (e.g., $0.10$ for $90\%$ confidence):
+       Compute conformal quantile:
+       $$q_b = \text{Quantile}\left(r; \frac{\lceil(n_b + 1)(1 - \alpha)\rceil}{n_b}\right)$$
+     - Handle sparse bins with global quantile fallback if sample count $< 30$.
+     - Inference function:
+       $$\text{Interval}(\hat{y}) = [\max(0, \hat{y} - q_b), \hat{y} + q_b]$$
+       $$\text{LowerBound}_{1-\alpha}(\hat{y}) = \max(0, \hat{y} - q_b^{lb})$$
+       Guarantees: $\mathbb{P}(Y \ge \text{LowerBound}_{1-\alpha}) \ge 1 - \alpha$.
+
+2. Implement `ml/uncertainty/evaluate_calibration.py`:
+   - Evaluates empirical coverage (PICP) and mean interval width (MPIW) across test engines.
+   - Evaluates one-sided lower-bound safety fraction on test engines.
+   - Exports conformal calibration lookup tables to `data/artifacts/conformal_tables_{subset}.json`.
+
+TECHNICAL CONSTRAINTS:
+- Calibration must be derived strictly from OOF training residuals to avoid optimistic bias.
+- Respect exchangeability: State clearly in output that conformal guarantees are marginal over engines.
+
+ACCEPTANCE CRITERIA:
+- Conformal tables generated for nominal levels 80%, 90%, 95%.
+- Empirical test coverage evaluated and logged:
+  - 90% nominal yields 83% - 90% empirical coverage on official test sets.
+  - One-sided 90% lower bound safely covers true RUL for >= 86% of test engines.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+& .venv/Scripts/python -m ml.uncertainty.evaluate_calibration --subset FD001
+& .venv/Scripts/python -c "import json; d=json.load(open('data/artifacts/conformal_tables_FD001.json')); print('Conformal tables loaded:', list(d.keys()))"
+```
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If empirical coverage under-covers severely (< 75% for 90% nominal), check that residuals are calibrated against capped ground truth `np.minimum(y, 125)` and that bucket indexing uses `np.digitize`.
+
+--------------------------------------------------------------------------------
+PROMPT 08: Economic Maintenance Optimization & Risk-Controlled Decision Engine
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Bridge the gap between raw ML predictions and actionable maintenance decisions. Implement an economic cost model, a closed-form optimal stopping hazard rule, Clopper-Pearson risk-controlled trigger selection, and back-tested policy evaluation against fixed-interval maintenance.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `backend/app/services/decision_service.py`
+- `ml/uncertainty/clopper_pearson.py`
+- `ml/decision_simulation.py`
+- `data/artifacts/decision_policy_FD001.json`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `ml/uncertainty/clopper_pearson.py`:
+   - Function `clopper_pearson_upper_bound(k_failures: int, n_trials: int, confidence: float = 0.90) -> float`:
+     - Calculates exact one-sided binomial upper bound using Beta distribution:
+       $$UB = \text{Beta}^{-1}(\text{conf}; k+1, n-k) \quad \text{if } k < n \text{ else } 1.0$$
+   - Function `select_risk_controlled_threshold(failures_matrix, waste_matrix, grid, eps=0.05, conf=0.90)`:
+     - Selects the trigger threshold $\theta^*$ that minimizes wasted life while strictly guaranteeing $UB \le \epsilon$.
+     - Prevents the 42% risk-target violation seen in naive threshold tuning.
+
+2. Implement `backend/app/services/decision_service.py`:
+   - Economic cost model:
+     - $C_f$: Cost of an in-service catastrophic failure (default: $100,000 / normalized 1000).
+     - $c_w$: Cost of one wasted cycle of useful engine life (default: $100 / normalized 1).
+     - Cost ratio: $\gamma = c_w / C_f \approx 10^{-3}$.
+   - Optimal stopping decision rule:
+     - Compute predictive hazard: $h(s) = \frac{f(s)}{1 - F(s)}$.
+     - Optimal maintenance trigger condition: Trigger intervention at the earliest cycle $s^*$ where $h(s^*) \ge \frac{c_w}{C_f}$.
+   - Hangar slot & priority scheduling:
+     - Sort fleet engines into: `CRITICAL` (trigger hit, schedule in next 15 cycles), `MONITOR` (RUL < 40 cycles), `HEALTHY` (RUL >= 40 cycles).
+
+3. Implement `ml/decision_simulation.py`:
+   - Simulates 4 maintenance policies on held-out engines with a 15-cycle logistics lead time:
+     1. Fixed-interval (calendar-based) maintenance
+     2. Naive point-RUL threshold trigger
+     3. Conformal 90% lower-bound trigger
+     4. Conformal lower-bound + 3-cycle persistence trigger
+   - Generates Pareto frontier of In-Service Failure Rate vs Mean Wasted Cycles.
+   - Proves 5-8x reduction in wasted engine life compared to fixed intervals at equal risk budget.
+   - Saves results to `data/artifacts/decision_policy_FD001.json`.
+
+TECHNICAL CONSTRAINTS:
+- 15-cycle logistics lead time must be factored into all decisions: if trigger fires at cycle $t$, physical maintenance occurs at $t + 15$. If engine true life $T \le t + 15$, it counts as an in-service failure.
+
+ACCEPTANCE CRITERIA:
+- Optimal stopping rule mathematically validates the economic trade-off.
+- Decision simulation verifies that risk-controlled thresholds reduce violation rate to $\le 4\%$.
+- Policy comparison table exported for frontend dashboard consumption.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+& .venv/Scripts/python -m ml.decision_simulation --subset FD001
+& .venv/Scripts/python -c "import json; pol = json.load(open('data/artifacts/decision_policy_FD001.json')); print('Decision simulation: SUCCESS, Pareto points:', len(pol['curves']['lower90']))"
+```
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If the Clopper-Pearson upper bound is too conservative and rejects all thresholds, ensure the candidate grid spans thresholds from 0 to 125 cycles and that $n_\text{trials}$ represents the full held-out engine cohort.
+
+--------------------------------------------------------------------------------
+PROMPT 09: Backend API Architecture & Pydantic Data Contracts
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build a modular, asynchronous FastAPI backend application. Implement strict Pydantic schemas, REST API route controllers for fleet status, engine telemetry, RUL predictions, decision optimization, and a streaming replay endpoint.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `backend/app/main.py`
+- `backend/app/config.py`
+- `backend/app/schemas/telemetry.py`
+- `backend/app/schemas/prediction.py`
+- `backend/app/schemas/maintenance.py`
+- `backend/app/api/routes_fleet.py`
+- `backend/app/api/routes_engine.py`
+- `backend/app/api/routes_predict.py`
+- `backend/app/api/routes_decision.py`
+- `backend/app/services/inference_service.py`
+- `backend/tests/test_api_routes.py`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement Pydantic Schemas:
+   - `schemas/telemetry.py`:
+     - `SensorReading`: timestamp/cycle, sensor key-value dictionary (T24, T30, P30, Nf, etc.), operating regime.
+     - `EngineTelemetryResponse`: unit_id, current_cycle, total_cycles, operational_settings, sensor_history.
+   - `schemas/prediction.py`:
+     - `RULPredictionResponse`: unit_id, current_cycle, rul_point_estimate, conformal_interval_80, conformal_interval_90, conformal_interval_95, lower_bound_90, failure_probability_lead_time, health_index.
+   - `schemas/maintenance.py`:
+     - `MaintenanceRecommendation`: unit_id, urgency_level (`HEALTHY`, `ADVISORY`, `CRITICAL`), recommended_cycle_action, expected_wasted_life, risk_score, cost_analysis.
+
+2. Implement Route Controllers:
+   - `GET /api/fleet/overview`: Returns summary of all engines in selected subset, sorted by risk score.
+   - `GET /api/engine/{unit_id}`: Returns full cycle history, current telemetry, and active alerts.
+   - `POST /api/predict/rul`: Accepts engine telemetry payload, returns calibrated RUL and conformal bounds.
+   - `POST /api/decision/optimize`: Accepts custom $C_f, c_w$, returns optimal maintenance trigger and fleet schedule.
+   - `GET /api/health`: System health and model readiness check.
+
+3. Implement `backend/app/services/inference_service.py`:
+   - Singleton service that pre-loads trained model artifacts, preprocessors, and conformal tables.
+   - Caches predictions in-memory for instant sub-10ms response times.
+
+4. Implement `backend/app/main.py`:
+   - Configures CORS middleware allowing `http://localhost:5173`.
+   - Mounts API routers under `/api`.
+   - Global exception handling returning JSON error payloads.
+
+TECHNICAL CONSTRAINTS:
+- Stateless, fast REST endpoints (p95 response time < 50ms).
+- Gracefully handle requests for non-existent engine unit IDs (return 404 with descriptive detail).
+
+ACCEPTANCE CRITERIA:
+- Server starts cleanly using `uvicorn app.main:app`.
+- All routes documented automatically in `/docs` (Swagger UI).
+- `test_api_routes.py` passes all endpoint assertions.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+& .venv/Scripts/python -m pytest backend/tests/test_api_routes.py -v
+# Smoke test server startup
+$proc = Start-Process -FilePath ".venv/Scripts/uvicorn" -ArgumentList "backend.app.main:app --port 8000" -PassThru
+Start-Sleep -Seconds 3
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/health"
+Stop-Process -Id $proc.Id
+```
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If port 8000 is occupied, configure `API_PORT=8001` in `backend/app/config.py` and mirror in `frontend/vite.config.js`. If Pydantic v2 migration warnings appear, ensure `model_config = ConfigDict(...)` syntax is used.
+
+--------------------------------------------------------------------------------
+PROMPT 10: Procedural 3D Turbofan Engine Architecture (Three.js)
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build a zero-external-dependency, recognizable 3D turbofan jet engine using procedural Three.js geometry. Implement distinct, logically separated, and hierarchically organized meshes for all 6 required aerospace components: Fan, LPC, HPC, Combustor, HPT, and LPT.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `frontend/src/components_3d/TurbofanCanvas.jsx`
+- `frontend/src/components_3d/TurbofanModel.jsx`
+- `frontend/src/components_3d/engineGeometries.js`
+- `frontend/src/components_3d/materials.js`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `frontend/src/components_3d/engineGeometries.js`:
+   - Build recognizable, dimensionally proportional components arranged along the central engine Z-axis:
+     1. `FAN`: Central spinner nose cone (`ConeGeometry`), front hub ring, and 24 individual aerodynamic fan blades (`BoxGeometry` / curved prism angled at $28^\circ$).
+     2. `LPC` (Low-Pressure Compressor): Central cylindrical shaft with 3 diminishing rotor-stator disc stages (`CylinderGeometry`).
+     3. `HPC` (High-Pressure Compressor): Heavy compressed hub with 5 high-density titanium rotor stages tapering down toward the combustor.
+     4. `COMBUSTOR` (Combustion Chamber): Annular chamber casing (`TorusGeometry` / `CylinderGeometry`) with fuel nozzle injectors and perforated flame liner details.
+     5. `HPT` (High-Pressure Turbine): Single/two-stage high-temp nickel alloy turbine disc positioned immediately aft of the combustor.
+     6. `LPT` (Low-Pressure Turbine): 4-stage larger diameter turbine section driving the low-pressure spool.
+     7. `CASING`: Transparent outer nacelle cowling (`CylinderGeometry` with `opacity: 0.2`, `transparent: true`) and exhaust mixer nozzle.
+
+2. Implement `frontend/src/components_3d/materials.js`:
+   - Realistic PBR materials using `MeshStandardMaterial`:
+     - Titanium blades (`roughness: 0.3`, `metalness: 0.8`, `color: #94a3b8`).
+     - Combustor alloy (`roughness: 0.5`, `metalness: 0.6`, `color: #64748b`).
+     - Thermal glow shader material for highlighting degraded/hot components (`emissive: #ef4444`, `emissiveIntensity: 0.0`).
+     - Transparent aerodynamic glass casing (`color: #38bdf8`, `opacity: 0.15`, `roughness: 0.1`, `transparent: true`).
+
+3. Implement `frontend/src/components_3d/TurbofanCanvas.jsx`:
+   - Embeds Three.js WebGLRenderer in a responsive container.
+   - Implements `OrbitControls` with damping, pan, rotate, and zoom.
+   - Dual rotational spools:
+     - N1 (Low-pressure spool: Fan + LPC + LPT) rotates at variable speed proportional to sensor `Nf` / `NRf`.
+     - N2 (High-pressure spool: HPC + HPT) rotates at higher speed proportional to sensor `Nc` / `NRc`.
+   - Studio lighting: Key directional light, fill rim light, ambient environment light.
+
+4. Optional 3D asset support:
+   - Provide an optional `useGltf` prop in `TurbofanCanvas.jsx` to load a `.glb`/`.gltf` asset from `frontend/public/models/turbofan.glb` if the user drops an external model in, seamlessly falling back to the procedural engine if absent.
+
+TECHNICAL CONSTRAINTS:
+- Zero external 3D file requirements: Must render immediately and flawlessly out-of-the-box.
+- 60 FPS performance: Total triangle count < 50,000 for smooth browser execution.
+- Every component must have a unique `userData.componentId` matching `["fan", "lpc", "hpc", "combustor", "hpt", "lpt"]`.
+
+ACCEPTANCE CRITERIA:
+- The 3D engine renders on an HTML5 canvas.
+- All 6 components are visually distinct and accurately ordered from front to back.
+- Spools animate smoothly with rotation.
+- Cowling transparency allows seeing inside the core engine.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+# Verify files exist and contain no syntax errors
+cd frontend
+node -e "import('./src/components_3d/engineGeometries.js').then(() => console.log('3D Geometries: OK'))"
+cd ..
+```
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If WebGL context errors occur in headless tests, ensure Three.js is initialized inside React `useEffect` with proper window resize listeners and cleanup handlers.
+
+--------------------------------------------------------------------------------
+PROMPT 11: Interactive 3D Component Inspection & Telemetry Visualizer
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Connect the 3D turbofan engine to the telemetry and health monitoring system. Implement interactive mouse raycasting, component hover and click selection, dynamic thermal heatmaps, and a telemetry inspection overlay.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `frontend/src/components_3d/ComponentSelector.js`
+- `frontend/src/components_3d/ComponentGlow.jsx`
+- `frontend/src/components_3d/ComponentTooltip.jsx`
+- `frontend/src/components_3d/TurbofanCanvas.jsx`
+- `frontend/src/utils/componentSensorMap.js`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `frontend/src/utils/componentSensorMap.js`:
+   - Map physical turbofan components to their corresponding C-MAPSS sensors and thermodynamic functions:
+     - `FAN`: Sensors `s8 (Nf)`, `s13 (NRf)`. (Thrust generation, bypass ratio `s15 BPR`).
+     - `LPC`: Sensor `s2 (T24 - LPC Outlet Temp)`. (Initial compression stage).
+     - `HPC`: Sensors `s3 (T30 - HPC Outlet Temp)`, `s7 (P30 - HPC Outlet Pressure)`, `s11 (Ps30 - Static Pressure)`, `s9 (Nc)`, `s14 (NRc)`. (Primary degradation driver in C-MAPSS).
+     - `COMBUSTOR`: Sensor `s12 (phi - Fuel Ratio)`, `s16 (farB - Fuel-Air Ratio)`. (Combustion & thermal energy release).
+     - `HPT`: Sensor `s20 (W31 - HPT Coolant Bleed)`. (Drives HPC spool under high thermal stress).
+     - `LPT`: Sensors `s4 (T50 - LPT Outlet Temp / Exhaust Gas Temp analogue)`, `s21 (W32 - LPT Coolant Bleed)`. (Drives fan/LPC spool).
+
+2. Implement `frontend/src/components_3d/ComponentSelector.js`:
+   - Three.js `Raycaster` tracking mouse pointer movements over canvas.
+   - On hover: Highlight mesh with an outline glow or subtle emissive pulse (`#38bdf8`), change cursor to pointer.
+   - On click: Focus camera smoothly (interpolate camera lookAt) onto the selected component, trigger React state update `setSelectedComponent(componentId)`.
+
+3. Implement `frontend/src/components_3d/ComponentGlow.jsx`:
+   - Dynamic thermal color ramp:
+     - Component mesh material color dynamically interpolates based on telemetry:
+       - `NORMAL` (Safe thermal/pressure margin): Clean metallic steel/titanium.
+       - `ELEVATED` (Approaching maintenance threshold): Amber/orange thermal glow (`#f59e0b`).
+       - `DEGRADED / CRITICAL` (Severe thermal degradation): Pulsing red/infrared glow (`#ef4444`).
+     - In HPC component: T30/P30 temperature and pressure rise triggers real-time visual heat coloration.
+
+4. Implement `frontend/src/components_3d/ComponentTooltip.jsx`:
+   - Floating HUD overlay anchored to the 3D canvas or floating sidebar panel:
+     - Displays: Selected Component Name (e.g., "High-Pressure Compressor (HPC)").
+     - Subsystem Health Score: (0% - 100%).
+     - Real-Time Associated Sensor Telemetry with physical units (e.g., "T30: 1598.4 °R", "P30: 554.2 psia").
+     - Operational Status: "Nominal", "Thermal Degradation Observed", or "Scheduled for Borescope Inspection".
+
+TECHNICAL CONSTRAINTS:
+- Smooth camera transitions without jerky jumps (use spherical linear interpolation / lerp in requestAnimationFrame).
+- Clean event listener cleanup to prevent memory leaks on component unmount.
+
+ACCEPTANCE CRITERIA:
+- Clicking each of the 6 engine sections (Fan, LPC, HPC, Combustor, HPT, LPT) selects it and highlights the mesh.
+- The inspection panel immediately reflects the selected component's specific telemetry.
+- Rotating the 3D model maintains accurate raycasting hits.
+
+TESTS / VERIFICATION STEPS:
+In browser / test script:
+- Open dashboard at `http://localhost:5173`.
+- Click on the HPC mesh in the 3D canvas.
+- Verify HUD displays "High-Pressure Compressor", sensor readings for T30/P30, and health indicator.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If raycasting fails to hit the component, ensure bounding boxes are computed (`geometry.computeBoundingBox()`) and that recursive raycasting is enabled (`raycaster.intersectObjects(scene.children, true)`).
+
+--------------------------------------------------------------------------------
+PROMPT 12: Dual-Mode Telemetry & Scientific Integrity Architecture
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Enforce uncompromising scientific integrity by implementing a strict architectural demarcation between Empirical C-MAPSS Telemetry (the genuine NASA run-to-failure dataset) and Demonstration & Component Simulation Mode (subsystem-level localization).
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `frontend/src/components/ModeToggle.jsx`
+- `frontend/src/components/ScientificIntegrityCard.jsx`
+- `backend/app/services/telemetry_demarcation.py`
+- `frontend/src/utils/telemetryModes.js`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement Telemetry Mode Definitions in `frontend/src/utils/telemetryModes.js`:
+   - `MODE_EMPIRICAL` ("Empirical C-MAPSS Mode - Rigorous Benchmark"):
+     - Consumes strictly authentic NASA C-MAPSS dataset telemetry.
+     - Predicts engine-level Remaining Useful Life (RUL) with conformal uncertainty bounds.
+     - Displays overall engine health trajectory.
+     - 3D turbofan behaves as an operational state indicator (spool speeds match Nf/Nc telemetry, exhaust thermal glow matches T50).
+     - Component inspection displays actual sensor readings mapped to physical locations without fabricating unverified micro-crack diagnoses.
+     - Prominently displays: "CERTIFIED EMPIRICAL DATA (NASA PCoE)".
+   - `MODE_DEMO_SIMULATION` ("Demonstration & Component Simulation Mode"):
+     - Clearly labeled synthetic mode created specifically to showcase multi-fault localized physics-informed maintenance.
+     - Simulates synthetic localized degradation: HPC blade tip clearance wear, LPT thermal barrier coating erosion, combustor nozzle clogging.
+     - 3D engine components display synthetic localized damage visualizers (fault heatmaps).
+     - Prominently displays an amber banner: "SIMULATED DEMONSTRATION MODE - SYNTHETIC COMPONENT-LEVEL LOCALIZATION".
+
+2. Implement `frontend/src/components/ModeToggle.jsx`:
+   - Prominent toggle switch in the dashboard header.
+   - Shows badge with clear color coding: Emerald Green for Empirical, Amber/Orange for Demonstration.
+   - Persists state across views.
+
+3. Implement `frontend/src/components/ScientificIntegrityCard.jsx`:
+   - Transparent, engineer-facing technical note popup/drawer explaining:
+     1. Why C-MAPSS does not localize component faults to individual physical blades (it models thermodynamic gas-path state variables).
+     2. Why C-MAPSS does not contain vibration and oil pressure channels (and how VISION's masked modality architecture is designed to accommodate them when deploying to N-CMAPSS or physical aircraft).
+     3. Why RUL is evaluated with confidence intervals rather than a bare point estimate.
+
+4. Implement `backend/app/services/telemetry_demarcation.py`:
+   - Annotates all API responses with `meta.data_mode`: `"EMPIRICAL_CMAPSS"` or `"SYNTHETIC_SIMULATION"`.
+   - Never allows synthetic telemetry to be mixed into empirical cross-validation metrics.
+
+TECHNICAL CONSTRAINTS:
+- Absolute transparency: Judges must immediately see that the team understands the boundaries of the NASA dataset and has intentionally segregated real ML from simulated capabilities.
+
+ACCEPTANCE CRITERIA:
+- Toggling the mode updates the entire UI immediately.
+- Empirical mode shows real C-MAPSS data with zero synthetic hallucinations.
+- Demonstration mode clearly states its synthetic educational purpose.
+
+TESTS / VERIFICATION STEPS:
+- Load the dashboard in browser.
+- Switch to Empirical Mode: Verify green badge and presence of C-MAPSS engine IDs (e.g. Unit #1 - FD001).
+- Switch to Demonstration Mode: Verify amber warning banner appears and synthetic diagnostic options become accessible.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If state does not propagate to the 3D model, ensure mode state is managed via React Context or top-level `App.jsx` props passed to `TurbofanCanvas`.
+
+--------------------------------------------------------------------------------
+PROMPT 13: Modern Frontend Dashboard Layout & Fleet Risk Board
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build a responsive, modern aerospace command center dashboard in React and TailwindCSS. Implement a Fleet Status Board that ranks engines by failure risk, displays operational statuses, and enables instant engine filtering and inspection.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `frontend/src/App.jsx`
+- `frontend/src/components/Header.jsx`
+- `frontend/src/components/FleetTable.jsx`
+- `frontend/src/components/FleetStatCards.jsx`
+- `frontend/src/services/api.js`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `frontend/src/services/api.js`:
+   - Wrapper around `fetch` or `axios` with base URL `/api`.
+   - Methods:
+     - `getFleetOverview(subset = "FD001")`
+     - `getEngineDetail(unitId, subset = "FD001")`
+     - `predictRul(telemetryData)`
+     - `getDecisionPolicy(subset = "FD001")`
+     - `optimizeMaintenance(params)`
+
+2. Implement `frontend/src/components/Header.jsx`:
+   - Dark aerospace theme styling (`bg-slate-900 border-b border-slate-800`).
+   - App branding: "VISION | Vital Intelligence for System Integrity, Observation & Nostics".
+   - Dataset subset selector dropdown: `FD001 (1 Regime)`, `FD002 (6 Regimes)`, `FD003 (2 Faults)`, `FD004 (Complex)`.
+   - Telemetry mode toggle badge (Empirical vs Demonstration).
+   - System health indicator (Green pulse: Backend API connected).
+
+3. Implement `frontend/src/components/FleetStatCards.jsx`:
+   - Fleet KPIs:
+     - Total Monitored Engines (e.g., 100).
+     - Engines in Critical Status (RUL < 20 cycles or lower bound trigger hit).
+     - Engines in Advisory Status (RUL 20-50 cycles).
+     - Mean Fleet Health Index (e.g., 84.2%).
+     - Estimated Saved Unscheduled Costs (e.g., $1.42M).
+
+4. Implement `frontend/src/components/FleetTable.jsx`:
+   - Sortable, searchable table displaying all engines:
+     - Columns: Unit ID, Current Cycle, Predicted RUL (cycles), 90% Conformal Range (`[LB - UB]`), Risk Score / Failure Prob within 15 Cycles, Action Required.
+     - Visual urgency badges:
+       - `CRITICAL` (Red): Immediate intervention required within lead time.
+       - `ADVISORY` (Amber): Maintenance window approaching.
+       - `HEALTHY` (Green): Nominal operation.
+     - Quick filter buttons: "Show All", "Critical Only", "Advisory".
+     - Row click event selects active engine and updates the 3D twin and detail panels.
+
+TECHNICAL CONSTRAINTS:
+- Fast rendering: Support table of 260 engines (FD002) with zero lag or jank.
+- Responsive layout: Adapts cleanly from laptop screens (1366x768) to multi-monitor displays (1920x1080+).
+
+ACCEPTANCE CRITERIA:
+- Fleet overview loads data from backend and populates the table.
+- Selecting an engine updates the global `selectedUnitId` state.
+- Filtering for "Critical" shows only engines requiring urgent action.
+
+TESTS / VERIFICATION STEPS:
+In browser:
+- Start backend and frontend.
+- Open `http://localhost:5173`.
+- Verify Fleet Status Board renders with all test engines.
+- Click on Engine Unit #34: Verify row highlights and selection state triggers.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If the table is empty, verify in the browser Developer Tools Network tab that `GET /api/fleet/overview` returns HTTP 200 with an array of engine objects.
+
+--------------------------------------------------------------------------------
+PROMPT 14: Engine Detail View, Sensor Telemetry Charts & RUL Fan Chart
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build high-density analytical visualizations for the selected engine. Implement interactive multi-sensor time-series telemetry charts and an uncertainty-calibrated RUL "fan chart" showing 80%, 90%, and 95% conformal prediction intervals across cycle history.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `frontend/src/components/EngineDetail.jsx`
+- `frontend/src/components/SensorChart.jsx`
+- `frontend/src/components/RulFanChart.jsx`
+- `frontend/src/components/SensorImportanceBar.jsx`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `frontend/src/components/SensorChart.jsx`:
+   - Canvas-based or SVG charting (using custom lightweight SVG, Recharts, or Chart.js).
+   - Plots selected sensor trajectories against cycle history:
+     - Primary key channels: `T24` (LPC Temp), `T30` (HPC Temp), `T50` (LPT Temp), `P30` (HPC Pressure), `Nf` (Fan Speed), `Nc` (Core Speed).
+   - Regime normalization toggle:
+     - "Raw Sensor Values" (shows operational regime jumps).
+     - "Condition-Corrected Deltas" (shows true underlying degradation trend cleanly).
+   - Interactive crosshair cursor showing exact values at any hovered cycle.
+
+2. Implement `frontend/src/components/RulFanChart.jsx`:
+   - Visualizes RUL trajectory from cycle 1 to current cycle, and forecasts degradation forward to failure:
+     - Bold line: Point estimate $\hat{y}_t$.
+     - Shaded inner band: 80% Conformal Prediction Interval (Dark cyan).
+     - Shaded middle band: 90% Conformal Prediction Interval (Medium cyan).
+     - Shaded outer band: 95% Conformal Prediction Interval (Light cyan/slate).
+     - Bold red dashed line: Critical Logistics Lead Time threshold (15 cycles).
+     - Lower Bound safety line: $\text{LB}_{90\%}$ trigger line.
+   - As engine degrades, visually demonstrate how the conformal uncertainty band narrows near end-of-life (heteroscedastic calibration).
+
+3. Implement `frontend/src/components/SensorImportanceBar.jsx`:
+   - Displays horizontal bar chart of the top sensors driving the current degradation prediction:
+     - E.g., `T30 (+34%)`, `P30 (-22%)`, `T50 (+18%)`.
+     - Provides explainability for the maintenance crew.
+
+4. Implement `frontend/src/components/EngineDetail.jsx`:
+   - Assembles the 3D twin (left pane) and analytical charts (right pane) into a unified workspace.
+
+TECHNICAL CONSTRAINTS:
+- Smooth rendering when switching engines without chart flicker.
+- Handle engines with varying trajectory lengths (from 31 to 300+ cycles).
+
+ACCEPTANCE CRITERIA:
+- The fan chart displays point estimate and expanding/narrowing confidence bands.
+- Toggling sensors in `SensorChart` updates the line plots cleanly.
+- Hovering over a cycle shows accurate sensor telemetry values.
+
+TESTS / VERIFICATION STEPS:
+- In browser, select Engine Unit #1.
+- Verify `SensorChart` displays T30 and P30 trends.
+- Verify `RulFanChart` plots current cycle (e.g. cycle 192) and projects forward to 0 RUL with shaded confidence intervals.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If SVG/canvas paths fail to render, verify that input coordinate arrays are sorted by `cycle` and contain no `NaN` or `null` values.
+
+--------------------------------------------------------------------------------
+PROMPT 15: What-If Maintenance Scheduling & Economic Simulation UI
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build an interactive economic decision sandbox that allows maintenance planners to adjust cost parameters, simulate the trade-off between in-service failure risk and wasted engine life, and view optimal hangar maintenance schedules.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `frontend/src/components/DecisionSliders.jsx`
+- `frontend/src/components/PolicyComparisonTable.jsx`
+- `frontend/src/components/HangarScheduler.jsx`
+- `frontend/src/components/EconomicSandbox.jsx`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `frontend/src/components/DecisionSliders.jsx`:
+   - Interactive sliders:
+     - In-Service Failure Cost ($C_f$): $10,000 to $500,000 (Default: $100,000).
+     - Wasted Life Cost ($c_w$ per cycle): $10 to $1,000 (Default: $100).
+     - Risk Budget (Target Max Failure Rate $\epsilon$): 0.5% to 5.0% (Default: 2.0%).
+     - Logistics Lead Time: 5 to 30 cycles (Default: 15 cycles).
+   - Real-time recalculation of the economic cost ratio $\gamma = c_w / C_f$.
+
+2. Implement `frontend/src/components/PolicyComparisonTable.jsx`:
+   - Dynamic comparison table based on the measured empirical findings:
+     - Policy 1: Fixed-Interval Calendar Maintenance
+     - Policy 2: Naive Point-RUL Threshold
+     - Policy 3: VISION Risk-Controlled Conformal Trigger
+   - Shows:
+     - Expected In-Service Failures per 1000 engines.
+     - Mean Wasted Life per engine (e.g., 71.8 cycles for Fixed vs 7.8 cycles for VISION).
+     - Net Annual Fleet Cost Savings (e.g., $1.28M saved per 100 engines).
+
+3. Implement `frontend/src/components/HangarScheduler.jsx`:
+   - Visual Gantt/Timeline chart assigning engines to 3 maintenance hangar bays over the next 60 cycles:
+     - Prevents hangar slot contention.
+     - Prioritizes engines where $\text{LowerBound}_{90\%} \le \text{LeadTime}$.
+
+TECHNICAL CONSTRAINTS:
+- Slider adjustments must trigger smooth, client-side re-computation or debounced backend calls without freezing the UI.
+
+ACCEPTANCE CRITERIA:
+- Moving the cost sliders dynamically updates the optimal trigger cycle and economic savings readout.
+- Policy comparison table clearly shows the 5-8x reduction in wasted engine life.
+- Hangar schedule updates prioritized slots based on selected engines.
+
+TESTS / VERIFICATION STEPS:
+- Open Economic Sandbox tab.
+- Drag $C_f$ slider to $250,000.
+- Verify trigger threshold adjusts to earlier cycles to protect against higher failure costs.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If scheduler calculations lock the UI, ensure policy calculation is debounced (200ms) or computed using the closed-form hazard formulas pre-calculated in Prompt 08.
+
+--------------------------------------------------------------------------------
+PROMPT 16: Telemetry Streaming Replay Engine & Live Re-ranking
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build a real-time streaming replay engine that simulates live in-flight telemetry downloads. Provide a Server-Sent Events (SSE) or WebSocket stream that emits new cycle telemetry, continuously re-evaluates RUL, dynamically re-ranks fleet risk, and pushes updates to the 3D twin.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `backend/app/api/routes_stream.py`
+- `backend/app/services/stream_service.py`
+- `frontend/src/services/streamClient.js`
+- `frontend/src/components/LiveReplayControls.jsx`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `backend/app/services/stream_service.py`:
+   - Class `TelemetryReplayProducer`:
+     - Selects a cohort of 5-20 test engines.
+     - Advances simulated flight cycles synchronously at a configurable interval (e.g., 1 cycle per 500ms).
+     - At each cycle tick, packages new sensor telemetry, runs fast inference via `InferenceService`, and evaluates maintenance triggers.
+     - Emits structured JSON events:
+       ```json
+       {
+         "event": "cycle_update",
+         "unit_id": 34,
+         "cycle": 142,
+         "sensors": { "s2": 642.1, "s3": 1589.4, "s4": 1402.1, "s7": 553.2, "s8": 2388.1, "s9": 9054.2 },
+         "rul_prediction": 18.2,
+         "conformal_lower_90": 11.5,
+         "urgency": "CRITICAL",
+         "trigger_fired": true
+       }
+       ```
+
+2. Implement `backend/app/api/routes_stream.py`:
+   - Fast SSE endpoint: `GET /api/stream/telemetry`
+   - Yields formatted SSE chunks: `data: {"event": ...}\n\n`
+   - Supports query params: `speed=1.0`, `units=1,5,10,34`, `loop=true`.
+
+3. Implement `frontend/src/services/streamClient.js`:
+   - Connects to `/api/stream/telemetry` via native `EventSource`.
+   - On event: Dispatches updates to active engine telemetry state and fleet risk list.
+
+4. Implement `frontend/src/components/LiveReplayControls.jsx`:
+   - Floating transport controls: "Play / Stream", "Pause", "Step Next Cycle", "Speed (0.5x, 1x, 2x, 5x)", "Reset".
+   - As cycles advance:
+     - The Fleet Table dynamically re-sorts, pushing engines with declining RUL to the top.
+     - The 3D Turbofan spools spin at real-time speeds corresponding to streamed `Nf`/`Nc`.
+     - When an engine crosses the 90% lower-bound trigger, an alert banner flashes: "CRITICAL TRIGGER: Unit #34 Scheduled for Overhaul".
+
+TECHNICAL CONSTRAINTS:
+- Low overhead: Native Python `asyncio.sleep` in SSE generator; zero third-party message broker (Kafka/RabbitMQ) needed for local execution.
+- Auto-reconnect: Frontend `EventSource` automatically reconnects if stream drops.
+
+ACCEPTANCE CRITERIA:
+- Clicking "Play" in the UI starts continuous cycle updates.
+- The Fleet Table re-ranks rows live without page reloads.
+- The 3D engine responds to streaming speed parameters in real time.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+# Test SSE stream using curl / Invoke-WebRequest
+curl -N "http://127.0.0.1:8000/api/stream/telemetry?units=1&speed=5" -m 3
+```
+Verify terminal receives streamed `data:` events with incrementing cycle counts.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If browser buffers SSE events, ensure backend response headers include: `Content-Type: text/event-stream`, `Cache-Control: no-cache`, `Connection: keep-alive`, and `X-Accel-Buffering: no`.
+
+--------------------------------------------------------------------------------
+PROMPT 17: Comprehensive Automated Testing Suite
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Build an automated, regression-proof testing suite covering the complete development stack: ML data integrity and mathematical formulas, backend API endpoints, and frontend smoke tests.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `backend/tests/test_api_routes.py`
+- `backend/tests/test_decision_logic.py`
+- `ml/tests/test_no_leakage.py`
+- `ml/tests/test_conformal.py`
+- `ml/tests/test_metrics.py`
+- `frontend/src/tests/DashboardSmoke.test.jsx` (or standalone Node smoke script)
+- `scripts/run_all_tests.bat`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `ml/tests/test_conformal.py`:
+   - Unit tests for Mondrian split-conformal calibration:
+     - Verifies that bucketed intervals maintain validity: $\text{Coverage} \ge 1 - \alpha - O(1/n)$.
+     - Verifies one-sided lower bounds: $\text{LowerBound} \le \hat{y}$.
+     - Verifies fallback logic for under-populated buckets.
+
+2. Implement `ml/tests/test_metrics.py`:
+   - Validates NASA asymmetric scoring calculation against reference test cases:
+     - Early prediction ($d = -5$ cycles): verify penalty is low.
+     - Late prediction ($d = +5$ cycles): verify penalty is significantly higher.
+     - Zero error ($d = 0$): verify score is exactly 0.0.
+   - Validates RMSE calculation.
+
+3. Implement `backend/tests/test_decision_logic.py`:
+   - Validates the optimal stopping rule against known cost ratios.
+   - Validates Clopper-Pearson exact binomial confidence intervals against `scipy.stats.beta.ppf`.
+
+4. Implement `backend/tests/test_api_routes.py`:
+   - FastAPI `TestClient` tests:
+     - `test_health_check`: status 200, system healthy.
+     - `test_fleet_overview`: returns non-empty list with valid schemas.
+     - `test_engine_detail`: returns correct unit metadata.
+     - `test_predict_rul`: valid RUL returned with 80%, 90%, 95% confidence bands.
+     - `test_unknown_engine_404`: invalid unit ID returns HTTP 404.
+
+5. Implement `scripts/run_all_tests.bat`:
+   - Runs backend & ML test suite: `pytest ml/tests backend/tests -v`
+   - Reports summary pass/fail count.
+
+TECHNICAL CONSTRAINTS:
+- Fast test execution: Full suite must execute in under 15 seconds.
+- No network access required: All tests run self-contained offline.
+
+ACCEPTANCE CRITERIA:
+- Running `scripts/run_all_tests.bat` reports 100% test pass rate.
+- All edge cases (zero error, empty inputs, extreme sensor values) handled gracefully.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+& .venv/Scripts/python -m pytest ml/tests backend/tests -v
+```
+All test suites must return green passes.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If `pytest` fails to locate modules, ensure the project root is in `PYTHONPATH` (`$env:PYTHONPATH = "."`).
+
+--------------------------------------------------------------------------------
+PROMPT 18: End-to-End System Integration, Error Handling & Logging
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Harden the entire application for hackathon demonstration reliability. Implement structured JSON logging, sensor fault and missing channel dropout recovery, graceful API offline fallbacks, and unified launcher scripts.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `backend/app/services/fault_tolerance.py`
+- `backend/app/logging_config.py`
+- `frontend/src/services/apiFallback.js`
+- `scripts/start_backend.bat`
+- `scripts/start_frontend.bat`
+- `scripts/start_all.bat`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `backend/app/services/fault_tolerance.py`:
+   - Handles corrupted or dropped sensor channels:
+     - If non-critical sensors (e.g. s17, s20) drop or read `NaN`: impute with healthy-baseline mean and set warning flag.
+     - If critical sensors (e.g. T30, P30) drop: flag engine as `SENSOR_FAULT_ABSTAIN`, expand uncertainty bands to 100%, and escalate to manual inspection.
+   - Out-Of-Distribution (OOD) detector:
+     - Computes Mahalanobis distance or bounds check on operating settings.
+     - If setting falls outside training envelope: mark prediction confidence as `OOD_UNCERTAIN`.
+
+2. Implement `backend/app/logging_config.py`:
+   - Structured JSON logging:
+     - Logs: timestamp, module, endpoint, latency_ms, engine_id, predicted_rul, status_code.
+     - Excludes sensitive environment details.
+
+3. Implement `frontend/src/services/apiFallback.js`:
+   - In-memory offline cache of pre-calculated predictions for FD001.
+   - If backend server is momentarily restarting or unreachable, frontend seamlessly falls back to cached data with a yellow toast notification: "Using Offline Telemetry Cache".
+
+4. Implement Unified Launchers:
+   - `scripts/start_backend.bat`:
+     - Activates `.venv` and starts Uvicorn on `http://127.0.0.1:8000`.
+   - `scripts/start_frontend.bat`:
+     - Starts Vite dev server on `http://127.0.0.1:5173`.
+   - `scripts/start_all.bat`:
+     - Launches both backend and frontend in separate clean terminal windows and opens the default browser to `http://localhost:5173`.
+
+TECHNICAL CONSTRAINTS:
+- Seamless Windows batch execution without path truncation or environment variable collisions.
+
+ACCEPTANCE CRITERIA:
+- Running `scripts/start_all.bat` launches the complete application with one command.
+- Injecting corrupted sensor inputs into the API does not crash the server; it returns graceful fallback responses.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+# Test sensor dropout handling
+& .venv/Scripts/python -c "from backend.app.services.fault_tolerance import sanitize_telemetry; res = sanitize_telemetry({'s2': 640.0, 's3': None}); print('Fault tolerance sanitized:', res['status'])"
+```
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If `start_all.bat` terminates unexpectedly, check for proper `start "Window Title" cmd /k` syntax to prevent child process termination.
+
+--------------------------------------------------------------------------------
+PROMPT 19: Hackathon Demonstration Mode, Pitch Script & Visual Polish
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Add high-impact presentation features, demo presets, a 5-minute judge walkthrough mode, and UI polish to maximize hackathon scoring and impact.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `frontend/src/components/DemoTourModal.jsx`
+- `frontend/src/components/JudgePresenterBar.jsx`
+- `frontend/src/utils/demoPresets.js`
+- `DEMO_WALKTHROUGH_SCRIPT.md`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Implement `frontend/src/utils/demoPresets.js`:
+   - 4 curated presentation scenarios accessible via 1-click buttons:
+     1. `SCENARIO 1: Nominal Fleet Baseline` (Unit #10 - Healthy engine, RUL 95 cycles, normal spools).
+     2. `SCENARIO 2: Imminent HPC Failure` (Unit #34 - Degraded HPC, T30 thermal surge, RUL 12 cycles, red glowing 3D compressor, trigger fired).
+     3. `SCENARIO 3: Multi-Regime Challenge` (FD002 Unit #18 - 6 operational altitude/Mach regimes, proves per-regime normalization advantage).
+     4. `SCENARIO 4: Economic Optimization Win` (Side-by-side comparison showing $1.4M saved vs fixed-interval calendar overhaul).
+
+2. Implement `frontend/src/components/JudgePresenterBar.jsx`:
+   - Top or bottom floating quick-access ribbon:
+     - Scenario 1, 2, 3, 4 preset buttons.
+     - "Reset Demo" button.
+     - "Integrity Card" toggle.
+     - Keyboard shortcuts: `1`, `2`, `3`, `4` to switch scenarios instantly.
+
+3. Implement `frontend/src/components/DemoTourModal.jsx`:
+   - Guided 4-step modal highlighting key innovations:
+     - Step 1: Decision-First Architecture (Why RUL alone is not enough).
+     - Step 2: 3D Digital Twin with real-time spool synchronization.
+     - Step 3: Conformal Prediction intervals (rigorous math, no hand-waving).
+     - Step 4: 5-8x reduction in wasted engine life.
+
+4. Create `DEMO_WALKTHROUGH_SCRIPT.md`:
+   - Exact 5-minute timed script for the team presentation:
+     - 0:00 - 0:30: The Hook ("Every team predicts RUL numbers. VISION delivers provably safe maintenance decisions.")
+     - 0:30 - 1:30: The 3D Digital Twin & Sensor Telemetry Mapping.
+     - 1:30 - 2:30: Scientific Integrity & Conformal Calibration (The 42% -> 4% risk breakthrough).
+     - 2:30 - 3:45: Economic Optimizer & Hangar Slot Assignment.
+     - 3:45 - 4:30: Live Streaming Replay demonstration.
+     - 4:30 - 5:00: Q&A readiness (pre-prepared answers for judge questions).
+
+TECHNICAL CONSTRAINTS:
+- Zero lag during live demonstration. All preset scenarios must switch in < 100ms.
+
+ACCEPTANCE CRITERIA:
+- Clicking preset buttons immediately loads corresponding engine telemetry and 3D states.
+- Demo walkthrough script is clear, structured, and aligned with hackathon judging criteria.
+
+TESTS / VERIFICATION STEPS:
+- Open `http://localhost:5173`.
+- Press key `2`: Verify engine Unit #34 loads, 3D compressor glows red, and alert sounds/flashes.
+- Press key `4`: Verify Economic Sandbox opens with calculated fleet savings.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+Ensure global keyboard event listeners in `JudgePresenterBar.jsx` check that the user is not actively typing into a text input before triggering preset hotkeys.
+
+--------------------------------------------------------------------------------
+PROMPT 20: Final Structural Verification, Codebase Cleanliness & Architecture Audit
+--------------------------------------------------------------------------------
+OBJECTIVE:
+Perform a comprehensive codebase audit to ensure clean module boundaries, eliminate dead code, verify that all responsibilities reside in their appropriate folders, update documentation, and confirm that the entire system installs, tests, and runs from a clean state.
+
+FILES/COMPONENTS TO CREATE OR MODIFY:
+- `README.md` (Update with complete command reference and final architecture)
+- `ARCHITECTURE.md` (Modular structure, API contracts, mathematical references)
+- Codebase cleanup across `backend/`, `frontend/`, `ml/`, `scripts/`
+
+IMPLEMENTATION REQUIREMENTS:
+1. Architectural & Modularity Verification:
+   - Verify strict separation of concerns:
+     - `frontend/`: UI, 3D Canvas, charts, dashboard components.
+     - `backend/`: API routers, schemas, services.
+     - `ml/`: Model training, preprocessing, conformal calibration, metrics.
+     - `data/`: Raw and processed data only (excluded from git).
+     - `scripts/`: Clean operational scripts.
+   - Verify zero circular dependencies across Python modules.
+   - Verify consistent naming conventions (`snake_case` for Python, `camelCase` for JS/JSX).
+
+2. Ponytail Simplicity & YAGNI Audit:
+   - Scan for over-engineered patterns:
+     - Remove unused imports, abandoned test scripts, and dead code.
+     - Ensure no mock/placeholder data leaks into the real C-MAPSS empirical pipeline.
+     - Verify minimal, efficient standard library usage.
+
+3. Graphify Knowledge Graph Refresh (if Graphify is available):
+   - Run `graphify update .` to generate a fresh knowledge graph of the finalized codebase.
+   - Verify that all module interfaces and call paths are captured cleanly.
+
+4. Documentation Finalization:
+   - Ensure `README.md` contains:
+     - 1-step installation and startup instructions.
+     - Tested baseline benchmark results (RMSE and NASA scores).
+     - API endpoint reference table.
+     - Explanation of the dual telemetry modes.
+
+TECHNICAL CONSTRAINTS:
+- Do not break working tests or APIs during refactoring.
+- Maintain full offline operability.
+
+ACCEPTANCE CRITERIA:
+- Automated test suite passes 100% (`scripts/run_all_tests.bat`).
+- Monorepo directory tree matches the clean architectural blueprint exactly.
+- Both backend and frontend launch cleanly without warnings or errors.
+
+TESTS / VERIFICATION STEPS:
+In PowerShell:
+```powershell
+# 1. Run full test suite
+& .venv/Scripts/python -m pytest ml/tests backend/tests -v
+# 2. Check for unexpected stray files
+Get-ChildItem -Path . -Recurse -File | Where-Object { $_.FullName -notmatch "node_modules|\.venv|\.git|data[\\/]raw" } | Select-Object FullName
+```
+Verify all tests pass and no temporary or misplaced files exist in root.
+
+WHAT TO DO IF IMPLEMENTATION FAILS:
+If refactoring introduces a regression, use Git diff (`git status`, `git diff`) to pinpoint the broken import or modified interface and restore compatibility.
+
+
+================================================================================
+4. EXTERNAL REQUIREMENTS CHECKLIST & MANUAL SETUP RUNBOOK
+================================================================================
+The following checklist outlines all prerequisites and manual configuration steps. All core features run 100% locally and free of cost.
+
+MANDATORY PREREQUISITES:
+[ ] 1. Python Environment:
+    - Version: Python 3.10, 3.11, 3.12, 3.13, or 3.14 (64-bit).
+    - Verification: Run `python --version` in terminal.
+[ ] 2. Node.js & npm:
+    - Version: Node.js v18.0.0+ (Tested on v22.x), npm v9.0.0+ (Tested on v10.x).
+    - Verification: Run `node --version` and `npm --version`.
+[ ] 3. NASA C-MAPSS Dataset:
+    - Files: 12 text files (`train_FD001.txt` - `FD004`, `test_FD001.txt` - `FD004`, `RUL_FD001.txt` - `FD004`).
+    - Source: Automatically downloaded via `scripts/download_cmapss.py` from NASA Open Data Portal (`https://data.nasa.gov/docs/legacy/CMAPSSData.zip`).
+    - Manual fallback: If offline, manually copy the 12 text files into `data/raw/`.
+[ ] 4. Hardware Requirements:
+    - CPU: Standard multi-core x86_64 CPU (Intel i5/i7 or AMD Ryzen).
+    - RAM: 8 GB minimum (16 GB recommended).
+    - GPU: None required. All models and Three.js 3D renderings run smoothly on CPU / integrated graphics.
+
+OPTIONAL ENHANCEMENTS:
+[ ] 1. External 3D Turbofan Model (glTF / GLB):
+    - Default: The project includes a procedural Three.js turbofan engine out-of-the-box (zero download required).
+    - Optional: If you possess a licensed turbofan `.glb` model (e.g. from Sketchfab / NASA 3D Resources), place it at `frontend/public/models/turbofan.glb` to enable the external mesh loader.
+[ ] 2. PyTorch (Deep Sequence Models):
+    - Default: Scikit-learn tabular gradient boosting and multi-quantile estimators run natively out-of-the-box.
+    - Optional: Installing `torch` (CPU wheel) enables the experimental 1D-TCN and BiGRU sequence architectures.
+
+API KEYS & COST:
+- Zero Paid API Keys Required.
+- Zero Cloud Subscriptions Required.
+- 100% local, private, and deterministic execution.
+
+
+================================================================================
+5. LOCAL EXECUTION & OFFLINE VERIFICATION GUIDE
+================================================================================
+To build, run, and test VISION locally from scratch, execute the following sequence:
+
+STEP 1: INITIAL ENVIRONMENT SETUP
+Open PowerShell in `C:\Users\anves\Downloads\VISION`:
+```powershell
+# Run automated setup script
+.\scripts\setup_env.bat
+```
+This creates the Python `.venv`, installs backend requirements, and runs `npm install` in `frontend/`.
+
+STEP 2: DATASET INGESTION
+```powershell
+& .venv\Scripts\python scripts\download_cmapss.py
+```
+Verifies and extracts the 12 C-MAPSS files into `data/raw/`.
+
+STEP 3: RUN THE ML PIPELINE & GENERATE ARTIFACTS
+```powershell
+& .venv\Scripts\python scripts\run_pipeline.py --subset FD001
+```
+Executes preprocessing, regime clustering, model training, conformal calibration, and decision policy simulation. Generates all model weights and lookup tables in `data/artifacts/`.
+
+STEP 4: RUN AUTOMATED TESTS
+```powershell
+& .venv\Scripts\python -m pytest ml/tests backend/tests -v
+```
+Verifies that all 100% of unit, integration, and leakage tests pass.
+
+STEP 5: LAUNCH APPLICATION FOR DEMONSTRATION
+```powershell
+.\scripts\start_all.bat
+```
+Launches:
+- Backend REST API at `http://127.0.0.1:8000` (Swagger docs at `http://127.0.0.1:8000/docs`)
+- Frontend Dashboard & 3D Twin at `http://localhost:5173`
+================================================================================
