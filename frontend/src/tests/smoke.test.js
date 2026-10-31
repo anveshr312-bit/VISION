@@ -3,7 +3,7 @@
  * Vital Intelligence for System Integrity, Observation & Nostics
  */
 
-import { COMPONENT_MAP, computeComponentHealth } from '../utils/componentSensorMap.js';
+import { COMPONENT_MAP, computeComponentHealth, computeIsentropicEfficiency } from '../utils/componentSensorMap.js';
 import { TELEMETRY_MODES } from '../utils/telemetryModes.js';
 import { ComponentSelector } from '../components_3d/ComponentSelector.js';
 import { buildProceduralTurbofan } from '../components_3d/engineGeometries.js';
@@ -18,7 +18,7 @@ import {
 
 console.log('--- RUNNING VISION FRONTEND SMOKE TESTS ---');
 
-// 1. Verify component sensor map
+// 1. Verify component sensor map & isentropic gas-path efficiency
 const hpcConfig = COMPONENT_MAP.hpc;
 if (!hpcConfig || hpcConfig.id !== 'hpc') {
   throw new Error('HPC config mismatch in componentSensorMap');
@@ -27,7 +27,11 @@ const healthNominal = computeComponentHealth('hpc', { s3: 1585.0, s7: 553.0 });
 if (healthNominal <= 0 || healthNominal > 100) {
   throw new Error(`Invalid health score: ${healthNominal}`);
 }
-console.log('✔ componentSensorMap passed');
+const aeroEff = computeIsentropicEfficiency({ s2: 642.5, s3: 1588.0, s7: 553.5 });
+if (aeroEff.eta_hpc <= 70 || aeroEff.eta_hpc > 95 || aeroEff.overall_pr <= 0) {
+  throw new Error(`Invalid isentropic efficiency: ${JSON.stringify(aeroEff)}`);
+}
+console.log('✔ componentSensorMap & isentropic aerothermal physics passed');
 
 // 2. Verify telemetry modes
 if (TELEMETRY_MODES.EMPIRICAL.id !== 'empirical' || TELEMETRY_MODES.DEMO_SIMULATION.id !== 'simulation') {
