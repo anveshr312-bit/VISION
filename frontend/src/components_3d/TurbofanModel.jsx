@@ -43,6 +43,32 @@ export function useTurbofanModel({
           if (!isMounted) return;
           const root = gltf.scene;
           root.name = 'TurbofanGLTF';
+
+          // Auto-normalize bounding box to viewport (~12 units long, centered at origin)
+          const box = new THREE.Box3().setFromObject(root);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          if (maxDim > 0) {
+            const scaleFactor = 12.0 / maxDim;
+            root.scale.setScalar(scaleFactor);
+            root.position.x = -center.x * scaleFactor;
+            root.position.y = -center.y * scaleFactor;
+            root.position.z = -center.z * scaleFactor;
+          }
+
+          // Enable shadows and PBR metallic reflections on all meshes
+          root.traverse((child) => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              if (child.material) {
+                child.material.metalness = 0.85;
+                child.material.roughness = 0.25;
+              }
+            }
+          });
+
           scene.add(root);
           modelRef.current = root;
           if (onLoaded) onLoaded();

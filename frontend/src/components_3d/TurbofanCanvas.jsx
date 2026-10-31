@@ -59,6 +59,7 @@ export default function TurbofanCanvas({
   const [isRotating, setIsRotating] = useState(true);
   const [speedMultiplier, setSpeedMultiplier] = useState(1.0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [useCadModel, setUseCadModel] = useState(false);
 
   // Initialize Three.js Scene and Renderer
   useEffect(() => {
@@ -163,7 +164,7 @@ export default function TurbofanCanvas({
     showCowling,
     explodedView,
     thermalMode,
-    useGltf,
+    useGltf: useCadModel || useGltf,
     onLoaded: () => setIsLoaded(true),
   });
 
@@ -308,6 +309,19 @@ export default function TurbofanCanvas({
 
       {/* Bottom Interactive Controls Toolbar */}
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex items-center space-x-2 bg-slate-900/85 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-700/60 shadow-xl">
+        {/* Model Switcher: Procedural vs Trent 1000 CAD */}
+        <button
+          onClick={() => setUseCadModel(!useCadModel)}
+          className={`flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
+            useCadModel
+              ? 'bg-blue-600/40 text-blue-200 border border-blue-400/50 shadow-md'
+              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+          }`}
+          title="Toggle between Procedural WebGL Twin and Rolls-Royce Trent 1000 CAD Model"
+        >
+          <span>{useCadModel ? 'CAD: Trent 1000' : 'Procedural 3D'}</span>
+        </button>
+
         {/* Cowling Toggle */}
         <button
           onClick={() => setShowCowling(!showCowling)}

@@ -24,4 +24,7 @@ data/processed/*.parquet
 .DS_Store
 Thumbs.db
 graphify-out/
+trent-1000-high-bypass-turbofan/
+scratch/
+
 
