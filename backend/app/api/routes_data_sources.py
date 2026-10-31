@@ -112,3 +112,4 @@ async def ingest_aviation_telemetry(request: IngestRequest = Body(...)):
             status_code=400,
             detail=f"Failed to normalize {request.source_type} frame: {str(e)}",
         )
+

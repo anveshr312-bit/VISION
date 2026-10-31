@@ -51,7 +51,8 @@ import { FleetEtopsScreen } from './components/FleetEtopsScreen';
 import { EconomicSandboxScreen } from './components/EconomicSandboxScreen';
 import { AirworthinessDossierScreen } from './components/AirworthinessDossierScreen';
 import StageDegradationMap from './components/StageDegradationMap.jsx';
-import ShootingStarsAndStarsBackgroundDemo from '@/src/components/shooting-stars-and-stars-background-demo';
+import { AircraftProfileModal } from './components/AircraftProfileModal';
+import { QuickSearchModal } from './components/QuickSearchModal';
 import { ShootingStars } from '@/src/components/ui/shooting-stars';
 import { StarsBackground } from '@/src/components/ui/stars-background';
 
@@ -60,6 +61,87 @@ export type AviationDataSource =
   | 'NASA_NCMAPSS_TRANSIENT'
   | 'ARINC_429_ACARS_EHM'
   | 'FAA_PHYSICAL_MAINTENANCE';
+
+
+/**
+ * Transforms fleet telemetry according to active aviation data source:
+ * - NASA_CMAPSS_BENCHMARK: Standard run-to-failure cycle baseline
+ * - NASA_NCMAPSS_TRANSIENT: 1 Hz high-power Takeoff / Climb transients (N1 98.4%, T30 1625°R)
+ * - ARINC_429_ACARS_EHM: Operational commercial cruise EHM snapshot (N1 89.2%, T30 1542°R, +14°C EGT margin)
+ * - FAA_PHYSICAL_MAINTENANCE: Metallurgical wear & LLP rotating disk constraint (108c LLP clock)
+ */
+function applySourceTelemetryToFleet(
+  baseFleet: EngineTelemetry[],
+  source: AviationDataSource
+): EngineTelemetry[] {
+  return baseFleet.map((eng) => {
+    const is34 = eng.id === 'ESN-787-034';
+    if (source === 'NASA_NCMAPSS_TRANSIENT') {
+      const n1 = is34 ? 98.4 : Number((88.0 + (eng.flightCycles % 11)).toFixed(1));
+      const n2 = is34 ? 96.2 : Number((89.0 + (eng.flightCycles % 8)).toFixed(1));
+      const t30 = is34 ? 1625.4 : Number((1580.0 + (eng.flightCycles % 45)).toFixed(1));
+      const t50 = is34 ? 1445.0 : Number((1380.0 + (eng.flightCycles % 50)).toFixed(1));
+      const p30 = is34 ? 562.3 : Number((520.0 + (eng.flightCycles % 35)).toFixed(1));
+      const rul = is34 ? 13.8 : Math.max(10, eng.conformalRul);
+      const lower = is34 ? 9.8 : Math.max(5, eng.conformalLower90);
+      const upper = is34 ? 17.5 : eng.conformalUpper90;
+      return {
+        ...eng,
+        n1RpmPct: n1,
+        n2RpmPct: n2,
+        t30,
+        t50,
+        p30,
+        overallPressureRatio: 41.2,
+        sfc: 0.612,
+        vibrationIps: is34 ? 0.42 : 0.28,
+        conformalRul: rul,
+        conformalLower90: lower,
+        conformalUpper90: upper,
+        trajectory: buildEngineTrajectory(eng.flightCycles, rul, t30, eng.sensorFaultActive),
+      };
+    }
+
+    if (source === 'ARINC_429_ACARS_EHM') {
+      const n1 = is34 ? 89.2 : Number((86.0 + (eng.flightCycles % 6)).toFixed(1));
+      const n2 = is34 ? 91.4 : Number((88.0 + (eng.flightCycles % 5)).toFixed(1));
+      const t30 = is34 ? 1542.0 : Number((1510.0 + (eng.flightCycles % 30)).toFixed(1));
+      const t50 = is34 ? 1345.0 : Number((1310.0 + (eng.flightCycles % 35)).toFixed(1));
+      const p30 = is34 ? 455.0 : Number((440.0 + (eng.flightCycles % 25)).toFixed(1));
+      const rul = is34 ? 18.2 : Math.min(115, eng.conformalRul + 5.8);
+      const lower = is34 ? 14.0 : Math.max(10, eng.conformalLower90 + 5.0);
+      const upper = is34 ? 22.4 : eng.conformalUpper90 + 6.0;
+      return {
+        ...eng,
+        n1RpmPct: n1,
+        n2RpmPct: n2,
+        t30,
+        t50,
+        p30,
+        overallPressureRatio: 35.8,
+        sfc: 0.522,
+        vibrationIps: is34 ? 0.18 : 0.14,
+        conformalRul: rul,
+        conformalLower90: lower,
+        conformalUpper90: upper,
+        trajectory: buildEngineTrajectory(eng.flightCycles, rul, t30, eng.sensorFaultActive),
+      };
+    }
+
+    if (source === 'FAA_PHYSICAL_MAINTENANCE') {
+      return {
+        ...eng,
+        llpAccumulatedCycles: is34 ? 14892 : eng.llpAccumulatedCycles,
+        llpLimitCycles: 15000,
+        soapOilPpm: is34 ? { fe: 14.8, ti: 6.4, ag: 0.85, si: 9.2 } : eng.soapOilPpm,
+        vibrationIps: is34 ? 0.31 : eng.vibrationIps,
+      };
+    }
+
+    // Default / NASA_CMAPSS_BENCHMARK
+    return eng;
+  });
+}
 
 type ScreenTab =
   | 'DIGITAL_TWIN'
@@ -80,7 +162,8 @@ export default function App() {
   const [selectedEngineId, setSelectedEngineId] = useState<string>('ESN-787-034');
   const [activeTab, setActiveTab] = useState<ScreenTab>('DIGITAL_TWIN');
   const [actionBanner, setActionBanner] = useState<string | null>(null);
-  const [showStarDemoModal, setShowStarDemoModal] = useState<boolean>(false);
+  const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
+  const [showSearchModal, setShowSearchModal] = useState<boolean>(false);
   const [backendOnline, setBackendOnline] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncStatus, setSyncStatus] = useState<'IDLE' | 'SYNCING' | 'SYNCED' | 'STANDALONE_EDGE'>('SYNCING');
@@ -91,27 +174,44 @@ export default function App() {
 
   const handleDataSourceChange = async (source: AviationDataSource) => {
     setActiveDataSource(source);
+
     if (source === 'NASA_CMAPSS_BENCHMARK') {
       setMissionPhaseInfo(null);
-      setActionBanner('Active Stream: NASA C-MAPSS FD001–FD004 Run-to-Failure Fleet Benchmark (708 Turbofans across 6 Regimes)');
+      setFleet((prev) => {
+        const base = generateInitialFleet();
+        const washed = getStoredWaterWashedUnits();
+        return base.map((e) => (washed.has(e.id) ? applyCompressorWaterWash(e) : e));
+      });
+      // Re-hydrate with backend if online
+      if (backendOnline) {
+        api.getFleetOverview('FD001').then((overview) => {
+          if (overview?.engines) {
+            setFleet((prev) => hydrateFleetWithBackend(prev, overview, getStoredWaterWashedUnits()));
+          }
+        }).catch(() => {});
+      }
+      setActionBanner('NASA C-MAPSS FD001–FD004 Fleet Benchmark Loaded · Steady-State Spool Telemetry Restored (N1 88.4%, T30 1598°R, RUL 12.4c)');
     } else if (source === 'NASA_NCMAPSS_TRANSIENT') {
-      setActionBanner('Active Stream: NASA N-CMAPSS 1 Hz Transient Mission (LHR→JFK) · Real-Time Spool Dynamics & Dynamic Altitude');
+      setFleet((prev) => applySourceTelemetryToFleet(prev, 'NASA_NCMAPSS_TRANSIENT'));
+      setMissionPhaseInfo('TAKEOFF ROLL · FL025 · 0.28 Mach · 98° TRA · 98.4% N1');
+      setActionBanner('NASA N-CMAPSS 1 Hz Transient Feed Activated: Takeoff Spool Dynamics (N1 98.4%, T30 1625.4°R, 98° TRA, OPR 41.2)');
       try {
         const mission = await api.getMissionProfile(120);
         if (mission && mission.length > 0) {
-          const pt = mission[mission.length - 1];
+          const pt = mission[35] || mission[mission.length - 1];
           setMissionPhaseInfo(`${pt.flight_phase} · FL${Math.round(pt.altitude_ft / 100)} · M${pt.mach} · ${pt.tra_deg}° TRA`);
         }
       } catch {
-        setMissionPhaseInfo('CRUISE FL370 · M0.84 · 74° TRA');
+        // fallback
       }
     } else if (source === 'ARINC_429_ACARS_EHM') {
-      setMissionPhaseInfo('ACARS LINK ACTIVE · 131.550 MHz · SATCOM EHM');
-      setActionBanner('Active Stream: Commercial Airline ARINC 429 ACARS Bus · Live Dual-Wing ETOPS Telemetry Broadcast');
+      setFleet((prev) => applySourceTelemetryToFleet(prev, 'ARINC_429_ACARS_EHM'));
+      setMissionPhaseInfo('ACARS SATCOM · 131.550 MHz · CRUISE FL370 · M0.85');
+      setActionBanner('Commercial Airline ARINC 429 ACARS Broadcast: Operational Cruise Telemetry (N1 89.2%, T30 1542.0°R, EGT Margin +14.2°C)');
     } else if (source === 'FAA_PHYSICAL_MAINTENANCE') {
-      setMissionPhaseInfo('FAA Part 33.70 · Form 8130-3 Verified');
-      setActiveTab('AIRWORTHINESS');
-      setActionBanner('Active Stream: FAA 14 CFR § 33.70 Physical Airworthiness Dossier · Borescope & SOAP Metallurgical Records');
+      setFleet((prev) => applySourceTelemetryToFleet(prev, 'FAA_PHYSICAL_MAINTENANCE'));
+      setMissionPhaseInfo('FAA Part 33.70 · Form 8130-3 Verified · 108c LLP Clock');
+      setActionBanner('FAA 14 CFR § 33.70 Physical Dossier Loaded: SOAP Oil Spectrometry & 108-Cycle Rotating Disk Airworthiness Constraint');
     }
   };
 
@@ -483,10 +583,10 @@ export default function App() {
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('FLEET_ETOPS')}
-            title="Search Fleet & Serial Numbers"
-            aria-label="Search Fleet"
-            className="text-[#949C96] hover:text-[#EAECE9] transition-colors cursor-pointer p-1"
+            onClick={() => setShowSearchModal(true)}
+            title="Quick Search Fleet, Tail, or Engine Serial"
+            aria-label="Quick Search Fleet Navigator"
+            className="text-[#949C96] hover:text-[#B8CE82] transition-colors cursor-pointer p-1"
           >
             <Search className="w-[18px] h-[18px]" />
           </button>
@@ -504,9 +604,9 @@ export default function App() {
 
           <button
             type="button"
-            onClick={() => setShowStarDemoModal(true)}
-            title="Lead PHM Chief Engineer · Click to view Starfield Showcase"
-            aria-label="Engineer Profile and Starfield Showcase"
+            onClick={() => setShowProfileModal(true)}
+            title="Aircraft Dossier & Lead PHM Chief Engineer Profile"
+            aria-label="Aircraft Dossier & Lead PHM Chief Engineer Profile"
             className="relative w-8 h-8 rounded-full bg-[#2E3330] border border-white/15 flex items-center justify-center overflow-hidden cursor-pointer hover:border-[#B8CE82] transition-colors"
           >
             <svg viewBox="0 0 36 36" className="w-full h-full">
@@ -563,26 +663,26 @@ export default function App() {
         )}
       </main>
 
-      {/* STANDALONE SHOOTING STARS & STARS BACKGROUND DEMO PREVIEW MODAL */}
-      {showStarDemoModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Shooting Stars and Stars Background Demo"
-          className="fixed inset-0 z-50 bg-[#111A19]/85 backdrop-blur-md flex items-center justify-center p-6"
-        >
-          <div className="relative w-full max-w-5xl rounded-[24px] overflow-hidden border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.75)]">
-            <button
-              type="button"
-              onClick={() => setShowStarDemoModal(false)}
-              aria-label="Close Starfield Demo"
-              className="absolute top-4 right-4 z-30 p-2 rounded-xl bg-[#232725]/90 hover:bg-[#2E3330] border border-white/10 text-[#EAECE9] cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <ShootingStarsAndStarsBackgroundDemo />
-          </div>
-        </div>
+      {/* AIRCRAFT AND CHIEF ENGINEER PROFILE DOSSIER MODAL */}
+      {showProfileModal && (
+        <AircraftProfileModal
+          engine={activeEngine}
+          onClose={() => setShowProfileModal(false)}
+          onNavigateToAirworthiness={() => setActiveTab('AIRWORTHINESS')}
+        />
+      )}
+
+      {/* QUICK SEARCH & FLEET NAVIGATOR COMMAND PALETTE */}
+      {showSearchModal && (
+        <QuickSearchModal
+          fleet={fleet}
+          onSelectEngine={(engineId) => {
+            setSelectedEngineId(engineId);
+            setActionBanner(`Loaded ${engineId} into 3D Digital Twin Command Center`);
+          }}
+          onNavigateTab={(tab) => setActiveTab(tab)}
+          onClose={() => setShowSearchModal(false)}
+        />
       )}
     </div>
   );

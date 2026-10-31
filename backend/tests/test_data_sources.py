@@ -83,3 +83,4 @@ def test_universal_aviation_ingest():
     assert frame["t30_hpc_out_r"] == 1592.0
     assert "ekf_delta_eta_hpc" in frame
     assert "ekf_mahalanobis_sq" in frame
+
