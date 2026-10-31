@@ -286,3 +286,4 @@ export default function IncidentBriefCard({ engine, className = '' }) {
     </div>
   );
 }
+

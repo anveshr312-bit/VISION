@@ -14,6 +14,7 @@ import {
   Database,
   Wifi,
   WifiOff,
+  Plane,
 } from 'lucide-react';
 import ModeToggle from './ModeToggle.jsx';
 
@@ -38,6 +39,7 @@ export default function Header({
   const navItems = [
     { id: 'fleet', label: 'Fleet Status Board', icon: Layers },
     { id: 'detail', label: 'Engine Digital Twin', icon: BarChart3 },
+    { id: 'etops', label: 'ETOPS Compliance', icon: Plane },
     { id: 'economics', label: 'Economic Sandbox', icon: DollarSign },
     { id: 'stream', label: 'Live Replay Stream', icon: Radio },
   ];

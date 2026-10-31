@@ -14,6 +14,7 @@ import TurbofanCanvas from './components_3d/TurbofanCanvas.jsx';
 import ScientificIntegrityCard from './components/ScientificIntegrityCard.jsx';
 import DemoTourModal from './components/DemoTourModal.jsx';
 import JudgePresenterBar from './components/JudgePresenterBar.jsx';
+import EtopsCompliancePanel from './components/EtopsCompliancePanel.jsx';
 
 import { api } from './services/api.js';
 import { TelemetryStreamClient } from './services/streamClient.js';
@@ -381,7 +382,20 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 4: Live Telemetry Replay Streaming View */}
+        {/* Tab 4: ETOPS-180 Airworthiness Compliance Engine */}
+        {activeTab === 'etops' && (
+          <div className="animate-fade-in">
+            <EtopsCompliancePanel
+              subset={currentSubset}
+              onSelectUnit={(id) => {
+                setSelectedUnitId(id);
+                setActiveTab('detail');
+              }}
+            />
+          </div>
+        )}
+
+        {/* Tab 5: Live Telemetry Replay Streaming View */}
         {activeTab === 'stream' && (
           <div className="space-y-4 animate-fade-in">
             {/* Live Replay Transport Controls Ribbon */}

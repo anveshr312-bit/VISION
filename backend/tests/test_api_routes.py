@@ -216,7 +216,10 @@ def test_fleet_etops_pairings():
     assert "left_engine" in ac
     assert "right_engine" in ac
     assert "wing_rul_delta" in ac
-    assert ac["etops_status"] in ["COMPLIANT", "ASYMMETRY_WARNING", "CRITICAL_GROUND"]
+    assert ac["etops_status"] in ["COMPLIANT", "ASYMMETRY_WARNING", "CRITICAL_GROUND", "CASCADE_PULL"]
+    assert "cascade_enforcement" in ac
+    assert "dual_engine_dispatch_cleared" in ac
+    assert "economics" in ac
 
 
 def test_engine_physical_dossier():

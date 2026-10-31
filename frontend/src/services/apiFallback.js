@@ -91,6 +91,8 @@ export function getOfflineFleetEtops() {
   const aircraft = [];
   let asymmetricCount = 0;
   let criticalCount = 0;
+  let cascadeCount = 0;
+  const ETOPS_FLOOR = 25.0;
 
   for (let i = 1; i <= 100; i += 2) {
     const acIdx = Math.floor((i + 1) / 2);
@@ -100,50 +102,105 @@ export function getOfflineFleetEtops() {
     const left = OFFLINE_FLEET_CACHE.find((e) => e.unit_id === i) || OFFLINE_FLEET_CACHE[0];
     const right = OFFLINE_FLEET_CACHE.find((e) => e.unit_id === i + 1) || OFFLINE_FLEET_CACHE[1];
 
+    const lbLeft = left.conformal_lower_90 ?? Math.max(0, left.predicted_rul - 12);
+    const lbRight = right.conformal_lower_90 ?? Math.max(0, right.predicted_rul - 12);
+    const governingRul = Math.min(lbLeft, lbRight);
     const delta = Math.abs(left.predicted_rul - right.predicted_rul);
-    const isCritical = left.urgency === 'CRITICAL' || right.urgency === 'CRITICAL' || Math.min(left.predicted_rul, right.predicted_rul) <= 15;
-    const isAsymmetric = delta >= 40.0;
+
+    const isCritical = left.urgency === 'CRITICAL' || right.urgency === 'CRITICAL' || governingRul <= 10;
+    let isCascade = false;
+    let cascadePullCycles = 0.0;
+    let cascadeEngineId = null;
+
+    if (!isCritical) {
+      if (lbLeft < ETOPS_FLOOR && lbRight >= ETOPS_FLOOR) {
+        cascadePullCycles = Number((lbRight - lbLeft).toFixed(1));
+        cascadeEngineId = right.unit_id;
+        isCascade = true;
+        cascadeCount++;
+      } else if (lbRight < ETOPS_FLOOR && lbLeft >= ETOPS_FLOOR) {
+        cascadePullCycles = Number((lbLeft - lbRight).toFixed(1));
+        cascadeEngineId = left.unit_id;
+        isCascade = true;
+        cascadeCount++;
+      }
+    }
+
+    const isAsymmetric = !isCritical && !isCascade && delta >= 35.0;
 
     let status = 'COMPLIANT';
+    let dispatchCleared = true;
+    let directive = `ETOPS-180 AUTHORISED — Both engines within compliance envelope. Governing lower bound: ${governingRul.toFixed(1)} cycles.`;
+
     if (isCritical) {
       status = 'CRITICAL_GROUND';
+      dispatchCleared = false;
       criticalCount++;
+      directive = `DISPATCH BLOCKED — Engine(s) below minimum serviceable limit. Governing lower bound: ${governingRul.toFixed(1)} cycles.`;
+    } else if (isCascade) {
+      status = 'CASCADE_PULL';
+      dispatchCleared = false;
+      directive = `ETOPS-180 NON-COMPLIANT — Cascade Maintenance Pull Enforced. Engine #${cascadeEngineId} accelerated by ${cascadePullCycles} cycles to match paired engine floor.`;
     } else if (isAsymmetric) {
       status = 'ASYMMETRY_WARNING';
       asymmetricCount++;
+      directive = `ADVISORY — Wing RUL asymmetry Δ=${delta.toFixed(1)} cycles exceeds 35c threshold. Stagger shop visits.`;
     }
+
+    const aogRiskSavings = isCascade ? 920000 : 0;
+    const cascadeCost = isCascade ? cascadePullCycles * 4800 : (isCritical ? 2400000 : 0);
+    const netCascadeBenefit = isCascade ? aogRiskSavings - cascadeCost : (isCritical ? -cascadeCost : 0);
 
     aircraft.push({
       aircraft_id: acId,
       tail_number: tailNumber,
+      route_capability: dispatchCleared ? 'ETOPS-180' : 'DOMESTIC_ONLY',
+      dual_engine_dispatch_cleared: dispatchCleared,
       left_engine: {
         unit_id: left.unit_id,
         predicted_rul: left.predicted_rul,
-        lower_bound_90: left.conformal_lower_90,
+        conformal_lower_bound_90: lbLeft,
         urgency: left.urgency,
+        etops_compliant: lbLeft >= ETOPS_FLOOR,
       },
       right_engine: {
         unit_id: right.unit_id,
         predicted_rul: right.predicted_rul,
-        lower_bound_90: right.conformal_lower_90,
+        conformal_lower_bound_90: lbRight,
         urgency: right.urgency,
+        etops_compliant: lbRight >= ETOPS_FLOOR,
       },
       wing_rul_delta: Number(delta.toFixed(1)),
+      wing_lb_delta: Number(Math.abs(lbLeft - lbRight).toFixed(1)),
+      governing_lower_bound: Number(governingRul.toFixed(1)),
       etops_status: status,
-      dispatch_directive: isCritical
-        ? 'CRITICAL: Ground aircraft for immediate engine overhaul'
-        : isAsymmetric
-        ? 'ADVISORY: Stagger overhauls to prevent dual-engine removal'
-        : 'NOMINAL: Twin-engine RUL balance within ETOPS envelope',
+      dispatch_directive: directive,
+      cascade_enforcement: isCascade,
+      cascade_pull_cycles: cascadePullCycles,
+      cascade_engine_id: cascadeEngineId,
+      economics: {
+        cascade_cost_usd: cascadeCost,
+        aog_risk_savings_usd: aogRiskSavings,
+        net_cascade_benefit_usd: netCascadeBenefit,
+      },
     });
   }
 
+  const compliantCount = aircraft.length - criticalCount - asymmetricCount - cascadeCount;
+  const totalCascadeSavings = aircraft
+    .filter(a => a.cascade_enforcement)
+    .reduce((acc, a) => acc + a.economics.net_cascade_benefit_usd, 0);
+
   return {
     subset: 'FD001',
+    regulation: 'EASA CS-ETOPS / FAA 14 CFR § 121.374 / ETOPS-180',
     total_aircraft: aircraft.length,
     critical_aircraft_count: criticalCount,
+    cascade_pull_count: cascadeCount,
     asymmetric_risk_count: asymmetricCount,
-    compliant_count: aircraft.length - criticalCount - asymmetricCount,
+    compliant_count: compliantCount,
+    etops_180_cleared_count: aircraft.filter(a => a.dual_engine_dispatch_cleared).length,
+    total_cascade_net_savings_usd: totalCascadeSavings,
     aircraft,
   };
 }

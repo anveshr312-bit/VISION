@@ -202,3 +202,4 @@ def generate_incident_brief(
         },
         "certification": "RTCA DO-178C Level B / FAA AC 20-193 / 14 CFR §33.70",
     }
+
