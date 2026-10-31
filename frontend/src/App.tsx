@@ -149,22 +149,16 @@ export default function App() {
           <button
             type="button"
             onClick={() => setActiveTab('DIGITAL_TWIN')}
-            className="flex items-center gap-3.5 cursor-pointer group"
+            className="flex items-center gap-3 cursor-pointer group"
+            title="VISION Command Center"
+            aria-label="VISION Command Center"
           >
-            {/* Three Diagonal Parallel Lines Icon matching reference */}
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              className="text-[#EAECE9] group-hover:text-[#B8CE82] transition-colors"
-              aria-hidden="true"
-            >
-              <line x1="4" y1="19" x2="13" y2="5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <line x1="8.5" y1="20" x2="17.5" y2="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <line x1="13" y1="21" x2="20" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <span className="text-[15px] font-medium tracking-[0.38em] text-[#EAECE9] uppercase">
+            <img
+              src="/logo.svg"
+              alt="VISION Logo"
+              className="w-8 h-8 object-contain filter invert opacity-95 group-hover:opacity-100 group-hover:drop-shadow-[0_0_10px_rgba(184,206,130,0.6)] transition-all"
+            />
+            <span className="text-[15px] font-medium tracking-[0.38em] text-[#EAECE9] uppercase group-hover:text-[#B8CE82] transition-colors">
               VISION
             </span>
           </button>
