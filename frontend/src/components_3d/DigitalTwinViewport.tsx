@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
+  Activity,
   Droplets,
   Eye,
   EyeOff,
@@ -14,6 +15,7 @@ import {
   Layers,
   Maximize2,
   Minimize2,
+  Radio,
   Pause,
   Play,
   RotateCcw,
@@ -717,10 +719,10 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         </div>
       )}
 
-      {/* Dedicated FAA 14 CFR § 33.70 Physical Airworthiness Ribbon */}
+      {/* Dedicated Dynamic Stream Ribbons */}
       {dataSource === 'FAA_PHYSICAL_MAINTENANCE' && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 pointer-events-auto px-5 py-2 rounded-full bg-[#D97865]/20 border border-[#D97865]/50 backdrop-blur-xl text-xs flex items-center gap-3 shadow-[0_8px_32px_rgba(217,120,101,0.3)]">
-          <ShieldAlert className="w-4 h-4 text-[#D97865] shrink-0" />
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 pointer-events-auto px-5 py-2 rounded-full bg-[#D97865]/25 border border-[#D97865]/60 backdrop-blur-xl text-xs flex items-center gap-3 shadow-[0_8px_32px_rgba(217,120,101,0.4)] animate-in fade-in">
+          <ShieldAlert className="w-4 h-4 text-[#D97865] shrink-0 animate-pulse" />
           <span className="font-bold text-[#EAECE9] tracking-wide uppercase text-[11px]">
             FAA § 33.70 Governing Limit: <span className="text-[#D97865] font-mono">{engine.llpLimitCycles - engine.llpAccumulatedCycles} Cycles</span> Left on HPT Disk (15,000c Cap)
           </span>
@@ -735,6 +737,32 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
           >
             Form 8130-3 →
           </button>
+        </div>
+      )}
+
+      {dataSource === 'NASA_NCMAPSS_TRANSIENT' && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 pointer-events-auto px-5 py-2 rounded-full bg-[#82A995]/20 border border-[#B8CE82]/50 backdrop-blur-xl text-xs flex items-center gap-3 shadow-[0_8px_32px_rgba(184,206,130,0.25)] animate-in fade-in">
+          <Activity className="w-4 h-4 text-[#B8CE82] animate-pulse shrink-0" />
+          <span className="font-bold text-[#EAECE9] tracking-wide uppercase text-[11px]">
+            N-CMAPSS 1 Hz Transient: <span className="text-[#B8CE82] font-mono">Takeoff Spool (98.4% N1 · 1625°R T30)</span>
+          </span>
+          <span className="text-white/20">|</span>
+          <span className="font-mono text-[11px] text-[#EAECE9]">
+            FL025 · M0.28 · 98° TRA · Dynamic Density Altitude
+          </span>
+        </div>
+      )}
+
+      {dataSource === 'ARINC_429_ACARS_EHM' && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 pointer-events-auto px-5 py-2 rounded-full bg-[#82A995]/15 border border-[#82A995]/40 backdrop-blur-xl text-xs flex items-center gap-3 shadow-[0_8px_32px_rgba(130,169,149,0.2)] animate-in fade-in">
+          <Radio className="w-4 h-4 text-[#82A995] shrink-0" />
+          <span className="font-bold text-[#EAECE9] tracking-wide uppercase text-[11px]">
+            ARINC 429 ACARS Broadcast: <span className="text-[#B8CE82] font-mono">131.550 MHz SATCOM EHM</span>
+          </span>
+          <span className="text-white/20">|</span>
+          <span className="font-mono text-[11px] text-[#EAECE9]">
+            Cruise FL370 · EGT Margin +14.2°C · ETOPS-330 OK
+          </span>
         </div>
       )}
 
@@ -913,10 +941,27 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         >
           {/* Top-Left Editorial Hero Block */}
           <div className="pointer-events-auto space-y-2.5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#232725]/90 border border-white/15 text-xs text-[#EAECE9]">
-              <span className="w-2 h-2 rounded-full bg-[#B8CE82]" />
-              <span>Trent 1000</span>
-            </div>
+            {dataSource === 'FAA_PHYSICAL_MAINTENANCE' ? (
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#D97865]/20 border border-[#D97865]/40 text-xs text-[#F2D5CF]">
+                <span className="w-2 h-2 rounded-full bg-[#D97865] animate-pulse" />
+                <span>FAA § 33.70 Physical Dossier</span>
+              </div>
+            ) : dataSource === 'NASA_NCMAPSS_TRANSIENT' ? (
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#82A995]/20 border border-[#B8CE82]/40 text-xs text-[#EAECE9]">
+                <span className="w-2 h-2 rounded-full bg-[#B8CE82] animate-pulse" />
+                <span>N-CMAPSS · 1 Hz Flight Mission</span>
+              </div>
+            ) : dataSource === 'ARINC_429_ACARS_EHM' ? (
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#82A995]/20 border border-[#82A995]/40 text-xs text-[#EAECE9]">
+                <span className="w-2 h-2 rounded-full bg-[#82A995]" />
+                <span>ARINC 429 · ACARS SATCOM</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#232725]/90 border border-white/15 text-xs text-[#EAECE9]">
+                <span className="w-2 h-2 rounded-full bg-[#B8CE82]" />
+                <span>Trent 1000 · C-MAPSS Baseline</span>
+              </div>
+            )}
 
             <h2 className="text-[36px] leading-[1.12] font-normal tracking-tight text-[#EAECE9]">
               Engine Health
@@ -1017,18 +1062,36 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
           aria-label="Spool and Gas-Path Gauges HUD"
           className="absolute top-4 right-6 lg:right-8 z-20 w-[308px] space-y-4 pointer-events-none"
         >
-          {/* Top-Right Card: Operational Status */}
+          {/* Top-Right Card: Operational Status (Adapts dynamically to active data stream) */}
           <div className="pointer-events-auto backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-[14px] font-normal text-[#EAECE9]">Operational Status</span>
+              <span className="text-[14px] font-normal text-[#EAECE9]">
+                {dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                  ? 'FAA Airworthiness Status'
+                  : dataSource === 'NASA_NCMAPSS_TRANSIENT'
+                    ? '1 Hz Spool Telemetry'
+                    : dataSource === 'ARINC_429_ACARS_EHM'
+                      ? 'ACARS Telemetry Frame'
+                      : 'Operational Status'}
+              </span>
               <span
                 className={`px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
                   engine.sensorFaultActive
                     ? 'bg-[#D97865] text-[#181B19]'
-                    : 'bg-[#B8CE82] text-[#181B19]'
+                    : dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                      ? 'bg-[#D97865] text-[#181B19]'
+                      : 'bg-[#B8CE82] text-[#181B19]'
                 }`}
               >
-                {engine.sensorFaultActive ? 'FAULT_ABSTAIN' : 'ACTIVE'}
+                {engine.sensorFaultActive
+                  ? 'FAULT_ABSTAIN'
+                  : dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                    ? '§ 33.70 BINDING'
+                    : dataSource === 'NASA_NCMAPSS_TRANSIENT'
+                      ? 'TRANSIENT'
+                      : dataSource === 'ARINC_429_ACARS_EHM'
+                        ? 'CRUISE EHM'
+                        : 'ACTIVE'}
               </span>
             </div>
 
@@ -1036,30 +1099,74 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
               <div>
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-[38px] leading-none font-normal tracking-tight text-[#EAECE9] tabular-nums">
-                    {engine.sensorFaultActive ? 'ABSTAIN' : engine.conformalRul.toFixed(1)}
+                    {engine.sensorFaultActive
+                      ? 'ABSTAIN'
+                      : dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                        ? (engine.llpLimitCycles - engine.llpAccumulatedCycles).toFixed(0)
+                        : dataSource === 'NASA_NCMAPSS_TRANSIENT'
+                          ? engine.n1RpmPct.toFixed(1)
+                          : engine.conformalRul.toFixed(1)}
                   </span>
                   {!engine.sensorFaultActive && (
-                    <span className="text-[15px] text-[#EAECE9]">cycles</span>
+                    <span className="text-[15px] text-[#EAECE9]">
+                      {dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                        ? 'LLP cycles'
+                        : dataSource === 'NASA_NCMAPSS_TRANSIENT'
+                          ? '% N1'
+                          : 'cycles'}
+                    </span>
                   )}
                 </div>
-                <div className="text-[12px] text-[#949C96] mt-1.5">RUL (90% PI)</div>
+                <div className="text-[12px] text-[#949C96] mt-1.5">
+                  {dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                    ? 'HPT Disk Limit (FAA Part 33.70)'
+                    : dataSource === 'NASA_NCMAPSS_TRANSIENT'
+                      ? 'Takeoff Spool Thrust'
+                      : 'RUL (90% PI)'}
+                </div>
               </div>
 
-              {/* Bracketed Prediction Interval [ 5.1 - 12.9 ] */}
+              {/* Bracketed Prediction Interval [ 5.1 - 12.9 ] OR [ 14,892 / 15,000c ] */}
               <div className="text-[13px] font-mono text-[#EAECE9] tabular-nums flex items-center gap-1 pb-1">
                 <span className="text-[#949C96] text-base leading-none">[</span>
                 <span>
-                  {engine.conformalLower90.toFixed(1)} – {engine.conformalUpper90.toFixed(1)}
+                  {dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                    ? `${engine.llpAccumulatedCycles.toLocaleString()} / ${engine.llpLimitCycles.toLocaleString()}c`
+                    : dataSource === 'NASA_NCMAPSS_TRANSIENT'
+                      ? 'FL025 · 98° TRA'
+                      : `${engine.conformalLower90.toFixed(1)} – ${engine.conformalUpper90.toFixed(1)}`}
                 </span>
                 <span className="text-[#949C96] text-base leading-none">]</span>
               </div>
             </div>
 
-            {/* Moat 1: Kinematic Degradation Velocity & EKF Gate */}
+            {/* Dynamic Metric Row */}
             <div className="pt-2 border-t border-white/[0.07] flex items-center justify-between text-[11px] font-mono">
-              <span className="text-[#949C96]">Kinematic Wear V_k:</span>
-              <span className={`font-semibold tabular-nums ${engine.sensorFaultActive ? 'text-[#D97865]' : 'text-[#B8CE82]'}`}>
-                {engine.sensorFaultActive ? 'FAULT_ABSTAIN' : `-0.042 %/c`}
+              <span className="text-[#949C96]">
+                {dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                  ? 'SOAP Wear Metal Index:'
+                  : dataSource === 'NASA_NCMAPSS_TRANSIENT'
+                    ? 'Combustor Thermal Peak:'
+                    : dataSource === 'ARINC_429_ACARS_EHM'
+                      ? 'Takeoff EGT Margin:'
+                      : 'Kinematic Wear V_k:'}
+              </span>
+              <span
+                className={`font-semibold tabular-nums ${
+                  engine.sensorFaultActive || dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                    ? 'text-[#D97865]'
+                    : 'text-[#B8CE82]'
+                }`}
+              >
+                {engine.sensorFaultActive
+                  ? 'FAULT_ABSTAIN'
+                  : dataSource === 'FAA_PHYSICAL_MAINTENANCE'
+                    ? `Fe: ${engine.soapOilPpm.fe} ppm (Elevated)`
+                    : dataSource === 'NASA_NCMAPSS_TRANSIENT'
+                      ? `T30: ${engine.t30}°R`
+                      : dataSource === 'ARINC_429_ACARS_EHM'
+                        ? '+14.2°C (Healthy)'
+                        : `-0.042 %/c`}
               </span>
             </div>
 

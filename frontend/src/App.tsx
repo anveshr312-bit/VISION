@@ -137,6 +137,7 @@ function applySourceTelemetryToFleet(
       const rul = is34 ? 12.4 : eng.conformalRul;
       const lower = is34 ? 8.6 : eng.conformalLower90;
       const upper = is34 ? 16.2 : eng.conformalUpper90;
+      const hpcEff = is34 ? 79.8 : Number((81.0 + (eng.flightCycles % 4)).toFixed(1));
       return {
         ...eng,
         n1RpmPct: n1,
@@ -144,6 +145,7 @@ function applySourceTelemetryToFleet(
         t30,
         t50,
         p30,
+        hpcEfficiencyPct: hpcEff,
         overallPressureRatio: 36.4,
         sfc: 0.558,
         vibrationIps: is34 ? 0.38 : 0.29,
