@@ -1254,210 +1254,332 @@ export function StageDegradationMap({
   return (
     <div
       data-testid="stage-degradation-map-screen"
-      className={`max-w-[1440px] mx-auto px-6 lg:px-8 py-5 space-y-5 text-[#EAECE9] ${
-        isOverlay ? "bg-[#111A19]/45 backdrop-blur-sm rounded-[28px] border border-white/10 my-4 shadow-2xl" : ""
-      }`}
+      className="w-full relative text-[#EAECE9]"
     >
-      {onReturnToOverview && (
-        <div className="flex items-center justify-between pb-1">
-          <button
-            type="button"
-            onClick={onReturnToOverview}
-            className="px-4 py-1.5 rounded-full bg-[#232725] hover:bg-[#B8CE82] text-[#EAECE9] hover:text-[#181B19] border border-white/15 text-xs font-mono flex items-center gap-2 transition-all cursor-pointer shadow-md"
-          >
-            <span>← Return to 3D Digital Twin Overview</span>
-          </button>
-          <span className="text-xs font-mono text-[#B8CE82] hidden sm:inline">
-            3D Twin Persistence Active · Time-Scrubbing Modulates Thermal Gradient
-          </span>
-        </div>
-      )}
-      {/* Editorial Section Header matching Overview section aesthetic */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#232725]/90 border border-white/15 text-xs text-[#EAECE9]">
-            <span className="w-2 h-2 rounded-full bg-[#B8CE82]" />
-            <span>Trent 1000 · {activeEngineId} ({activeTailId})</span>
-          </div>
-          <h1 className="text-2xl lg:text-3xl font-normal tracking-tight text-[#EAECE9]">
-            Engine Degradation Map &amp; Stage-Wise Health View
-          </h1>
-        </div>
+      {/* =====================================================================
+          HERO 3D VIEWPORT HUD: ELEMENTS POSITIONED AROUND THE CENTER 3D ENGINE
+          (Center aperture is 100% transparent and open for unobstructed view)
+         ===================================================================== */}
+      <div className="relative w-full h-[calc(100vh-76px)] min-h-[680px] pointer-events-none select-none overflow-hidden">
+        {/* LEFT HUD: Return Button + Diagnostic Summary + Active Stage Focus */}
+        <aside
+          aria-label="Diagnostic Overview HUD"
+          className="pointer-events-auto absolute top-4 left-6 lg:left-8 z-30 w-[315px] sm:w-[340px] space-y-3"
+        >
+          {onReturnToOverview && (
+            <button
+              type="button"
+              onClick={onReturnToOverview}
+              className="px-4 py-1.5 rounded-full bg-[#232725]/90 hover:bg-[#B8CE82] text-[#EAECE9] hover:text-[#181B19] border border-white/15 text-xs font-mono flex items-center gap-2 transition-all cursor-pointer shadow-lg backdrop-blur-md"
+            >
+              <span>← Return to 3D Twin Overview</span>
+            </button>
+          )}
 
-        {/* Summary KPI Strip */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="px-3.5 py-1.5 rounded-2xl bg-[#232725]/90 border border-white/[0.08] flex items-center gap-2 text-xs font-mono">
-            <span className="text-[#949C96]">Composite Health:</span>
-            <strong className="text-[#B8CE82]">{compositeHealthPct}%</strong>
+          {/* Header Card */}
+          <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.5)] space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#B8CE82] animate-pulse" />
+              <span className="text-[11px] font-mono text-[#949C96]">
+                Trent 1000 · {activeEngineId} ({activeTailId})
+              </span>
+            </div>
+
+            <h1 className="text-xl font-normal tracking-tight text-[#EAECE9]">
+              Engine Diagnostics
+            </h1>
+
+            <div className="pt-1 flex items-center justify-between border-t border-white/[0.08] text-xs font-mono">
+              <span className="text-[#949C96]">Composite Health:</span>
+              <strong className="text-[#B8CE82] text-sm">{compositeHealthPct}%</strong>
+            </div>
+
+            <div className="flex items-center gap-1.5 pt-1 text-[10px] font-mono">
+              <span className="px-2 py-0.5 rounded-full bg-[#B8CE82]/20 text-[#B8CE82] border border-[#B8CE82]/40">
+                {nominalStageCount} Nom
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-[#D8B65E]/20 text-[#D8B65E] border border-[#D8B65E]/40">
+                {warningStageCount} Caut
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-[#D97865]/20 text-[#D97865] border border-[#D97865]/40">
+                {criticalStageCount} Crit
+              </span>
+            </div>
           </div>
-          <div className="px-3 py-1.5 rounded-2xl bg-[#232725]/90 border border-white/[0.08] flex items-center gap-3 text-xs font-mono">
-            <span className="flex items-center gap-1.5 text-[#B8CE82]">
-              <span className="w-2 h-2 rounded-full bg-[#B8CE82]" />
-              {nominalStageCount} Nominal
-            </span>
-            <span className="flex items-center gap-1.5 text-[#D8B65E]">
-              <span className="w-2 h-2 rounded-full bg-[#D8B65E]" />
-              {warningStageCount} Caution
-            </span>
-            <span className="flex items-center gap-1.5 text-[#D97865]">
-              <span className="w-2 h-2 rounded-full bg-[#D97865]" />
-              {criticalStageCount} Critical
+
+          {/* Active Stage Callout Card */}
+          <div className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.5)] space-y-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-wider border ${activeTone.badgeBg}`}>
+                  {activeStage.station} · {activeStage.statusBadge}
+                </span>
+                <div className="font-semibold text-sm text-[#EAECE9] mt-1">
+                  {activeStage.shortName}
+                </div>
+                <div className="text-[10px] font-mono text-[#949C96]">
+                  {activeStage.spool}
+                </div>
+              </div>
+
+              <div className="text-right font-mono">
+                <span className="text-[10px] text-[#949C96] block">Health @ c{activeCycleNumber}</span>
+                <span className={`text-lg font-bold ${activeTone.text}`}>
+                  {activeStage.scrubbedHealthPct}%
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-white/[0.08] text-[10px] font-mono">
+              <div className="bg-[#181C1A]/80 p-1.5 rounded-lg border border-white/5">
+                <div className="text-[#949C96]">Tip Gap</div>
+                <div className="text-[#EAECE9] font-bold mt-0.5">{activeStage.tipClearanceCurrentMm.toFixed(2)}mm</div>
+              </div>
+              <div className="bg-[#181C1A]/80 p-1.5 rounded-lg border border-white/5">
+                <div className="text-[#949C96]">Gas Temp</div>
+                <div className="text-[#D8B65E] font-bold mt-0.5">{activeStage.stationTempR.toFixed(0)}°R</div>
+              </div>
+              <div className="bg-[#181C1A]/80 p-1.5 rounded-lg border border-white/5">
+                <div className="text-[#949C96]">Pressure</div>
+                <div className="text-[#B8CE82] font-bold mt-0.5">{activeStage.stationPressPsia.toFixed(1)}p</div>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-[#949C96] leading-relaxed line-clamp-2">
+              {activeStage.borescopeDefect}
+            </p>
+
+            <div className="pt-1 flex items-center gap-2">
+              {activeStage.primaryDirectiveType === 'WATER_WASH' ? (
+                <button
+                  type="button"
+                  onClick={handlePrescribeWaterWash}
+                  className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider bg-[#B8CE82] hover:bg-[#c9df95] text-[#181B19] transition-all cursor-pointer shadow-sm"
+                >
+                  AMM 72-00 Water Wash
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleScheduleBorescopeBlend}
+                  className="flex-1 py-1.5 px-3 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider bg-[#2E3330] hover:bg-[#39403b] text-[#EAECE9] border border-white/10 transition-all cursor-pointer"
+                >
+                  AMM 72-31 Blend
+                </button>
+              )}
+              <a
+                href="#deep-degradation-cutaway"
+                className="py-1.5 px-2.5 rounded-xl text-[10px] font-mono text-[#949C96] hover:text-[#EAECE9] bg-[#1B1F1D] border border-white/10 transition-colors"
+                title="Jump to 2D Cross-Sectional Cutaway"
+              >
+                2D CAD ↓
+              </a>
+            </div>
+          </div>
+        </aside>
+
+        {/* RIGHT HUD: Stage-Wise Health View List (Surrounds Right Side of 3D Engine) */}
+        <aside
+          aria-label="Stage-Wise Health View HUD"
+          className="pointer-events-auto absolute top-4 right-6 lg:right-8 z-30 w-[315px] sm:w-[350px]"
+        >
+          <section
+            data-testid="stage-wise-health-profile-card"
+            aria-label="Stage-Wise Engine Health View"
+            className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-4 shadow-[0_16px_40px_rgba(0,0,0,0.5)] space-y-2.5"
+          >
+            <div className="flex items-center justify-between pb-1 border-b border-white/[0.08]">
+              <div>
+                <h2 className="text-[14px] font-normal text-[#EAECE9]">
+                  Stage-Wise Health View
+                </h2>
+                <p className="text-[10px] font-mono text-[#949C96]">
+                  9 Axial Stations vs. Baseline (▏)
+                </p>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-[#B8CE82] text-[#181B19] text-[9px] font-mono font-bold uppercase tracking-wider">
+                9 STAGES
+              </span>
+            </div>
+
+            {/* 9-Stage Compact Horizontal Health Bars */}
+            <div className="space-y-1.5 max-h-[calc(100vh-250px)] overflow-y-auto pr-1">
+              {stagesWithLiveState.map((stg) => {
+                const isSelected = stg.id === activeStage.id;
+                const tone = getHealthColorClasses(stg.scrubbedHealthPct);
+                return (
+                  <button
+                    key={stg.id}
+                    type="button"
+                    data-testid={`stage-health-row-${stg.id}`}
+                    onClick={() => setSelectedStageId(stg.id)}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#2B302D] border-[#B8CE82] shadow-sm'
+                        : 'bg-[#1B1F1D]/85 border-white/[0.06] hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-[9px] font-mono text-[#B8CE82] shrink-0">
+                          {stg.station}
+                        </span>
+                        <span className="font-medium text-[#EAECE9] truncate text-[11px]">
+                          {stg.shortName}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0 font-mono">
+                        <span className={`text-[8px] px-1 py-0.2 rounded border uppercase ${tone.badgeBg}`}>
+                          {stg.statusBadge}
+                        </span>
+                        <span className={`text-[11px] font-bold tabular-nums ${tone.text}`}>
+                          {stg.scrubbedHealthPct}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="relative h-1 bg-[#141715] rounded-full overflow-visible">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${tone.barBg}`}
+                        style={{ width: `${stg.scrubbedHealthPct}%` }}
+                      />
+                      <span
+                        title={`Fleet Baseline: ${stg.fleetAvgPct}%`}
+                        style={{ left: `${stg.fleetAvgPct}%` }}
+                        className="absolute -top-0.5 bottom-0 w-0.5 bg-[#EAECE9]/80"
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </aside>
+
+        {/* BOTTOM CENTER DOCK: FLOATING CYCLE PROGRESSION TIME-SCRUBBER
+            (Centered directly below the 3D Engine Model for instant gradient feedback) */}
+        <div className="pointer-events-auto absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 max-w-[92vw]">
+          {/* Active Gradient Readout Capsule */}
+          <div className="px-4 py-1 rounded-full bg-[#181B19]/85 backdrop-blur-xl border border-white/10 text-xs font-mono flex items-center gap-2 shadow-lg">
+            <span className="w-2 h-2 rounded-full bg-[#B8CE82] animate-pulse" />
+            <span className="text-[#949C96]">Active 3D Thermal Gradient:</span>
+            <span className="text-[#EAECE9] font-bold">
+              Cycle {activeCycleNumber} / 142 ·{' '}
+              {activeCycleNumber === 0
+                ? 'Baseline Cool Emerald'
+                : activeCycleNumber <= 50
+                  ? 'Initial Gas-Path Equilibrium'
+                  : activeCycleNumber <= 85
+                    ? 'Mid-Life Inflection Amber'
+                    : 'Late-Stage Severe Crimson Creep'}
             </span>
           </div>
+
+          {/* Interactive Scrubber Pill Bar */}
+          <div
+            role="group"
+            aria-label="Cycle Scrubber Steps"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-[#1E2220]/90 backdrop-blur-2xl border border-white/15 shadow-2xl"
+          >
+            <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-[#949C96] pl-1 pr-2 border-r border-white/10">
+              <History className="w-3.5 h-3.5 text-[#B8CE82]" />
+              <span className="hidden sm:inline">Scrubber:</span>
+            </div>
+
+            {CYCLE_COLUMNS.map((cyc, idx) => {
+              const isSelectedCyc = idx === selectedCycleIdx;
+              const isInflection = cyc === 85;
+              return (
+                <button
+                  key={cyc}
+                  type="button"
+                  data-testid={`scrubber-cycle-${cyc}`}
+                  onClick={() => setSelectedCycleIdx(idx)}
+                  className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${
+                    isSelectedCyc
+                      ? 'bg-[#B8CE82] text-[#181B19] shadow-[0_0_14px_rgba(184,206,130,0.5)] scale-105'
+                      : isInflection
+                        ? 'bg-[#D8B65E]/20 text-[#D8B65E] border border-[#D8B65E]/50 hover:bg-[#D8B65E]/30'
+                        : 'bg-[#232725] text-[#949C96] hover:text-[#EAECE9] border border-white/[0.06]'
+                  }`}
+                >
+                  {cyc}c{isInflection ? ' ★' : ''}
+                </button>
+              );
+            })}
+          </div>
+
+          <a
+            href="#deep-degradation-cutaway"
+            className="text-[10px] font-mono text-[#949C96] hover:text-[#B8CE82] transition-colors flex items-center gap-1"
+          >
+            <span>Scroll down for 2D CAD Cutaway, D3 Slopes &amp; 8-Cycle Matrix</span>
+            <span>↓</span>
+          </a>
         </div>
       </div>
 
       {/* =====================================================================
-          0. INTERACTIVE ENGINE CUTAWAY DEGRADATION MAP + STAGE-WISE HEALTH PROFILE
+          BELOW-THE-FOLD DETAILED DIAGNOSTIC SUITE:
+          2D CROSS-SECTIONAL CUTAWAY, AXIAL FLOW SCHEMATIC, D3 RUL SLOPES, HEATMAP
          ===================================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-        {/* Left 8 Cols: Interactive 2D Turbofan Cross-Sectional Cutaway Degradation Map */}
+      <div
+        id="deep-degradation-cutaway"
+        className="max-w-[1440px] mx-auto px-6 lg:px-8 py-8 space-y-6 bg-[#141715]/95 rounded-t-[36px] border-t border-white/10 backdrop-blur-2xl shadow-2xl pointer-events-auto"
+      >
+        {/* Full 2D Cross-Sectional Turbofan Cutaway Section */}
         <section
           data-testid="engine-cutaway-degradation-map"
           aria-label="Interactive Engine Cross-Sectional Degradation Map"
-          className="lg:col-span-8 backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between space-y-3.5"
+          className="backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] space-y-3.5"
         >
-          {/* Card Header + Overlay Mode Capsule Toggle */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#B8CE82]" />
                 <h2 className="text-[15px] font-normal text-[#EAECE9]">
-                  Rolls-Royce Trent 1000 Cross-Sectional Degradation Map
+                  Rolls-Royce Trent 1000 2D Cross-Sectional Cutaway CAD
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-[#1B1F1D] border border-white/10 text-[10px] font-mono text-[#B8CE82]">
                   Cycle {activeCycleNumber} {selectedCycleIdx === 7 ? '(Current)' : selectedCycleIdx === 4 ? '(★ Inflection)' : ''}
                 </span>
               </div>
               <p className="text-[11px] text-[#949C96] mt-0.5">
-                Interactive 3-Spool Axial Cutaway · Click any internal stage zone to inspect blade tip rub, fouling &amp; thermal creep
+                3-Spool Axial CAD Cutaway · Click any internal stage zone to inspect tip rub, fouling &amp; thermal creep
               </p>
             </div>
 
-            {/* 3D vs 2D Engine Viewport Switcher + Layer Mode */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center bg-[#1B1F1D] border border-white/[0.08] p-1 rounded-full">
+            {/* 3-Mode Overlay Capsule Switcher */}
+            <div
+              className="flex items-center bg-[#1B1F1D] border border-white/[0.08] p-1 rounded-full"
+              role="group"
+              aria-label="Degradation Map Layer Mode"
+            >
+              {[
+                { id: 'HEALTH_MAP', label: 'Stage Health' },
+                { id: 'THERMAL_MAP', label: 'Thermal & Gas' },
+                { id: 'CLEARANCE_MAP', label: 'Tip Clearance' },
+              ].map((m) => (
                 <button
+                  key={m.id}
                   type="button"
-                  data-testid="toggle-view-3d"
-                  onClick={() => setView3DMode(true)}
-                  className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all cursor-pointer ${
-                    view3DMode
-                      ? 'bg-[#B8CE82] text-[#181B19] font-bold shadow-xs'
+                  data-testid={`cutaway-mode-${m.id}`}
+                  onClick={() => setCutawayMode(m.id)}
+                  className={`px-3 py-1 rounded-full text-[11px] transition-all cursor-pointer ${
+                    cutawayMode === m.id
+                      ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-xs'
                       : 'text-[#949C96] hover:text-[#EAECE9]'
                   }`}
                 >
-                  3D Engine Twin
+                  {m.label}
                 </button>
-                <button
-                  type="button"
-                  data-testid="toggle-view-2d"
-                  onClick={() => setView3DMode(false)}
-                  className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all cursor-pointer ${
-                    !view3DMode
-                      ? 'bg-[#DCE0D9] text-[#181B19] font-bold shadow-xs'
-                      : 'text-[#949C96] hover:text-[#EAECE9]'
-                  }`}
-                >
-                  2D Cutaway CAD
-                </button>
-              </div>
-
-              {!view3DMode && (
-                <div
-                  className="flex items-center bg-[#1B1F1D] border border-white/[0.08] p-1 rounded-full"
-                  role="group"
-                  aria-label="Degradation Map Layer Mode"
-                >
-                  {[
-                    { id: 'HEALTH_MAP', label: 'Stage Health' },
-                    { id: 'THERMAL_MAP', label: 'Thermal & Gas' },
-                    { id: 'CLEARANCE_MAP', label: 'Tip Clearance' },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      data-testid={`cutaway-mode-${m.id}`}
-                      onClick={() => setCutawayMode(m.id)}
-                      className={`px-3 py-1 rounded-full text-[11px] transition-all cursor-pointer ${
-                        cutawayMode === m.id
-                          ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-xs'
-                          : 'text-[#949C96] hover:text-[#EAECE9]'
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-              )}
+              ))}
             </div>
           </div>
 
-          {/* Interactive 3D Digital Twin Viewport Portal or 2D Cross-Sectional Diagram */}
-          {view3DMode ? (
-            <div className="relative bg-[#181C1A]/20 border border-[#B8CE82]/30 rounded-2xl p-4 overflow-hidden min-h-[250px] sm:min-h-[275px] flex flex-col justify-between backdrop-blur-[2px]">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="flex items-center gap-2 text-[#B8CE82]">
-                  <span className="w-2 h-2 rounded-full bg-[#B8CE82] animate-pulse" />
-                  <span className="font-bold">3D DIGITAL TWIN · TIME-SCRUBBED DEGRADATION SHADER</span>
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full bg-[#181B19]/80 text-[#B8CE82] border border-[#B8CE82]/40 text-[10px] font-bold">
-                  Cycle {activeCycleNumber} / 142 ({((activeCycleNumber / 142) * 100).toFixed(0)}% Degradation)
-                </span>
-              </div>
-
-              <div className="my-auto py-3 text-center pointer-events-none select-none">
-                <div className="inline-flex flex-col items-center gap-1.5 px-6 py-2.5 rounded-2xl bg-[#141715]/75 backdrop-blur-md border border-white/10 shadow-xl">
-                  <div className="flex items-center gap-2 text-xs font-mono text-[#EAECE9]">
-                    <span className="text-[#B8CE82] font-bold">● Active 3D Degradation Gradient:</span>
-                    <span className="font-semibold text-white">
-                      {activeCycleNumber === 0
-                        ? 'Cycle 0: Baseline Cool Emerald (Nominal)'
-                        : activeCycleNumber <= 50
-                          ? `Cycle ${activeCycleNumber}: Initial Gas-Path Thermal Equilibrium`
-                          : activeCycleNumber <= 85
-                            ? `Cycle ${activeCycleNumber}: Mid-Life Inflection Amber Gradient`
-                            : `Cycle ${activeCycleNumber}: Late-Stage Severe Crimson Thermal Creep`}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#949C96] font-mono max-w-lg">
-                    3D Trent 1000 engine core stages reflect real-time GLSL degradation heatmaps. Use the cycle buttons below to scrub the operational timeline.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-2 pt-2.5 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2.5">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${activeTone.badgeBg}`}>
-                    {activeStage.station} · {activeStage.statusBadge}
-                  </span>
-                  <span className="font-mono font-bold text-[#EAECE9]">
-                    {activeStage.shortName}
-                  </span>
-                  <span className="text-[#949C96] font-mono text-[11px]">
-                    ({activeStage.spool})
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono">
-                  <span className="text-[#949C96]">
-                    Health @ Cycle {activeCycleNumber}:{' '}
-                    <strong className={activeTone.text}>{activeStage.scrubbedHealthPct}%</strong>
-                  </span>
-                  <span className="text-[#949C96]">
-                    Tip Gap: <strong className="text-[#EAECE9]">{activeStage.tipClearanceCurrentMm.toFixed(2)}mm</strong>
-                  </span>
-                  <span className="text-[#949C96]">
-                    Gas Temp: <strong className="text-[#D8B65E]">{activeStage.stationTempR.toFixed(0)}°R</strong>
-                  </span>
-                  <span className="text-[#949C96]">
-                    Press: <strong className="text-[#B8CE82]">{activeStage.stationPressPsia.toFixed(1)} psia</strong>
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="relative bg-[#181C1A]/95 border border-white/[0.07] rounded-2xl p-3 overflow-hidden">
+          {/* Interactive SVG Cross-Sectional Turbofan Cutaway Diagram */}
+          <div className="relative bg-[#181C1A]/95 border border-white/[0.07] rounded-2xl p-3 overflow-hidden">
             <svg
               viewBox="0 0 880 305"
               className="w-full h-[250px] sm:h-[275px] select-none overflow-visible"
@@ -1517,7 +1639,7 @@ export function StageDegradationMap({
                 strokeWidth="1"
               />
 
-              {/* Bypass Air Flow Stream Arrows (Top & Bottom Ducts) */}
+              {/* Bypass Air Flow Stream Arrows */}
               <path
                 d="M 155 58 Q 310 58 475 76"
                 fill="none"
@@ -1530,7 +1652,7 @@ export function StageDegradationMap({
                 BYPASS DUCT STREAM (BPR 10.0 : 1) ──►
               </text>
 
-              {/* Nose Cone Spinner (Intake Stn 2.0) */}
+              {/* Nose Cone Spinner */}
               <path
                 d="M 22 150 Q 42 124 68 124 L 68 176 Q 42 176 22 150 Z"
                 fill="#2B302D"
@@ -1538,7 +1660,7 @@ export function StageDegradationMap({
                 strokeWidth="1.2"
               />
 
-              {/* Coaxial Core Spool Shafts (N1, N2, N3) */}
+              {/* Coaxial Core Spool Shafts */}
               <rect x="68" y="145" width="690" height="10" fill="url(#shaftN1Grad)" opacity="0.35" rx="2" />
               <rect x="146" y="138" width="520" height="5" fill="#949C96" opacity="0.3" rx="1" />
               <rect x="146" y="157" width="520" height="5" fill="#949C96" opacity="0.3" rx="1" />
@@ -1553,7 +1675,7 @@ export function StageDegradationMap({
                 strokeWidth="1"
               />
 
-              {/* 9 INTERACTIVE AXIAL STAGE ZONES (TOP & BOTTOM SYMMETRIC CUTAWAY HALVES) */}
+              {/* 9 Interactive Axial Stage Zones */}
               {stagesWithLiveState.map((stg) => {
                 const isSelected = stg.id === activeStage.id;
                 const g = stg.cutawayGeometry;
@@ -1564,7 +1686,6 @@ export function StageDegradationMap({
                 const midX = Math.round((g.xStart + g.xEnd) / 2);
                 const isRubOrCritical = stg.scrubbedHealthPct < 70;
 
-                // Internal rotor/stator blade lines inside each stage zone
                 const bladeLines = [];
                 if (g.bladeCount > 0) {
                   for (let b = 1; b <= g.bladeCount; b++) {
@@ -1580,160 +1701,90 @@ export function StageDegradationMap({
                     onClick={() => setSelectedStageId(stg.id)}
                     className="cursor-pointer group"
                   >
-                    {/* Top Annulus Gas-Path Stage Block */}
+                    {/* Top symmetric blade zone */}
                     <rect
                       x={g.xStart}
                       y={g.yTopOuter}
                       width={w}
                       height={topH}
-                      rx="4"
                       fill={vis.fill}
-                      stroke={isSelected ? '#EAECE9' : vis.stroke}
-                      strokeWidth={isSelected ? '2.2' : '1.2'}
+                      stroke={isSelected ? '#B8CE82' : vis.stroke}
+                      strokeWidth={isSelected ? 2 : 1}
+                      strokeDasharray={isSelected ? 'none' : isRubOrCritical ? '3 2' : 'none'}
+                      rx={2}
+                      className="transition-all duration-200 group-hover:brightness-125"
                     />
 
-                    {/* Bottom Annulus Gas-Path Stage Block */}
+                    {/* Bottom symmetric blade zone */}
                     <rect
                       x={g.xStart}
                       y={g.yBotInner}
                       width={w}
                       height={botH}
-                      rx="4"
                       fill={vis.fill}
-                      stroke={isSelected ? '#EAECE9' : vis.stroke}
-                      strokeWidth={isSelected ? '2.2' : '1.2'}
+                      stroke={isSelected ? '#B8CE82' : vis.stroke}
+                      strokeWidth={isSelected ? 2 : 1}
+                      strokeDasharray={isSelected ? 'none' : isRubOrCritical ? '3 2' : 'none'}
+                      rx={2}
+                      className="transition-all duration-200 group-hover:brightness-125"
                     />
 
-                    {/* Internal Rotor/Stator Airfoil Representations */}
-                    {bladeLines.map((bx, bIdx) => (
-                      <g key={bIdx} opacity={isSelected ? 0.95 : 0.65}>
-                        <line
-                          x1={bx - 2}
-                          y1={g.yTopOuter + 4}
-                          x2={bx + 2}
-                          y2={g.yTopInner - 3}
-                          stroke={vis.stroke}
-                          strokeWidth={bIdx % 2 === 0 ? '2.2' : '1.2'}
-                        />
-                        <line
-                          x1={bx - 2}
-                          y1={g.yBotInner + 3}
-                          x2={bx + 2}
-                          y2={g.yBotOuter - 4}
-                          stroke={vis.stroke}
-                          strokeWidth={bIdx % 2 === 0 ? '2.2' : '1.2'}
-                        />
-                      </g>
+                    {/* Top blade lines */}
+                    {bladeLines.map((bx, idx) => (
+                      <line
+                        key={`top-b-${idx}`}
+                        x1={bx}
+                        y1={g.yTopOuter + 2}
+                        x2={bx}
+                        y2={g.yTopInner - 2}
+                        stroke={vis.stroke}
+                        strokeWidth="0.8"
+                        strokeOpacity="0.45"
+                      />
                     ))}
 
-                    {/* Special Combustor Annular Flame Cans representation */}
-                    {stg.id === 'COMBUSTOR_LINER' && (
-                      <g>
-                        <ellipse
-                          cx={midX}
-                          cy={Math.round((g.yTopOuter + g.yTopInner) / 2)}
-                          rx={w * 0.36}
-                          ry={topH * 0.32}
-                          fill="rgba(216,182,94,0.35)"
-                          stroke="#D8B65E"
-                          strokeWidth="1.3"
-                        />
-                        <ellipse
-                          cx={midX}
-                          cy={Math.round((g.yBotInner + g.yBotOuter) / 2)}
-                          rx={w * 0.36}
-                          ry={botH * 0.32}
-                          fill="rgba(216,182,94,0.35)"
-                          stroke="#D8B65E"
-                          strokeWidth="1.3"
-                        />
-                      </g>
-                    )}
+                    {/* Bottom blade lines */}
+                    {bladeLines.map((bx, idx) => (
+                      <line
+                        key={`bot-b-${idx}`}
+                        x1={bx}
+                        y1={g.yBotInner + 2}
+                        x2={bx}
+                        y2={g.yBotOuter - 2}
+                        stroke={vis.stroke}
+                        strokeWidth="0.8"
+                        strokeOpacity="0.45"
+                      />
+                    ))}
 
-                    {/* Tip Shroud Rub / TBC Hotspot Warning Marker on Critical Stages */}
-                    {isRubOrCritical && (
-                      <g>
-                        <circle
-                          cx={midX}
-                          cy={g.yTopOuter + 4}
-                          r="4.5"
-                          fill="#D97865"
-                          stroke="#181B19"
-                          strokeWidth="1.5"
-                        />
-                        <circle
-                          cx={midX}
-                          cy={g.yBotOuter - 4}
-                          r="4.5"
-                          fill="#D97865"
-                          stroke="#181B19"
-                          strokeWidth="1.5"
-                        />
-                      </g>
-                    )}
-
-                    {/* Top Station Label & Readout Badge */}
+                    {/* Station tag label above */}
                     <text
                       x={midX}
-                      y={24}
+                      y={g.yTopOuter - 4}
                       textAnchor="middle"
-                      fontSize="9"
-                      fill={isSelected ? '#EAECE9' : '#949C96'}
-                      className="font-mono font-semibold"
-                    >
-                      {stg.station}
-                    </text>
-
-                    {/* Center Stage Value Pill inside Top Annulus */}
-                    <rect
-                      x={midX - 24}
-                      y={Math.round((g.yTopOuter + g.yTopInner) / 2) - 9}
-                      width="48"
-                      height="18"
-                      rx="5"
-                      fill="#181B19"
-                      fillOpacity="0.88"
-                      stroke={vis.stroke}
-                      strokeWidth={isSelected ? '1.5' : '0.9'}
-                    />
-                    <text
-                      x={midX}
-                      y={Math.round((g.yTopOuter + g.yTopInner) / 2) + 3}
-                      textAnchor="middle"
-                      fontSize="9.5"
-                      fill={vis.stroke}
-                      className="font-mono font-bold"
-                    >
-                      {vis.label}
-                    </text>
-
-                    {/* Bottom Stage Matrix Name */}
-                    <text
-                      x={midX}
-                      y={290}
-                      textAnchor="middle"
-                      fontSize="9.5"
+                      fontSize="7.5"
                       fill={isSelected ? '#B8CE82' : '#949C96'}
                       className="font-mono font-semibold"
                     >
-                      {stg.matrixLabel}
+                      {stg.station.replace('Stn ', '')}
+                    </text>
+
+                    {/* Metric readout centered inside top box */}
+                    <text
+                      x={midX}
+                      y={g.yTopOuter + topH / 2 + 3}
+                      textAnchor="middle"
+                      fontSize="8.5"
+                      fill="#EAECE9"
+                      className="font-mono font-bold select-none pointer-events-none"
+                    >
+                      {vis.label}
                     </text>
                   </g>
                 );
               })}
 
-              {/* Axial Thermal & Pressure Profile Curve Overlay when THERMAL_MAP is active */}
-              {cutawayMode === 'THERMAL_MAP' && (
-                <path
-                  d="M 105 220 L 187 210 L 269 175 L 347 156 L 423 142 L 505 78 L 589 112 L 678 164 L 773 196"
-                  fill="none"
-                  stroke="#EAECE9"
-                  strokeWidth="2"
-                  strokeDasharray="4 2"
-                />
-              )}
-
-              {/* Active Stage Selection Leader Line Pointer */}
+              {/* Selected Stage Callout Indicator Pin */}
               <g pointerEvents="none">
                 <circle
                   cx={selMidX}
@@ -1752,7 +1803,7 @@ export function StageDegradationMap({
               </g>
             </svg>
 
-            {/* Bottom Live Selected Stage Callout Strip inside Cutaway Viewport */}
+            {/* Bottom Live Selected Stage Callout Strip */}
             <div className="mt-2 pt-2.5 border-t border-white/[0.07] flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2.5">
                 <span
@@ -1785,133 +1836,9 @@ export function StageDegradationMap({
               </div>
             </div>
           </div>
-          )}
-
-          {/* Interactive Cycle Time-Travel Scrubber Bar (Cycle 0 -> Cycle 85 Inflection -> Cycle 142 Current) */}
-          <div className="bg-[#1B1F1D]/90 border border-white/[0.07] rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-[#B8CE82]" />
-              <div>
-                <div className="text-xs font-medium text-[#EAECE9]">
-                  Cycle Progression Time-Scrubber
-                </div>
-                <div className="text-[10px] font-mono text-[#949C96]">
-                  {activeStage.scrubbedNote}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5" role="group" aria-label="Cycle Scrubber Steps">
-              {CYCLE_COLUMNS.map((cyc, idx) => {
-                const isSelectedCyc = idx === selectedCycleIdx;
-                const isInflection = cyc === 85;
-                return (
-                  <button
-                    key={cyc}
-                    type="button"
-                    data-testid={`scrubber-cycle-${cyc}`}
-                    onClick={() => setSelectedCycleIdx(idx)}
-                    className={`px-2.5 py-1 rounded-full text-[11px] font-mono transition-all cursor-pointer ${
-                      isSelectedCyc
-                        ? 'bg-[#B8CE82] text-[#181B19] font-bold shadow-xs'
-                        : isInflection
-                          ? 'bg-[#D8B65E]/20 text-[#D8B65E] border border-[#D8B65E]/50 hover:bg-[#D8B65E]/30'
-                          : 'bg-[#232725] text-[#949C96] hover:text-[#EAECE9] border border-white/[0.06]'
-                    }`}
-                  >
-                    {cyc}c{isInflection ? ' ★' : ''}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </section>
 
-        {/* Right 4 Cols: Stage-Wise Health View & Subsystem Ranking Card */}
-        <section
-          data-testid="stage-wise-health-profile-card"
-          aria-label="Stage-Wise Engine Health View"
-          className="lg:col-span-4 backdrop-blur-2xl bg-[#232725]/88 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex flex-col justify-between space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-[15px] font-normal text-[#EAECE9]">
-                Stage-Wise Health View
-              </h2>
-              <p className="text-[11px] text-[#949C96] mt-0.5">
-                9 Axial Stations vs. Boeing 787 Fleet Baseline (▏)
-              </p>
-            </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#B8CE82] text-[#181B19] text-[10px] font-mono font-bold uppercase tracking-wider">
-              9 STAGES
-            </span>
-          </div>
-
-          {/* 9-Stage Horizontal Health Bars with Fleet Baseline Marker */}
-          <div className="space-y-2 flex-1 flex flex-col justify-center">
-            {stagesWithLiveState.map((stg) => {
-              const isSelected = stg.id === activeStage.id;
-              const tone = getHealthColorClasses(stg.scrubbedHealthPct);
-              return (
-                <button
-                  key={stg.id}
-                  type="button"
-                  data-testid={`stage-health-row-${stg.id}`}
-                  onClick={() => setSelectedStageId(stg.id)}
-                  className={`w-full text-left px-3 py-2 rounded-xl border transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-[#2B302D] border-[#B8CE82] shadow-sm'
-                      : 'bg-[#1B1F1D]/85 border-white/[0.06] hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[10px] font-mono text-[#B8CE82] shrink-0">
-                        {stg.station}
-                      </span>
-                      <span className="font-medium text-[#EAECE9] truncate text-xs">
-                        {stg.shortName}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 font-mono">
-                      <span
-                        className={`text-[9px] px-1.5 py-0.2 rounded border uppercase ${tone.badgeBg}`}
-                      >
-                        {stg.statusBadge}
-                      </span>
-                      <span className={`text-xs font-bold tabular-nums ${tone.text}`}>
-                        {stg.scrubbedHealthPct}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Progress Track with Fleet Baseline Tick */}
-                  <div className="relative h-1.5 bg-[#141715] rounded-full overflow-visible">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${tone.barBg}`}
-                      style={{ width: `${stg.scrubbedHealthPct}%` }}
-                    />
-                    {/* Fleet Average Reference Tick */}
-                    <span
-                      title={`Fleet Baseline: ${stg.fleetAvgPct}%`}
-                      style={{ left: `${stg.fleetAvgPct}%` }}
-                      className="absolute -top-0.5 bottom-0 w-0.5 bg-[#EAECE9]/80"
-                    />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-[11px] font-mono text-[#949C96]">
-            <span>Lowest: HPC Mid Stg 3-4 (64%)</span>
-            <span className="text-[#B8CE82]">▏= Fleet Avg</span>
-          </div>
-        </section>
-      </div>
-
-      {/* =====================================================================
+{/* =====================================================================
           1. AXIAL GAS-PATH FLOW SCHEMATIC (TOP COMPONENT STRIP)
          ===================================================================== */}
       <section
@@ -2831,6 +2758,7 @@ export function StageDegradationMap({
         </div>
         </div>
       </section>
+      </div>
     </div>
   );
 }
