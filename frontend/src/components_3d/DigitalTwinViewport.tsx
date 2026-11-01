@@ -26,13 +26,16 @@ import {
   EngineTelemetry,
   StageId,
   TURBOFAN_STAGE_SPECS,
+  SensorFaultType,
+  SensorFaultCaseSpec,
+  SENSOR_FAULT_CASES,
 } from '../services/prognosticsEngine';
 import { buildTrent1000CutawayModel } from './Trent1000ProceduralModel';
 
 interface DigitalTwinViewportProps {
   engine: EngineTelemetry;
   onWaterWash: (engineId: string) => void;
-  onToggleSensorFault: (engineId: string) => void;
+  onToggleSensorFault: (engineId: string, faultType?: SensorFaultType) => void;
   onNavigateToDossier: () => void;
   onNavigateToDiagnostics?: () => void;
   actionBanner: string | null;
@@ -420,6 +423,8 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
   const [isSpinning, setIsSpinning] = useState<boolean>(true);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [hudCollapsed, setHudCollapsed] = useState<boolean>(false);
+  const [showFaultJudgeMatrix, setShowFaultJudgeMatrix] = useState<boolean>(false);
+  const sensorFaultBeaconRef = useRef<THREE.Group | null>(null);
 
   const stateRef = useRef({
     selectedStage: null as StageId | null,
@@ -541,29 +546,45 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     stateRef.current.cameraTransitionActive = true;
   };
 
-  // Automated Sensor Fault Camera Focus, Blinking Beacon & Cutaway
+  // Automated Sensor Fault Camera Focus, Dynamic Sensor Coordinates & Cutaway
   const prevFaultRef = useRef<boolean>(engine.sensorFaultActive);
   useEffect(() => {
-    if (engine.sensorFaultActive && !prevFaultRef.current) {
-      setSelectedStage('HPC');
-      setActiveBarKey('HPC');
-      setCowlingOpen(true);
-      setBlueprintXray(true);
-      setExplodedSlider(0.48);
-      const rotY = -Math.PI * 0.36;
-      // Close-up zoomed camera position right on the HPC compressor blisks and T30 thermocouple
-      const localCam = new THREE.Vector3(3.2, 1.8, 2.4);
-      localCam.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY);
-      const localTarget = new THREE.Vector3(0.0, 0.45, 0.2);
-      localTarget.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY);
-      stateRef.current.desiredCamPos.copy(localCam);
-      stateRef.current.desiredCamTarget.copy(localTarget);
-      stateRef.current.cameraTransitionActive = true;
-    } else if (!engine.sensorFaultActive && prevFaultRef.current) {
+    if (engine.sensorFaultActive) {
+      const faultKey = (engine.sensorFaultType && engine.sensorFaultType !== 'NONE')
+        ? engine.sensorFaultType
+        : 'T30_DRIFT';
+      const spec = SENSOR_FAULT_CASES[faultKey as Exclude<SensorFaultType, 'NONE'>];
+      if (spec) {
+        setSelectedStage(spec.targetStage);
+        setActiveBarKey(spec.targetStage);
+        setCowlingOpen(true);
+        setBlueprintXray(true);
+        setExplodedSlider(0.48);
+        setShowFaultJudgeMatrix(true);
+
+        if (sensorFaultBeaconRef.current) {
+          sensorFaultBeaconRef.current.position.set(...spec.beaconPos);
+          sensorFaultBeaconRef.current.visible = true;
+        }
+
+        const rotY = -Math.PI * 0.36;
+        const localCam = new THREE.Vector3(...spec.cameraPos);
+        localCam.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY);
+        const localTarget = new THREE.Vector3(...spec.cameraTarget);
+        localTarget.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY);
+        stateRef.current.desiredCamPos.copy(localCam);
+        stateRef.current.desiredCamTarget.copy(localTarget);
+        stateRef.current.cameraTransitionActive = true;
+      }
+    } else if (prevFaultRef.current) {
+      if (sensorFaultBeaconRef.current) {
+        sensorFaultBeaconRef.current.visible = false;
+      }
+      setShowFaultJudgeMatrix(false);
       handleResetCamera();
     }
     prevFaultRef.current = engine.sensorFaultActive;
-  }, [engine.sensorFaultActive]);
+  }, [engine.sensorFaultActive, engine.sensorFaultType]);
 
   // Diagnostics Mode 3D Adaptation: Expose Core Stages, Activate Blueprint & Thermal Shader
   useEffect(() => {
@@ -710,6 +731,7 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     sensorFaultBeacon.add(beaconRingMesh);
 
     sensorFaultBeacon.visible = Boolean(engine.sensorFaultActive);
+    sensorFaultBeaconRef.current = sensorFaultBeacon;
     assembly.rootGroup.add(sensorFaultBeacon);
 
     // OrbitControls
@@ -1194,6 +1216,81 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       };
     }
 
+    // Active Sensor Fault Trend Profiles
+    if (engine.sensorFaultActive) {
+      const faultKey = (engine.sensorFaultType && engine.sensorFaultType !== 'NONE')
+        ? engine.sensorFaultType
+        : 'T30_DRIFT';
+      if (faultKey === 'T30_DRIFT') {
+        return {
+          title: 'HPC T30 Thermocouple Drift Anomaly',
+          badge: '+35°R Sensor Bias',
+          badgeColor: '#D8B65E',
+          badgeBg: 'bg-[#D8B65E]/20 border border-[#D8B65E]/40',
+          yMax: '1650°R',
+          yMid: '1580°R',
+          yMin: '1500°R',
+          xLabels: ['c100', 'c115', 'c130', 'Drift ⚡', 'c142'],
+          pathD: 'M 40 76 C 70 75, 100 74, 130 72 L 132 28 C 160 26, 195 24, 236 22',
+          areaD: 'M 40 76 C 70 75, 100 74, 130 72 L 132 28 C 160 26, 195 24, 236 22 L 236 92 L 40 92 Z',
+          endPoint: { cx: 236, cy: 22 },
+          strokeColor: '#D8B65E',
+          gradientId: 'cycleTrendFillFaultDrift',
+        };
+      }
+      if (faultKey === 'P30_NOISE') {
+        return {
+          title: 'P30 Diffuser Noise / SNR Collapse',
+          badge: '±45 psia Jitter Noise',
+          badgeColor: '#D8B65E',
+          badgeBg: 'bg-[#D8B65E]/20 border border-[#D8B65E]/40',
+          yMax: '620 psia',
+          yMid: '550 psia',
+          yMin: '480 psia',
+          xLabels: ['c100', 'c115', 'Noise ⚡', 'c135', 'c142'],
+          pathD: 'M 40 50 L 90 50 L 110 52 L 125 18 L 135 84 L 145 22 L 155 78 L 165 26 L 180 72 L 195 30 L 215 65 L 236 34',
+          areaD: 'M 40 50 L 90 50 L 110 52 L 125 18 L 135 84 L 145 22 L 155 78 L 165 26 L 180 72 L 195 30 L 215 65 L 236 34 L 236 92 L 40 92 Z',
+          endPoint: { cx: 236, cy: 34 },
+          strokeColor: '#D8B65E',
+          gradientId: 'cycleTrendFillFaultNoise',
+        };
+      }
+      if (faultKey === 'T50_HARD_OVER') {
+        return {
+          title: 'LPT T50 EGT Open-Circuit Hard-Over',
+          badge: '1825°R Max Hardware Rail',
+          badgeColor: '#D97865',
+          badgeBg: 'bg-[#D97865]/20 border border-[#D97865]/40',
+          yMax: '1850°R Rail',
+          yMid: '1500°R',
+          yMin: '1200°R',
+          xLabels: ['c100', 'c115', 'c128', 'Severed ⚡', 'c142'],
+          pathD: 'M 40 64 C 70 63, 100 62, 134 60 L 136 14 L 236 14',
+          areaD: 'M 40 64 C 70 63, 100 62, 134 60 L 136 14 L 236 14 L 236 92 L 40 92 Z',
+          endPoint: { cx: 236, cy: 14 },
+          strokeColor: '#D97865',
+          gradientId: 'cycleTrendFillFaultHardOver',
+        };
+      }
+      if (faultKey === 'TACH_DROPOUT') {
+        return {
+          title: 'Core Tachometer Pulse Dropout',
+          badge: '-1616 RPM Dropout',
+          badgeColor: '#82A995',
+          badgeBg: 'bg-[#82A995]/20 border border-[#82A995]/40',
+          yMax: '9500 RPM',
+          yMid: '8500 RPM',
+          yMin: '7000 RPM',
+          xLabels: ['c100', 'c115', 'Drop ⚡', 'Synth ⚡', 'c142'],
+          pathD: 'M 40 32 L 105 32 L 115 84 L 125 32 L 140 86 L 150 34 L 170 82 L 180 34 L 236 34',
+          areaD: 'M 40 32 L 105 32 L 115 84 L 125 32 L 140 86 L 150 34 L 170 82 L 180 34 L 236 34 L 236 92 L 40 92 Z',
+          endPoint: { cx: 236, cy: 34 },
+          strokeColor: '#82A995',
+          gradientId: 'cycleTrendFillFaultTach',
+        };
+      }
+    }
+
     const rate = ((125 - rul) / Math.max(1, cyc) * 10).toFixed(1);
     return {
       title: 'Flight Cycle Degradation Trend',
@@ -1210,31 +1307,45 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       strokeColor: rul < 20 ? '#D97865' : '#B8CE82',
       gradientId: 'cycleTrendFillCMAPSS',
     };
-  }, [dataSource, engine.flightCycles, engine.conformalRul, engine.llpAccumulatedCycles, engine.llpLimitCycles, engine.waterWashApplied]);
+  }, [dataSource, engine.flightCycles, engine.conformalRul, engine.llpAccumulatedCycles, engine.llpLimitCycles, engine.waterWashApplied, engine.sensorFaultActive, engine.sensorFaultType]);
+
+  const activeFaultSpec = (engine.sensorFaultActive && engine.sensorFaultType && engine.sensorFaultType !== 'NONE')
+    ? SENSOR_FAULT_CASES[engine.sensorFaultType as Exclude<SensorFaultType, 'NONE'>]
+    : null;
+
+  const displayT30 = activeFaultSpec ? engine.t30 + activeFaultSpec.telemetryDeltas.t30Delta : engine.t30;
+  const displayP30 = activeFaultSpec ? engine.p30 + activeFaultSpec.telemetryDeltas.p30Delta : engine.p30;
+  const displayT50 = activeFaultSpec ? engine.t50 + activeFaultSpec.telemetryDeltas.t50Delta : engine.t50;
+  const displayHpcEff = activeFaultSpec
+    ? Math.max(50, engine.hpcEfficiencyPct + activeFaultSpec.telemetryDeltas.effHpcDelta)
+    : engine.hpcEfficiencyPct;
 
   const activeStageSpec = selectedStage ? TURBOFAN_STAGE_SPECS[selectedStage] : null;
   const stageCalloutMetrics = activeStageSpec ? activeStageSpec.getMetrics(engine) : null;
 
   // 16-bar HPC Efficiency progress segments matching reference image
   const totalEffSegments = 16;
-  const activeEffSegments = Math.round((engine.hpcEfficiencyPct / 100) * totalEffSegments);
+  const activeEffSegments = Math.round((displayHpcEff / 100) * totalEffSegments);
 
   // Horizontal temperature/pressure bars matching reference image
   const tempRows = [
     {
       label: 'T30',
-      value: `${Math.round(engine.t30).toLocaleString()} °R`,
-      pct: Math.max(25, Math.min(92, ((engine.t30 - 1500) / 140) * 100)),
+      value: `${Math.round(displayT30).toLocaleString()} °R`,
+      pct: Math.max(25, Math.min(92, ((displayT30 - 1500) / 140) * 100)),
+      isFaulted: activeFaultSpec?.id === 'T30_DRIFT',
     },
     {
       label: 'T50',
-      value: `${Math.round(engine.t50).toLocaleString()} °R`,
-      pct: Math.max(30, Math.min(95, ((engine.t50 - 1300) / 160) * 100)),
+      value: `${Math.round(displayT50).toLocaleString()} °R`,
+      pct: Math.max(30, Math.min(95, ((displayT50 - 1300) / 160) * 100)),
+      isFaulted: activeFaultSpec?.id === 'T50_HARD_OVER',
     },
     {
       label: 'P30',
-      value: `${engine.p30.toFixed(1)} psia`,
-      pct: Math.max(25, Math.min(88, ((engine.p30 - 480) / 100) * 100)),
+      value: `${displayP30.toFixed(1)} psia`,
+      pct: Math.max(25, Math.min(88, ((displayP30 - 480) / 100) * 100)),
+      isFaulted: activeFaultSpec?.id === 'P30_NOISE',
     },
   ];
 
@@ -1285,25 +1396,186 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         className="absolute inset-0 z-10 w-full h-full cursor-grab active:cursor-grabbing"
       />
 
-      {/* Floating Sensor Drift Fault Warning Banner */}
+      {/* Floating Sensor Fault Command & Case Switcher Bar */}
       {engine.sensorFaultActive && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto backdrop-blur-2xl bg-[#D97865]/95 border border-[#D97865] rounded-2xl px-5 py-2.5 shadow-[0_12px_40px_rgba(217,120,101,0.5)] flex items-center gap-3 text-[#181B19] animate-bounce">
-          <ShieldAlert className="w-5 h-5 shrink-0 text-[#181B19]" />
-          <div>
-            <div className="text-xs font-mono font-bold uppercase tracking-wider">
-              SENSOR DRIFT FAULT DETECTED: HPC T30 THERMOCOUPLE (+45°R BIAS)
-            </div>
-            <div className="text-[10px] font-mono opacity-90">
-              DO-178C SENSOR_FAULT_ABSTAIN · 3D Cutaway Focus Active · Inner Blades Exposed
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto backdrop-blur-2xl bg-[#181C1A]/95 border border-[#D97865]/80 rounded-2xl px-4 py-2.5 shadow-[0_16px_50px_rgba(0,0,0,0.65)] flex flex-wrap items-center justify-between gap-3 text-[#EAECE9] max-w-[94vw]">
+          <div className="flex items-center gap-2.5">
+            <span className="p-1.5 rounded-xl bg-[#D97865]/20 text-[#D97865] border border-[#D97865]/40 animate-pulse">
+              <ShieldAlert className="w-4 h-4 shrink-0" />
+            </span>
+            <div>
+              <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#D97865] flex items-center gap-1.5">
+                <span>{activeFaultSpec ? `${activeFaultSpec.caseLetter}: ${activeFaultSpec.shortTag}` : 'DO-178C SENSOR FAULT ACTIVE'}</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#D97865]/20 text-[#D97865] border border-[#D97865]/40">
+                  {activeFaultSpec?.targetStage || 'HPC'} STN
+                </span>
+              </div>
+              <div className="text-[10px] font-mono text-[#949C96]">
+                {activeFaultSpec?.sensorChannel} · {activeFaultSpec?.do178cVerdict}
+              </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => onToggleSensorFault(engine.id)}
-            className="ml-2 px-3 py-1 rounded-xl bg-[#181B19] text-[#EAECE9] hover:bg-black font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
-          >
-            Clear Fault
-          </button>
+
+          {/* 4 Fault Case Selector Pills */}
+          <div className="flex items-center gap-1 bg-[#141715] p-1 rounded-xl border border-white/10" role="group" aria-label="Sensor Fault Cases">
+            {(['T30_DRIFT', 'P30_NOISE', 'T50_HARD_OVER', 'TACH_DROPOUT'] as const).map((caseKey) => {
+              const spec = SENSOR_FAULT_CASES[caseKey];
+              const isSelected = (activeFaultSpec?.id || 'T30_DRIFT') === caseKey;
+              return (
+                <button
+                  key={caseKey}
+                  type="button"
+                  onClick={() => onToggleSensorFault(engine.id, caseKey)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-semibold transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#D97865] text-[#181B19] shadow-sm font-bold scale-102'
+                      : 'text-[#949C96] hover:text-[#EAECE9] hover:bg-white/5'
+                  }`}
+                  title={`${spec.caseLetter}: ${spec.title}`}
+                >
+                  {spec.caseLetter.replace('Case ', '')}: {spec.targetStage}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowFaultJudgeMatrix((v) => !v)}
+              className={`px-3 py-1.5 rounded-xl font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1.5 border transition-all ${
+                showFaultJudgeMatrix
+                  ? 'bg-[#B8CE82] text-[#181B19] border-[#B8CE82]'
+                  : 'bg-[#2E3330] hover:bg-[#383E3A] text-[#B8CE82] border-[#B8CE82]/40'
+              }`}
+            >
+              <span>{showFaultJudgeMatrix ? 'Hide Judge Matrix' : 'Judge Mapping Card ℹ️'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onToggleSensorFault(engine.id)}
+              className="px-3 py-1.5 rounded-xl bg-[#D97865]/20 hover:bg-[#D97865] text-[#D97865] hover:text-[#181B19] border border-[#D97865]/40 font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-colors"
+            >
+              Clear Fault
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* JUDGE MAPPING ARCHITECTURE CARD: Cross-Layer Functional Breakdown */}
+      {showFaultJudgeMatrix && activeFaultSpec && (
+        <div className="absolute top-36 left-1/2 -translate-x-1/2 z-30 pointer-events-auto backdrop-blur-2xl bg-[#1A1E1C]/96 border border-[#B8CE82]/40 rounded-[24px] p-5 shadow-[0_24px_70px_rgba(0,0,0,0.85)] max-w-4xl w-[94vw] text-[#EAECE9] space-y-3.5">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#B8CE82] animate-ping" />
+              <div>
+                <h3 className="text-xs sm:text-sm font-semibold tracking-wide text-[#EAECE9] flex flex-wrap items-center gap-2">
+                  <span>DO-178C / ARP4754A Sensor Fault Functional Architecture</span>
+                  <span className="px-2 py-0.5 rounded-full bg-[#D97865]/20 text-[#D97865] border border-[#D97865]/40 text-[10px] font-mono">
+                    {activeFaultSpec.caseLetter}: {activeFaultSpec.title}
+                  </span>
+                </h3>
+                <p className="text-[10px] font-mono text-[#949C96]">
+                  Cross-Layer Impact Mapping: Physical Anomaly → 3D Model Focus → Telemetry Drift → Conformal Epistemic Widening
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowFaultJudgeMatrix(false)}
+              className="text-[#949C96] hover:text-[#EAECE9] text-xs font-mono px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer"
+            >
+              ✕ Close
+            </button>
+          </div>
+
+          {/* 4 Architectural Impact Pillars */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 text-xs font-mono">
+            {/* Pillar 1: 3D Twin & Physical Location */}
+            <div className="bg-[#232825]/90 border border-white/10 rounded-2xl p-3 space-y-1.5">
+              <div className="text-[10px] font-bold text-[#B8CE82] uppercase tracking-wider flex items-center gap-1.5">
+                <span>🎯 1. 3D Twin & Station</span>
+              </div>
+              <div className="space-y-1">
+                <div className="text-[#EAECE9] font-bold text-xs">{activeFaultSpec.targetStage} Module</div>
+                <div className="text-[9px] text-[#949C96]">{activeFaultSpec.sensorChannel}</div>
+                <div className="text-[9px] text-[#DCE0D9] bg-[#181B19] p-2 rounded-xl border border-white/5">
+                  Beacon: [Z={activeFaultSpec.beaconPos[2].toFixed(1)}] · Auto-zoomed camera & inner blades exposed via transparent cutaway.
+                </div>
+              </div>
+              <p className="text-[9px] text-[#949C96] leading-relaxed">
+                {activeFaultSpec.physicalMechanism}
+              </p>
+            </div>
+
+            {/* Pillar 2: Numbers & Telemetry Shift */}
+            <div className="bg-[#232825]/90 border border-white/10 rounded-2xl p-3 space-y-1.5">
+              <div className="text-[10px] font-bold text-[#D8B65E] uppercase tracking-wider flex items-center gap-1.5">
+                <span>📊 2. Telemetry Shift</span>
+              </div>
+              <div className="space-y-1">
+                {activeFaultSpec.telemetryDeltas.t30Delta !== 0 && (
+                  <div className="bg-[#181B19] p-1.5 rounded-lg border border-white/5 flex justify-between text-[10px]">
+                    <span className="text-[#949C96]">T30 Temp:</span>
+                    <span className="text-[#D8B65E] font-bold">1600°R → {displayT30.toFixed(0)}°R (+{activeFaultSpec.telemetryDeltas.t30Delta}°R)</span>
+                  </div>
+                )}
+                {activeFaultSpec.telemetryDeltas.p30Delta !== 0 && (
+                  <div className="bg-[#181B19] p-1.5 rounded-lg border border-white/5 flex justify-between text-[10px]">
+                    <span className="text-[#949C96]">P30 Press:</span>
+                    <span className="text-[#D8B65E] font-bold">552 → {displayP30.toFixed(0)} psia (+{activeFaultSpec.telemetryDeltas.p30Delta}p)</span>
+                  </div>
+                )}
+                {activeFaultSpec.telemetryDeltas.t50Delta !== 0 && (
+                  <div className="bg-[#181B19] p-1.5 rounded-lg border border-white/5 flex justify-between text-[10px]">
+                    <span className="text-[#949C96]">T50 EGT:</span>
+                    <span className="text-[#D97865] font-bold">1427°R → {displayT50.toFixed(0)}°R (+{activeFaultSpec.telemetryDeltas.t50Delta}°R)</span>
+                  </div>
+                )}
+                {activeFaultSpec.telemetryDeltas.ncRpmDelta !== 0 && (
+                  <div className="bg-[#181B19] p-1.5 rounded-lg border border-white/5 flex justify-between text-[10px]">
+                    <span className="text-[#949C96]">Core Speed:</span>
+                    <span className="text-[#82A995] font-bold">9036 → 7420 RPM ({activeFaultSpec.telemetryDeltas.ncRpmDelta} RPM)</span>
+                  </div>
+                )}
+                <div className="bg-[#181B19] p-1.5 rounded-lg border border-white/5 flex justify-between text-[10px]">
+                  <span className="text-[#949C96]">HPC η:</span>
+                  <span className="text-[#EAECE9] font-bold">{engine.hpcEfficiencyPct.toFixed(1)}% → {displayHpcEff.toFixed(1)}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Pillar 3: Graph & Epistemic Uncertainty */}
+            <div className="bg-[#232825]/90 border border-white/10 rounded-2xl p-3 space-y-1.5">
+              <div className="text-[10px] font-bold text-[#82A995] uppercase tracking-wider flex items-center gap-1.5">
+                <span>📈 3. Graph Reaction</span>
+              </div>
+              <div className="bg-[#181B19] p-2 rounded-xl border border-white/5 space-y-1">
+                <div className="text-[9px] text-[#B8CE82] font-semibold">Conformal Interval:</div>
+                <div className="text-[10px] font-bold text-[#D97865]">[0.0, 125.0] cycles</div>
+                <div className="text-[8px] text-[#949C96]">(Widened to 100% epistemic void)</div>
+              </div>
+              <p className="text-[9px] text-[#949C96] leading-relaxed">
+                {activeFaultSpec.graphDescription}
+              </p>
+            </div>
+
+            {/* Pillar 4: DO-178C Safety Guarantee */}
+            <div className="bg-[#232825]/90 border border-white/10 rounded-2xl p-3 space-y-1.5">
+              <div className="text-[10px] font-bold text-[#D97865] uppercase tracking-wider flex items-center gap-1.5">
+                <span>🛡️ 4. Airworthiness Action</span>
+              </div>
+              <div className="space-y-1">
+                <div className="px-2 py-0.5 rounded-lg bg-[#D97865]/20 text-[#D97865] border border-[#D97865]/40 text-[9px] font-bold">
+                  {activeFaultSpec.airworthinessStatus}
+                </div>
+                <div className="text-[9px] text-[#949C96]">Std: {activeFaultSpec.aviationStandard}</div>
+              </div>
+              <p className="text-[9px] text-[#949C96] leading-relaxed">
+                Why this matters: Standard AI hallucinates false RUL on sensor corruptions. VISION halts automatic dispatch under DO-178C Level A.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1858,18 +2130,30 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
                 <span>{engine.waterWashApplied ? 'Washed (+32c)' : 'Perform Water Wash'}</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => onToggleSensorFault(engine.id)}
-                className={`py-1.5 px-2.5 rounded-xl text-[10px] font-mono uppercase tracking-wider font-semibold flex items-center justify-center gap-1 border transition-all cursor-pointer ${
-                  engine.sensorFaultActive
-                    ? 'bg-[#D97865] text-[#181B19] border-[#D97865]'
-                    : 'bg-[#2E3330] hover:bg-[#383E3A] text-[#949C96] hover:text-[#EAECE9] border border-white/10'
-                }`}
-              >
-                <ShieldAlert className="w-3 h-3 shrink-0" />
-                <span>{engine.sensorFaultActive ? 'Clear Fault' : 'Simulate Sensor Fault'}</span>
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => onToggleSensorFault(engine.id)}
+                  className={`py-1.5 px-2.5 rounded-xl text-[10px] font-mono uppercase tracking-wider font-semibold flex items-center justify-center gap-1 border transition-all cursor-pointer ${
+                    engine.sensorFaultActive
+                      ? 'bg-[#D97865] text-[#181B19] border-[#D97865]'
+                      : 'bg-[#2E3330] hover:bg-[#383E3A] text-[#949C96] hover:text-[#EAECE9] border border-white/10'
+                  }`}
+                >
+                  <ShieldAlert className="w-3 h-3 shrink-0" />
+                  <span>{engine.sensorFaultActive ? 'Clear Fault' : 'Simulate Sensor Fault'}</span>
+                </button>
+                {engine.sensorFaultActive && (
+                  <button
+                    type="button"
+                    onClick={() => setShowFaultJudgeMatrix((v) => !v)}
+                    className="py-1.5 px-2 rounded-xl text-[10px] font-mono uppercase tracking-wider font-semibold bg-[#1E2220] hover:bg-[#282D2A] text-[#B8CE82] border border-[#B8CE82]/40 transition-colors cursor-pointer"
+                    title="Toggle Judge Architecture Mapping Card"
+                  >
+                    Judge Matrix ℹ️
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

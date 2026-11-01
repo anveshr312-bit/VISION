@@ -88,6 +88,137 @@ export interface TrajectoryPoint {
   t30Temp: number;
 }
 
+export type SensorFaultType = 'NONE' | 'T30_DRIFT' | 'P30_NOISE' | 'T50_HARD_OVER' | 'TACH_DROPOUT';
+
+export interface SensorFaultCaseSpec {
+  id: SensorFaultType;
+  caseLetter: string;
+  title: string;
+  shortTag: string;
+  sensorChannel: string;
+  targetStage: StageId;
+  beaconPos: [number, number, number];
+  cameraTarget: [number, number, number];
+  cameraPos: [number, number, number];
+  physicalMechanism: string;
+  telemetryDeltas: {
+    t30Delta: number;
+    p30Delta: number;
+    t50Delta: number;
+    ncRpmDelta: number;
+    effHpcDelta: number;
+    lower90: number;
+    upper90: number;
+  };
+  aviationStandard: string;
+  do178cVerdict: string;
+  airworthinessStatus: 'APPROVED' | 'INHIBITED' | 'GROUNDED_AOG' | 'CONDITIONAL_DISPATCH';
+  graphDescription: string;
+}
+
+export const SENSOR_FAULT_CASES: Record<Exclude<SensorFaultType, 'NONE'>, SensorFaultCaseSpec> = {
+  T30_DRIFT: {
+    id: 'T30_DRIFT',
+    caseLetter: 'Case A',
+    title: 'HPC Outlet Temp (T30) Slow Calibration Drift',
+    shortTag: 'T30 Drift (+35°R)',
+    sensorChannel: 'Sensor s3 (HPC Outlet Temp T30)',
+    targetStage: 'HPC',
+    beaconPos: [0, 1.35, 0.2],
+    cameraTarget: [0.0, 0.45, 0.2],
+    cameraPos: [3.2, 1.8, 2.4],
+    physicalMechanism: 'Thermocouple junction drift caused by metallurgical aging creates a +35.0°R false thermal bias.',
+    telemetryDeltas: {
+      t30Delta: 35.0,
+      p30Delta: 0.0,
+      t50Delta: 0.0,
+      ncRpmDelta: 0.0,
+      effHpcDelta: -4.8,
+      lower90: 0.0,
+      upper90: 125.0,
+    },
+    aviationStandard: 'EASA CS-E 50 / FAA AC 33.28-3 (Thermocouple Disparity)',
+    do178cVerdict: 'DO-178C SENSOR_FAULT_ABSTAIN · T30_BIAS_DETECTED',
+    airworthinessStatus: 'INHIBITED',
+    graphDescription: 'Smooth baseline trajectory shifts abruptly upward; conformal uncertainty bounds widen to [0, 125]c.',
+  },
+  P30_NOISE: {
+    id: 'P30_NOISE',
+    caseLetter: 'Case B',
+    title: 'HPC Diffuser Pressure (P30) High-Frequency Harness Jitter',
+    shortTag: 'P30 Jitter (±45 psia)',
+    sensorChannel: 'Sensor s7 (HPC Diffuser Pressure P30)',
+    targetStage: 'COMBUSTOR',
+    beaconPos: [0.75, 0.95, -0.8],
+    cameraTarget: [0.2, 0.3, -0.8],
+    cameraPos: [2.8, 1.6, 1.4],
+    physicalMechanism: 'Acoustic vibration degrades sensor wiring shield, producing erratic ±45 psia voltage spikes.',
+    telemetryDeltas: {
+      t30Delta: 0.0,
+      p30Delta: 44.5,
+      t50Delta: 0.0,
+      ncRpmDelta: 0.0,
+      effHpcDelta: -2.1,
+      lower90: 0.0,
+      upper90: 125.0,
+    },
+    aviationStandard: 'RTCA DO-160G Section 20 / FAA Advisory Circular 20-153B',
+    do178cVerdict: 'DO-178C SENSOR_FAULT_ABSTAIN · P30_SNR_COLLAPSE',
+    airworthinessStatus: 'INHIBITED',
+    graphDescription: 'High-frequency oscillation in sensor signal; SNR collapse triggers non-conformal epistemic abstention.',
+  },
+  T50_HARD_OVER: {
+    id: 'T50_HARD_OVER',
+    caseLetter: 'Case C',
+    title: 'LPT Exhaust Gas Temp (T50) Open-Circuit Hard-Over',
+    shortTag: 'T50 Hard-Over (1825°R)',
+    sensorChannel: 'Sensor s4 (LPT / EGT Exhaust Thermocouple Rake)',
+    targetStage: 'LPT',
+    beaconPos: [0, 1.15, -4.4],
+    cameraTarget: [0.0, 0.2, -4.4],
+    cameraPos: [3.0, 1.6, -2.6],
+    physicalMechanism: 'Severed thermocouple wire creates an open-circuit, pinning the signal to the maximum hardware rail (1825°R).',
+    telemetryDeltas: {
+      t30Delta: 0.0,
+      p30Delta: 0.0,
+      t50Delta: 397.5,
+      ncRpmDelta: 0.0,
+      effHpcDelta: 0.0,
+      lower90: 0.0,
+      upper90: 125.0,
+    },
+    aviationStandard: 'FAA 14 CFR § 25.1309 / ARP4754A Catastrophic Hazard Mitigation',
+    do178cVerdict: 'DO-178C CRITICAL_ABSTAIN · HARD_OVER_FAILSAFE',
+    airworthinessStatus: 'GROUNDED_AOG',
+    graphDescription: 'Sudden vertical step saturating the chart ceiling; Conformal bounds expand to 100% epistemic void [0, 125]c.',
+  },
+  TACH_DROPOUT: {
+    id: 'TACH_DROPOUT',
+    caseLetter: 'Case D',
+    title: 'Core Spool Tachometer Magnetic Pickup Pulse Dropout',
+    shortTag: 'Tach Dropout (-1616 RPM)',
+    sensorChannel: 'Sensors s8/s9 (N2/N3 Core Spool Magnetic Tachometer)',
+    targetStage: 'IPT',
+    beaconPos: [-0.85, -0.85, -1.8],
+    cameraTarget: [0.0, -0.3, -2.0],
+    cameraPos: [-2.8, 1.4, 0.2],
+    physicalMechanism: 'Debris contamination on magnetic pulse wheel causes sporadic missing pulses, indicating false core decel to 7420 RPM.',
+    telemetryDeltas: {
+      t30Delta: 0.0,
+      p30Delta: 0.0,
+      t50Delta: 0.0,
+      ncRpmDelta: -1616.0,
+      effHpcDelta: 0.0,
+      lower90: 0.0,
+      upper90: 125.0,
+    },
+    aviationStandard: 'DO-178C Level A Analytical Redundancy Failover',
+    do178cVerdict: 'DO-178C SYNTHETIC_ESTIMATOR_REDUNDANCY_FAILOVER',
+    airworthinessStatus: 'CONDITIONAL_DISPATCH',
+    graphDescription: 'Notched dropouts in RPM signal bridged by synthetic aerodynamic estimator f(P30/P2), allowing conditional dispatch.',
+  },
+};
+
 export interface EngineTelemetry {
   id: string; // e.g., ESN-787-034
   tailId: string; // e.g., N787-17
@@ -114,6 +245,7 @@ export interface EngineTelemetry {
   vibrationIps: number; // ips peak
   waterWashApplied: boolean;
   sensorFaultActive: boolean;
+  sensorFaultType?: SensorFaultType;
   soapOilPpm: SoapOilReading;
   borescopeFindings: BorescopeFinding[];
   trajectory: TrajectoryPoint[];
@@ -739,22 +871,48 @@ export function applyCompressorWaterWash(engine: EngineTelemetry): EngineTelemet
  */
 export function toggleSensorFaultAbstain(
   engine: EngineTelemetry,
-  forceState?: boolean
+  forceState?: boolean,
+  faultType?: SensorFaultType
 ): EngineTelemetry {
   const nextFaultState = forceState !== undefined ? forceState : !engine.sensorFaultActive;
-  const conformalLower90 = nextFaultState ? 0 : Number(Math.max(1.2, engine.conformalRul - 3.8).toFixed(1));
-  const conformalUpper90 = nextFaultState ? 125 : Number((engine.conformalRul + 4.2).toFixed(1));
+  const activeType: SensorFaultType = nextFaultState
+    ? (faultType || (engine.sensorFaultType && engine.sensorFaultType !== 'NONE' ? engine.sensorFaultType : 'T30_DRIFT'))
+    : 'NONE';
+
+  if (!nextFaultState || activeType === 'NONE') {
+    const conformalLower90 = Number(Math.max(1.2, engine.conformalRul - 3.8).toFixed(1));
+    const conformalUpper90 = Number((engine.conformalRul + 4.2).toFixed(1));
+    return {
+      ...engine,
+      sensorFaultActive: false,
+      sensorFaultType: 'NONE',
+      conformalLower90,
+      conformalUpper90,
+      trajectory: buildEngineTrajectory(
+        engine.flightCycles,
+        engine.conformalRul,
+        engine.t30,
+        false
+      ),
+    };
+  }
+
+  const caseSpec = SENSOR_FAULT_CASES[activeType as Exclude<SensorFaultType, 'NONE'>];
+  const deltas = caseSpec ? caseSpec.telemetryDeltas : {
+    t30Delta: 0, p30Delta: 0, t50Delta: 0, ncRpmDelta: 0, effHpcDelta: 0, lower90: 0, upper90: 125
+  };
 
   return {
     ...engine,
-    sensorFaultActive: nextFaultState,
-    conformalLower90,
-    conformalUpper90,
+    sensorFaultActive: true,
+    sensorFaultType: activeType,
+    conformalLower90: deltas.lower90,
+    conformalUpper90: deltas.upper90,
     trajectory: buildEngineTrajectory(
       engine.flightCycles,
       engine.conformalRul,
       engine.t30,
-      nextFaultState
+      true
     ),
   };
 }

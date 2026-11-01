@@ -22,6 +22,8 @@ import {
   toggleSensorFaultAbstain,
   hydrateFleetWithBackend,
   buildEngineTrajectory,
+  SensorFaultType,
+  SENSOR_FAULT_CASES,
 } from './services/prognosticsEngine';
 
 const WATER_WASH_STORAGE_KEY = 'vision_water_washed_units';
@@ -391,16 +393,33 @@ export default function App() {
     api.performWaterWash(unitNum, 'FD001').catch(() => {});
   };
 
-  const handleToggleSensorFault = () => {
-    const nextFault = !activeEngine.sensorFaultActive;
+  const handleToggleSensorFault = (_engineId?: string, faultType?: SensorFaultType) => {
+    const isCurrentlyFaulted = activeEngine.sensorFaultActive;
+    let nextFault = !isCurrentlyFaulted;
+    let targetType: SensorFaultType = faultType || (nextFault ? 'T30_DRIFT' : 'NONE');
+
+    if (faultType) {
+      if (isCurrentlyFaulted && activeEngine.sensorFaultType === faultType) {
+        nextFault = false;
+        targetType = 'NONE';
+      } else {
+        nextFault = true;
+        targetType = faultType;
+      }
+    } else {
+      targetType = nextFault ? 'T30_DRIFT' : 'NONE';
+    }
+
     setFleet((prev) =>
       prev.map((eng) =>
-        eng.id === activeEngine.id ? toggleSensorFaultAbstain(eng, nextFault) : eng
+        eng.id === activeEngine.id ? toggleSensorFaultAbstain(eng, nextFault, targetType) : eng
       )
     );
+
+    const spec = nextFault && targetType !== 'NONE' ? SENSOR_FAULT_CASES[targetType as Exclude<SensorFaultType, 'NONE'>] : null;
     setActionBanner(
-      nextFault
-        ? `${activeEngine.id}: DO-178C SENSOR_FAULT_ABSTAIN triggered — Conformal interval widened to 100% [0, 125]c`
+      spec
+        ? `${activeEngine.id}: ${spec.caseLetter} (${spec.shortTag}) Triggered — ${spec.do178cVerdict} — Conformal Interval widened to 100% [0, 125]c`
         : `${activeEngine.id}: Sensor fault cleared — Nominal Conformal RUL telemetry restored`
     );
   };
