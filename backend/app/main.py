@@ -35,6 +35,7 @@ from backend.app.api.routes_fleet import router as fleet_router
 from backend.app.api.routes_predict import router as predict_router
 from backend.app.api.routes_stream import router as stream_router
 from backend.app.api.routes_data_sources import router as data_sources_router
+from backend.app.api.routes_benchmarks import router as benchmarks_router
 from backend.app.config import settings
 from backend.app.logging_config import configure_logging, logger
 from backend.app.services.inference_service import inference_service
@@ -115,6 +116,7 @@ app.include_router(predict_router, prefix="/api")
 app.include_router(decision_router, prefix="/api")
 app.include_router(stream_router, prefix="/api")
 app.include_router(data_sources_router, prefix="/api")
+app.include_router(benchmarks_router)
 
 
 @app.get("/api/health", tags=["System"])

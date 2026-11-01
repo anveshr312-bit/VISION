@@ -13,6 +13,8 @@ import {
   Upload,
 } from 'lucide-react';
 import { UploadDatasetModal } from './components/UploadDatasetModal';
+import { EmpiricalBenchmarkModal } from './components/EmpiricalBenchmarkModal';
+import { Award } from 'lucide-react';
 import { api } from './services/api.js';
 import { TelemetryStreamClient } from './services/streamClient.js';
 import {
@@ -198,6 +200,7 @@ export default function App() {
   const [activeDataSource, setActiveDataSource] = useState<AviationDataSource>('NASA_CMAPSS_BENCHMARK');
   const [missionPhaseInfo, setMissionPhaseInfo] = useState<string | null>(null);
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const [showBenchmarkModal, setShowBenchmarkModal] = useState<boolean>(false);
   const [diagnosticsScrubbedCycle, setDiagnosticsScrubbedCycle] = useState<number>(142);
 
   const handleDatasetIngested = (datasetName: string, customEngine?: Partial<EngineTelemetry>) => {
@@ -655,6 +658,19 @@ export default function App() {
             </div>
           )}
 
+          {/* Empirical Proofs & Benchmarks Inspector Modal Trigger */}
+          <button
+            type="button"
+            onClick={() => setShowBenchmarkModal(true)}
+            title="Inspect Certified Empirical Proofs, E0-E7 Ablation Matrix & 19-Check Physics Suite"
+            aria-label="Empirical Proofs and Benchmarks"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-medium transition-all cursor-pointer border bg-[#B8CE82]/15 text-[#B8CE82] border-[#B8CE82]/40 hover:bg-[#B8CE82]/25 shadow-sm"
+          >
+            <Award className="w-3.5 h-3.5 text-[#B8CE82]" />
+            <span className="hidden lg:inline font-semibold">Empirical Proofs</span>
+            <span className="px-1.5 py-0.2 rounded bg-[#B8CE82]/20 text-[9px] font-bold">19/19</span>
+          </button>
+
           {/* SSE Live Telemetry Stream Toggle (Gap 5) */}
           <button
             type="button"
@@ -767,6 +783,12 @@ export default function App() {
           onDatasetIngested={handleDatasetIngested}
         />
       )}
+
+      {/* EMPIRICAL PROOFS & SCIENTIFIC BENCHMARKS MODAL */}
+      <EmpiricalBenchmarkModal
+        isOpen={showBenchmarkModal}
+        onClose={() => setShowBenchmarkModal(false)}
+      />
 
       {/* AIRCRAFT AND CHIEF ENGINEER PROFILE DOSSIER MODAL */}
       {showProfileModal && (
