@@ -123,8 +123,8 @@ test('TelemetryStreamClient initializes correctly and handles configuration chan
   assert.deepEqual(client.units, [10, 20]);
 });
 
-test('TURBOFAN_STAGE_SPECS contains all 6 engine modules with complete 3D & metric contracts', () => {
-  const stages = ['FAN', 'LPC', 'HPC', 'COMBUSTOR', 'HPT', 'LPT'] as const;
+test('TURBOFAN_STAGE_SPECS contains all 7 engine modules with complete 3D & metric contracts', () => {
+  const stages = ['FAN', 'LPC', 'HPC', 'COMBUSTOR', 'HPT', 'IPT', 'LPT'] as const;
   const dummyEng = generateInitialFleet()[33];
 
   for (const st of stages) {

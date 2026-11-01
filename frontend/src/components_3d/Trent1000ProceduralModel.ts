@@ -442,7 +442,23 @@ export function buildTrent1000CutawayModel(renderer: THREE.WebGLRenderer): Trent
     0.94
   );
 
-  // 6. LPT: Exhaust Plume Amber-Crimson driven by T50 (thermalIntensity = 0.62)
+  // 6. IPT: Intermediate-Pressure Turbine driven by T50 & N2 spool (thermalIntensity = 0.78)
+  const iptMat = registerMat(
+    'IPT',
+    false,
+    {
+      color: new THREE.Color('#fb923c'),
+      metalness: 0.68,
+      roughness: 0.22,
+      emissive: new THREE.Color('#d97706'),
+      emissiveIntensity: 0.35,
+    },
+    '#f97316',
+    '#ea580c',
+    0.78
+  );
+
+  // 7. LPT: Exhaust Plume Amber-Crimson driven by T50 (thermalIntensity = 0.62)
   const lptMat = registerMat(
     'LPT',
     false,
@@ -500,6 +516,7 @@ export function buildTrent1000CutawayModel(renderer: THREE.WebGLRenderer): Trent
     HPC: hpcMat,
     COMBUSTOR: combustorMat,
     HPT: hptMat,
+    IPT: iptMat,
     LPT: lptMat,
   };
 
@@ -524,6 +541,7 @@ export function buildTrent1000CutawayModel(renderer: THREE.WebGLRenderer): Trent
     HPC: new THREE.Group(),
     COMBUSTOR: new THREE.Group(),
     HPT: new THREE.Group(),
+    IPT: new THREE.Group(),
     LPT: new THREE.Group(),
   };
 
@@ -533,6 +551,7 @@ export function buildTrent1000CutawayModel(renderer: THREE.WebGLRenderer): Trent
     HPC: new THREE.Object3D(),
     COMBUSTOR: new THREE.Object3D(),
     HPT: new THREE.Object3D(),
+    IPT: new THREE.Object3D(),
     LPT: new THREE.Object3D(),
   };
 
@@ -744,7 +763,42 @@ export function buildTrent1000CutawayModel(renderer: THREE.WebGLRenderer): Trent
     );
   }
 
-  // 6. STAGE: LPT (Z = -4.2)
+  // 6. STAGE: IPT (Z = -3.4) - Rolls-Royce Trent 1000 Single-Stage IP Turbine (drives IPC on N2 spool)
+  {
+    const iptGroup = stageGroups.IPT;
+    const iptRotor = new THREE.Group();
+
+    const iptHubGeom = new THREE.CylinderGeometry(0.70, 0.68, 0.45, 32);
+    geometriesToDispose.push(iptHubGeom);
+    iptHubGeom.rotateX(Math.PI / 2);
+    iptRotor.add(new THREE.Mesh(iptHubGeom, iptMat));
+
+    // Single-stage high-efficiency IP turbine blisk (34 aerofoil blades)
+    const iptBladeRing = createRotorBladeRing(34, 0.70, 1.40, 0.16, -0.38, iptMat);
+    geometriesToDispose.push(iptBladeRing.geometry);
+    iptBladeRing.position.z = 0.0;
+    iptRotor.add(iptBladeRing);
+
+    spools.n2.push(iptRotor); // IPT is keyed to N2 spool!
+    iptGroup.add(iptRotor);
+
+    const iptShroudGeom = new THREE.CylinderGeometry(1.40, 1.46, 0.65, 36, 1, true, Math.PI * 0.38, Math.PI * 1.25);
+    geometriesToDispose.push(iptShroudGeom);
+    iptShroudGeom.rotateX(Math.PI / 2);
+    const iptShroudMat = createStageShroudMat('IPT', '#f97316', 0.78);
+    const iptShroudMesh = new THREE.Mesh(iptShroudGeom, iptShroudMat);
+    iptGroup.add(iptShroudMesh);
+    attachBlueprintEdges(iptShroudMesh, iptShroudGeom, 'IPT', true, '#f97316', 12);
+    attachBlueprintCustomLines(
+      iptGroup,
+      createBlueprintRingGeometry(0.70, 1.44, 0.0, 16),
+      'IPT',
+      false,
+      '#f97316'
+    );
+  }
+
+  // 7. STAGE: LPT (Z = -4.4)
   {
     const lptGroup = stageGroups.LPT;
     const lptRotor = new THREE.Group();
@@ -839,7 +893,7 @@ export function buildTrent1000CutawayModel(renderer: THREE.WebGLRenderer): Trent
   materialsToDispose.push(proxyMat);
 
   (Object.keys(TURBOFAN_STAGE_SPECS) as StageId[]).forEach((stageId) => {
-    const radius = stageId === 'FAN' ? 2.3 : stageId === 'LPC' || stageId === 'LPT' ? 1.65 : 1.38;
+    const radius = stageId === 'FAN' ? 2.3 : stageId === 'LPC' || stageId === 'LPT' || stageId === 'IPT' ? 1.65 : 1.38;
     const length = stageId === 'FAN' ? 1.4 : 1.55;
     const proxyGeom = new THREE.CylinderGeometry(radius, radius, length, 16);
     geometriesToDispose.push(proxyGeom);

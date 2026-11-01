@@ -1,4 +1,4 @@
-export type StageId = 'FAN' | 'LPC' | 'HPC' | 'COMBUSTOR' | 'HPT' | 'LPT';
+export type StageId = 'FAN' | 'LPC' | 'HPC' | 'COMBUSTOR' | 'HPT' | 'IPT' | 'LPT';
 
 export type UrgencyLevel =
   | 'CRITICAL OVERHAUL'
@@ -169,6 +169,7 @@ export const TURBOFAN_STAGE_SPECS: Record<StageId, StageCalloutSpec> = {
       HPC: 0,
       COMBUSTOR: 0,
       HPT: 0,
+      IPT: -0.15,
       LPT: -0.3,
     },
     getMetrics: (eng) => ({
@@ -196,6 +197,7 @@ export const TURBOFAN_STAGE_SPECS: Record<StageId, StageCalloutSpec> = {
       HPC: -0.25,
       COMBUSTOR: -0.4,
       HPT: -0.5,
+      IPT: -0.55,
       LPT: -0.6,
     },
     getMetrics: (eng) => ({
@@ -223,6 +225,7 @@ export const TURBOFAN_STAGE_SPECS: Record<StageId, StageCalloutSpec> = {
       HPC: 0.0,
       COMBUSTOR: -0.85,
       HPT: -1.3,
+      IPT: -1.5,
       LPT: -1.7,
     },
     getMetrics: (eng) => ({
@@ -252,6 +255,7 @@ export const TURBOFAN_STAGE_SPECS: Record<StageId, StageCalloutSpec> = {
       HPC: 0.6,
       COMBUSTOR: 0.0,
       HPT: -0.95,
+      IPT: -1.25,
       LPT: -1.6,
     },
     getMetrics: (eng) => ({
@@ -279,6 +283,7 @@ export const TURBOFAN_STAGE_SPECS: Record<StageId, StageCalloutSpec> = {
       HPC: 0.7,
       COMBUSTOR: 0.4,
       HPT: -0.2,
+      IPT: -0.8,
       LPT: -1.45,
     },
     getMetrics: (eng) => ({
@@ -290,22 +295,51 @@ export const TURBOFAN_STAGE_SPECS: Record<StageId, StageCalloutSpec> = {
       actionType: 'DOSSIER',
     }),
   },
+  IPT: {
+    id: 'IPT',
+    shortName: 'IPT Stage',
+    fullName: 'SINGLE-STAGE INTERMEDIATE-PRESSURE TURBINE (IPT)',
+    headerBadge: 'NOMINAL · IP TURBINE (N2 SPOOL DRIVER)',
+    severity: 'NOMINAL',
+    axialZ: -3.4,
+    radialY: 1.32,
+    cameraPos: [4.6, 1.9, -3.1],
+    cameraTarget: [0, 0.1, -3.4],
+    explodeMultipliers: {
+      FAN: 1.5,
+      LPC: 1.0,
+      HPC: 0.6,
+      COMBUSTOR: 0.3,
+      HPT: 0.1,
+      IPT: -0.5,
+      LPT: -1.2,
+    },
+    getMetrics: (eng) => ({
+      primaryReadout: `N2 Core Spool: ${eng.n2RpmPct.toFixed(1)}% (7,580 RPM)`,
+      secondaryReadout: `T48 Gas Temp: ${(eng.t50 + 118.0).toFixed(1)}°R · Expansion Ratio: 2.4 : 1`,
+      efficiencyOrMargin: `η_IPT: 90.2% · Cooling Margin: +24.5°R`,
+      borescopeLog: `Single-stage unshrouded IP turbine rotor blisk inspected. No trailing-edge micro-fissures or leading-edge thermal spallation.`,
+      actionLabel: 'Inspect Physical Dossier',
+      actionType: 'DOSSIER',
+    }),
+  },
   LPT: {
     id: 'LPT',
     shortName: 'LPT Stage',
     fullName: '6-STAGE LOW-PRESSURE TURBINE & EXHAUST CONE',
     headerBadge: 'NOMINAL · 6-STAGE LP TURBINE',
     severity: 'NOMINAL',
-    axialZ: -4.2,
+    axialZ: -4.4,
     radialY: 1.4,
-    cameraPos: [4.9, 1.95, -3.8],
-    cameraTarget: [0, 0.1, -4.1],
+    cameraPos: [4.9, 1.95, -4.0],
+    cameraTarget: [0, 0.1, -4.4],
     explodeMultipliers: {
       FAN: 1.4,
       LPC: 0.9,
       HPC: 0.5,
       COMBUSTOR: 0.2,
-      HPT: -0.3,
+      HPT: 0.0,
+      IPT: 0.2,
       LPT: -1.1,
     },
     getMetrics: (eng) => ({

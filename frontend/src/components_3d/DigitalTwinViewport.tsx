@@ -41,7 +41,7 @@ interface DigitalTwinViewportProps {
   scrubbedCycle?: number;
 }
 
-const STAGE_ORDER: StageId[] = ['FAN', 'LPC', 'HPC', 'COMBUSTOR', 'HPT', 'LPT'];
+const STAGE_ORDER: StageId[] = ['FAN', 'LPC', 'HPC', 'COMBUSTOR', 'HPT', 'IPT', 'LPT'];
 
 // 7-station bar matching the reference image: FAN | IPC | HPC | COMB | HPT | IPT | LPT
 const REFERENCE_STAGE_BAR: Array<{
@@ -54,9 +54,124 @@ const REFERENCE_STAGE_BAR: Array<{
   { key: 'HPC', label: 'HPC', stageId: 'HPC' },
   { key: 'COMB', label: 'COMB', stageId: 'COMBUSTOR' },
   { key: 'HPT', label: 'HPT', stageId: 'HPT' },
-  { key: 'IPT', label: 'IPT', stageId: 'LPT' },
+  { key: 'IPT', label: 'IPT', stageId: 'IPT' },
   { key: 'LPT', label: 'LPT', stageId: 'LPT' },
 ];
+
+export interface StageThermalMetric {
+  station: string;
+  shortName: string;
+  fullName: string;
+  tempR: number;
+  tempF: number;
+  tempC: number;
+  sensorChannel?: string;
+  status: 'COOL' | 'NORMAL' | 'ELEVATED' | 'CRITICAL';
+  statusColor: string;
+  statusBg: string;
+}
+
+export function getStageThermalMetric(stageId: StageId, engine: EngineTelemetry): StageThermalMetric {
+  switch (stageId) {
+    case 'FAN':
+      return {
+        station: 'Stn 2.0',
+        shortName: 'Fan',
+        fullName: 'LP Fan Rotor',
+        tempR: 518.7,
+        tempF: +(518.7 - 459.67).toFixed(1),
+        tempC: +((518.7 - 491.67) * 5 / 9).toFixed(1),
+        sensorChannel: 'T2 / s1',
+        status: 'COOL',
+        statusColor: '#00e5ff',
+        statusBg: 'rgba(0, 229, 255, 0.15)',
+      };
+    case 'LPC':
+      return {
+        station: 'Stn 2.4',
+        shortName: 'IPC/LPC',
+        fullName: 'IP/LP Compressor',
+        tempR: +engine.t24.toFixed(1),
+        tempF: +(engine.t24 - 459.67).toFixed(1),
+        tempC: +((engine.t24 - 491.67) * 5 / 9).toFixed(1),
+        sensorChannel: 'T24 / s2',
+        status: engine.t24 > 660 ? 'ELEVATED' : 'NORMAL',
+        statusColor: '#10b981',
+        statusBg: 'rgba(16, 185, 129, 0.15)',
+      };
+    case 'HPC':
+      return {
+        station: 'Stn 3.0',
+        shortName: 'HPC',
+        fullName: 'HP Compressor Outlet',
+        tempR: +engine.t30.toFixed(1),
+        tempF: +(engine.t30 - 459.67).toFixed(1),
+        tempC: +((engine.t30 - 491.67) * 5 / 9).toFixed(1),
+        sensorChannel: 'T30 / s3',
+        status: engine.t30 >= 1600 ? 'CRITICAL' : engine.t30 >= 1580 ? 'ELEVATED' : 'NORMAL',
+        statusColor: engine.t30 >= 1600 ? '#ff1f42' : '#f59e0b',
+        statusBg: engine.t30 >= 1600 ? 'rgba(255, 31, 66, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+      };
+    case 'COMBUSTOR': {
+      const combustorR = Number((Math.min(3550, engine.t30 + 1822.0)).toFixed(1));
+      return {
+        station: 'Stn 4.0',
+        shortName: 'COMB',
+        fullName: 'Combustor Core Flame',
+        tempR: combustorR,
+        tempF: +(combustorR - 459.67).toFixed(1),
+        tempC: +((combustorR - 491.67) * 5 / 9).toFixed(1),
+        sensorChannel: 'T4 Core Flame',
+        status: 'CRITICAL',
+        statusColor: '#ff2d55',
+        statusBg: 'rgba(255, 45, 85, 0.2)',
+      };
+    }
+    case 'HPT': {
+      const hptR = Number((Math.min(2450, engine.t30 + 764.0)).toFixed(1));
+      return {
+        station: 'Stn 4.5',
+        shortName: 'HPT',
+        fullName: 'HP Turbine 1st-Stage',
+        tempR: hptR,
+        tempF: +(hptR - 459.67).toFixed(1),
+        tempC: +((hptR - 491.67) * 5 / 9).toFixed(1),
+        sensorChannel: 'T45 Vane NGV',
+        status: 'CRITICAL',
+        statusColor: '#ff1f42',
+        statusBg: 'rgba(255, 31, 66, 0.2)',
+      };
+    }
+    case 'IPT': {
+      const iptR = Number((engine.t50 + 118.0).toFixed(1));
+      return {
+        station: 'Stn 4.8',
+        shortName: 'IPT',
+        fullName: 'IP Turbine Inlet',
+        tempR: iptR,
+        tempF: +(iptR - 459.67).toFixed(1),
+        tempC: +((iptR - 491.67) * 5 / 9).toFixed(1),
+        sensorChannel: 'T48 IPT Entry',
+        status: 'ELEVATED',
+        statusColor: '#f97316',
+        statusBg: 'rgba(249, 115, 22, 0.2)',
+      };
+    }
+    case 'LPT':
+      return {
+        station: 'Stn 5.0',
+        shortName: 'LPT',
+        fullName: 'LP Turbine Exhaust (EGT)',
+        tempR: +engine.t50.toFixed(1),
+        tempF: +(engine.t50 - 459.67).toFixed(1),
+        tempC: +((engine.t50 - 491.67) * 5 / 9).toFixed(1),
+        sensorChannel: 'T50 / s4 (EGT)',
+        status: engine.t50 >= 1410 ? 'ELEVATED' : 'NORMAL',
+        statusColor: engine.t50 >= 1410 ? '#f59e0b' : '#10b981',
+        statusBg: engine.t50 >= 1410 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.15)',
+      };
+  }
+}
 
 // Reusable Three.js vectors & colors outside the render loop
 const _worldPos = new THREE.Vector3();
@@ -216,6 +331,21 @@ function getStageDegradationAppearance(
     }
     stageHeatWeight = 0.25 + 0.73 * Math.pow(r, 1.25);
     t50Norm = 0.20 + 0.78 * Math.pow(r, 1.30);
+  } else if (stageId === 'IPT') {
+    // Intermediate-Pressure Turbine (Station 4.8):
+    if (r < 0.45) {
+      _dynColor.lerpColors(_colLimeGreen, _colWarningAmber, r / 0.45);
+      _dynEmissive.lerpColors(_emissLime, _emissAmber, r / 0.45);
+      emissiveIntensity = 0.26 + 0.18 * (r / 0.45);
+    } else {
+      const seg = (r - 0.45) / 0.55;
+      _dynColor.lerpColors(_colWarningAmber, _colOrangeRed, seg);
+      _dynEmissive.lerpColors(_emissAmber, _emissOrange, seg);
+      emissiveIntensity = 0.44 + 0.38 * seg;
+    }
+    stageHeatWeight = 0.28 + 0.65 * Math.pow(r, 1.2);
+    t50Norm = 0.25 + 0.70 * Math.pow(r, 1.25);
+    t30Norm = 0.22 + 0.65 * Math.pow(r, 1.25);
   } else if (stageId === 'LPT') {
     // Low-Pressure Turbine: Cryo Cyan -> Emerald -> Amber gold
     if (r < 0.60) {
@@ -267,6 +397,16 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     HPC: null,
     COMBUSTOR: null,
     HPT: null,
+    IPT: null,
+    LPT: null,
+  });
+  const stageThermalBadgeRefs = useRef<Record<StageId, HTMLDivElement | null>>({
+    FAN: null,
+    LPC: null,
+    HPC: null,
+    COMBUSTOR: null,
+    HPT: null,
+    IPT: null,
     LPT: null,
   });
 
@@ -907,6 +1047,20 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
           btn.style.transform = `translate3d(${(sx - 12).toFixed(1)}px, ${(sy - 12).toFixed(1)}px, 0)`;
         }
 
+        const badge = stageThermalBadgeRefs.current[stageId];
+        if (badge) {
+          if (st.thermalHeatmap && !st.isDiagnosticsMode) {
+            const inSafeCenter =
+              rawSx >= 260 && rawSx <= cWidth - 260 && rawSy >= 30 && rawSy <= cHeight - 200;
+            badge.style.opacity = inSafeCenter ? '1' : '0';
+            badge.style.pointerEvents = inSafeCenter ? 'auto' : 'none';
+            badge.style.transform = `translate3d(${(sx - 65).toFixed(1)}px, ${(sy - 62).toFixed(1)}px, 0)`;
+          } else {
+            badge.style.opacity = '0';
+            badge.style.pointerEvents = 'none';
+          }
+        }
+
         if (st.selectedStage === stageId && pinOverlayRef.current && leaderLineRef.current) {
           const cardWidth = 324;
           const minCardX = 335;
@@ -1192,34 +1346,89 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         </div>
       )}
 
-      {/* Custom GLSL Thermal Shader Gradient Legend Pill (Visible in Overview when Thermal Mode is active) */}
+      {/* Custom GLSL Thermal Shader Gradient & Full 7-Stage Gas-Path Temperature HUD */}
       {thermalHeatmap && !actionBanner && !isDiagnosticsMode && (
         <div
           data-testid="thermal-shader-legend"
-          className="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-2xl bg-[#232725]/90 border border-white/15 rounded-full px-4 py-1.5 shadow-2xl flex items-center gap-3 text-[11px] font-mono text-[#EAECE9]"
+          className="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-2xl bg-[#1E2220]/95 border border-white/15 rounded-2xl px-5 py-2.5 shadow-2xl flex flex-col items-center gap-1.5 text-xs font-mono text-[#EAECE9] max-w-[94vw]"
         >
-          <span className="text-[#B8CE82] font-bold">GLSL FLIR SHADER</span>
-          <span className="text-[#949C96]">
-            T24: <strong className="text-[#82A995]">{engine.t24.toFixed(1)}°R</strong>
-          </span>
-          <div
-            className="w-24 h-2 rounded-full border border-white/15"
-            style={{
-              background:
-                'linear-gradient(90deg, #1752eb 0%, #00e5ff 25%, #82A995 50%, #D8B65E 75%, #D97865 100%)',
-            }}
-          />
-          <span className="text-[#949C96]">
-            T30: <strong className="text-[#D8B65E]">{engine.t30.toFixed(1)}°R</strong>
-          </span>
-          <span className="text-[#949C96]">
-            T50: <strong className="text-[#D97865]">{engine.t50.toFixed(1)}°R</strong>
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-[#ff1f42] animate-pulse" />
+            <span className="text-[#B8CE82] font-bold text-[11px] uppercase tracking-wider">
+              3D GLSL Thermal FLIR Heatmap · Gas-Path Station Temperatures
+            </span>
+            <div
+              className="w-28 h-2 rounded-full border border-white/20"
+              style={{
+                background:
+                  'linear-gradient(90deg, #1752eb 0%, #00e5ff 25%, #10b981 50%, #f59e0b 75%, #ff1f42 100%)',
+              }}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 text-[10px] pt-0.5">
+            {STAGE_ORDER.map((sId) => {
+              const m = getStageThermalMetric(sId, engine);
+              const isSel = selectedStage === sId;
+              return (
+                <button
+                  key={sId}
+                  type="button"
+                  onClick={() => handleSelectStage(sId, sId)}
+                  className={`px-2 py-0.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 ${
+                    isSel
+                      ? 'border-[#B8CE82] bg-[#B8CE82]/20 font-bold scale-105 shadow-sm'
+                      : 'border-white/10 bg-[#161917]/70 hover:border-white/30'
+                  }`}
+                >
+                  <span className="text-[#949C96]">{m.station} {m.shortName}:</span>
+                  <strong style={{ color: m.statusColor }}>{m.tempR.toFixed(0)}°R</strong>
+                  <span className="text-white/40 text-[9px]">({m.tempF.toFixed(0)}°F)</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Subtle Target Rings Projected on the 3D Engine (Overview mode only) */}
-      {!isDiagnosticsMode && (
+      {/* 3D Floating Stage Thermal Badges (Track each engine part in 3D when Thermal Heatmap is Active) */}
+      {thermalHeatmap && !isDiagnosticsMode && (
+        <div className="absolute inset-0 pointer-events-none z-20">
+          {STAGE_ORDER.map((stageId) => {
+            const m = getStageThermalMetric(stageId, engine);
+            const isSelected = selectedStage === stageId;
+            return (
+              <div
+                key={`thermal-badge-${stageId}`}
+                ref={(el) => {
+                  stageThermalBadgeRefs.current[stageId] = el;
+                }}
+                onClick={() => handleSelectStage(stageId, stageId)}
+                className={`pointer-events-auto absolute top-0 left-0 px-2.5 py-1.5 rounded-xl backdrop-blur-xl border transition-all cursor-pointer shadow-xl select-none flex flex-col items-center gap-0.5 ${
+                  isSelected
+                    ? 'border-[#B8CE82] bg-[#1E2220]/95 shadow-[0_0_18px_rgba(184,206,130,0.5)] scale-110 z-30'
+                    : 'border-white/20 bg-[#181C1A]/90 hover:border-[#B8CE82]'
+                }`}
+                style={{ width: '136px' }}
+              >
+                <div className="flex items-center justify-between w-full text-[9px] font-mono font-bold text-[#949C96]">
+                  <span>{m.station}</span>
+                  <span style={{ color: m.statusColor }}>{m.status}</span>
+                </div>
+                <div className="text-xs font-mono font-bold text-[#EAECE9]">
+                  {m.shortName}: <span style={{ color: m.statusColor }}>{m.tempR.toFixed(1)}°R</span>
+                </div>
+                <div className="text-[9px] font-mono text-[#949C96]">
+                  {m.tempF.toFixed(0)}°F · {m.sensorChannel}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Subtle Target Rings Projected on the 3D Engine (Overview mode only, non-thermal) */}
+      {!isDiagnosticsMode && !thermalHeatmap && (
         <div className="absolute inset-0 pointer-events-none z-20">
           {STAGE_ORDER.map((stageId) => {
             const isSelected = selectedStage === stageId;
@@ -1687,18 +1896,26 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
             >
               {REFERENCE_STAGE_BAR.map((item) => {
                 const isSelected = activeBarKey === item.key;
+                const thermalMetric = thermalHeatmap ? getStageThermalMetric(item.stageId, engine) : null;
                 return (
                   <button
                     key={item.key}
                     type="button"
                     onClick={() => handleSelectStage(item.stageId, item.key)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    className={`px-3 sm:px-4 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
                       isSelected
                         ? 'bg-[#B8CE82] text-[#181B19] font-semibold shadow-[0_0_16px_rgba(184,206,130,0.35)]'
                         : 'text-[#949C96] hover:text-[#EAECE9]'
                     }`}
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {thermalMetric && (
+                      <span className={`text-[10px] px-1 py-0.2 rounded font-bold ${
+                        isSelected ? 'bg-black/25 text-[#181B19]' : 'text-amber-400 bg-black/40'
+                      }`}>
+                        {thermalMetric.tempR.toFixed(0)}°R
+                      </span>
+                    )}
                   </button>
                 );
               })}
