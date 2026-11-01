@@ -712,7 +712,31 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
 
     tick();
 
-    // Dynamic Flight Cycle Trend Graph (Updates dynamically per active dataset & engine cycles)
+  return () => {
+      isUnmounted = true;
+      cancelAnimationFrame(frameId);
+      clearTimeout(frameId);
+      window.removeEventListener('resize', onResize);
+      renderer.domElement.removeEventListener('pointerdown', onPointerDown);
+      renderer.domElement.removeEventListener('pointerup', onPointerUp);
+      controls.removeEventListener('start', onControlStart);
+      controls.dispose();
+      shadowDiscGeom.dispose();
+      shadowDiscMat.dispose();
+      shadowTex.dispose();
+      assembly.dispose();
+      renderer.dispose();
+    };
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [isFullscreen]);
+
+  // Dynamic Flight Cycle Trend Graph (Updates dynamically per active dataset & engine cycles)
   const trendData = useMemo(() => {
     if (dataSource === 'NASA_NCMAPSS_TRANSIENT') {
       return {
@@ -786,30 +810,6 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       gradientId: 'cycleTrendFillCMAPSS',
     };
   }, [dataSource, engine.flightCycles, engine.conformalRul, engine.llpAccumulatedCycles, engine.llpLimitCycles]);
-
-  return () => {
-      isUnmounted = true;
-      cancelAnimationFrame(frameId);
-      clearTimeout(frameId);
-      window.removeEventListener('resize', onResize);
-      renderer.domElement.removeEventListener('pointerdown', onPointerDown);
-      renderer.domElement.removeEventListener('pointerup', onPointerUp);
-      controls.removeEventListener('start', onControlStart);
-      controls.dispose();
-      shadowDiscGeom.dispose();
-      shadowDiscMat.dispose();
-      shadowTex.dispose();
-      assembly.dispose();
-      renderer.dispose();
-    };
-  }, []);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 60);
-    return () => clearTimeout(timer);
-  }, [isFullscreen]);
 
   const activeStageSpec = selectedStage ? TURBOFAN_STAGE_SPECS[selectedStage] : null;
   const stageCalloutMetrics = activeStageSpec ? activeStageSpec.getMetrics(engine) : null;
