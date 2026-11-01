@@ -1173,6 +1173,27 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     // Default: NASA C-MAPSS Benchmark Degradation Progression
     const cyc = engine.flightCycles;
     const rul = engine.conformalRul;
+    const isWashed = engine.waterWashApplied;
+
+    if (isWashed) {
+      // Sawtooth Rebound: degradation drops, jumps sharply at maintenance wash, then resumes
+      return {
+        title: 'Flight Cycle Trend (Sawtooth Wash Rebound)',
+        badge: '+32c Sawtooth Rebound',
+        badgeColor: '#B8CE82',
+        badgeBg: 'bg-[#B8CE82]/20 border border-[#B8CE82]/30',
+        yMax: '125c RUL',
+        yMid: '60c',
+        yMin: '0c',
+        xLabels: ['0c', `c${Math.round(cyc * 0.35)}`, 'Wash ⚡', `c${cyc}`, `+${rul.toFixed(0)}c`],
+        pathD: 'M 40 24 C 65 30, 95 48, 118 64 L 120 34 C 145 42, 185 54, 236 62',
+        areaD: 'M 40 24 C 65 30, 95 48, 118 64 L 120 34 C 145 42, 185 54, 236 62 L 236 92 L 40 92 Z',
+        endPoint: { cx: 236, cy: 62 },
+        strokeColor: '#B8CE82',
+        gradientId: 'cycleTrendFillCMAPSS',
+      };
+    }
+
     const rate = ((125 - rul) / Math.max(1, cyc) * 10).toFixed(1);
     return {
       title: 'Flight Cycle Degradation Trend',
@@ -1189,7 +1210,7 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       strokeColor: rul < 20 ? '#D97865' : '#B8CE82',
       gradientId: 'cycleTrendFillCMAPSS',
     };
-  }, [dataSource, engine.flightCycles, engine.conformalRul, engine.llpAccumulatedCycles, engine.llpLimitCycles]);
+  }, [dataSource, engine.flightCycles, engine.conformalRul, engine.llpAccumulatedCycles, engine.llpLimitCycles, engine.waterWashApplied]);
 
   const activeStageSpec = selectedStage ? TURBOFAN_STAGE_SPECS[selectedStage] : null;
   const stageCalloutMetrics = activeStageSpec ? activeStageSpec.getMetrics(engine) : null;
