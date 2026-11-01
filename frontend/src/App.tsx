@@ -346,7 +346,7 @@ export default function App() {
   }, [backendOnline, isLiveStreaming, selectedEngineId]);
 
   const activeEngine = useMemo(
-    () => fleet.find((e) => e.id === selectedEngineId) ?? fleet[33] ?? fleet[0],
+    () => fleet.find((e) => e.id === selectedEngineId) ?? fleet[33] ?? fleet[0] ?? generateInitialFleet()[0],
     [fleet, selectedEngineId]
   );
 
