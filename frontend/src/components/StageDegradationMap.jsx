@@ -998,6 +998,7 @@ export function StageDegradationMap({
   const [selectedStageId, setSelectedStageId] = useState('HPC_MID_3_4');
   const [cutawayMode, setCutawayMode] = useState('HEALTH_MAP'); // 'HEALTH_MAP' | 'THERMAL_MAP' | 'CLEARANCE_MAP'
   const [selectedCycleIdx, setSelectedCycleIdx] = useState(7); // Default index 7 = Cycle 142 (Current)
+  const [customCycle, setCustomCycle] = useState(142);
   const [showRulOverlay, setShowRulOverlay] = useState(true);
   const [showDirectGridOverlay, setShowDirectGridOverlay] = useState(true);
   const [hoveredCell, setHoveredCell] = useState({
@@ -1014,7 +1015,7 @@ export function StageDegradationMap({
   const isWaterWashed = Boolean(engine?.waterWashApplied || localWaterWashDone);
   const activeEngineId = engine?.id || 'ESN-787-034';
   const activeTailId = engine?.tailId || 'N787-17';
-  const activeCycleNumber = CYCLE_COLUMNS[selectedCycleIdx] ?? 142;
+  const activeCycleNumber = customCycle;
 
   useEffect(() => {
     if (onCycleScrub) {
@@ -1495,7 +1496,10 @@ export function StageDegradationMap({
                   key={cyc}
                   type="button"
                   data-testid={`scrubber-cycle-${cyc}`}
-                  onClick={() => setSelectedCycleIdx(idx)}
+                  onClick={() => {
+                    setSelectedCycleIdx(idx);
+                    setCustomCycle(cyc);
+                  }}
                   className={`px-3 py-1 rounded-full text-xs font-mono font-bold transition-all cursor-pointer ${
                     isSelectedCyc
                       ? 'bg-[#B8CE82] text-[#181B19] shadow-[0_0_14px_rgba(184,206,130,0.5)] scale-105'
@@ -1510,9 +1514,32 @@ export function StageDegradationMap({
             })}
           </div>
 
+          {/* Continuous Cycle Time-Slider */}
+          <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#181B19]/90 backdrop-blur-xl border border-white/10 shadow-lg">
+            <span className="text-[10px] font-mono text-[#B8CE82] font-semibold">0c (Baseline)</span>
+            <input
+              type="range"
+              min="0"
+              max="142"
+              step="1"
+              value={activeCycleNumber}
+              aria-label="Engine Cycle Timeline Slider"
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setCustomCycle(val);
+                const closestIdx = CYCLE_COLUMNS.reduce((prev, curr, idx) =>
+                  Math.abs(curr - val) < Math.abs(CYCLE_COLUMNS[prev] - val) ? idx : prev, 0);
+                setSelectedCycleIdx(closestIdx);
+              }}
+              className="w-44 sm:w-60 h-1.5 bg-[#2A2E2C] rounded-lg appearance-none cursor-pointer accent-[#B8CE82]"
+            />
+            <span className="text-[10px] font-mono text-[#D97865] font-semibold">142c (Wear Limit)</span>
+          </div>
+
           <a
             href="#deep-degradation-cutaway"
             className="text-[10px] font-mono text-[#949C96] hover:text-[#B8CE82] transition-colors flex items-center gap-1"
+            title="Jump to 2D Cross-Sectional Cutaway and 8-Cycle Heatmap"
           >
             <span>Scroll down for 2D CAD Cutaway, D3 Slopes &amp; 8-Cycle Matrix</span>
             <span>↓</span>
@@ -2120,6 +2147,7 @@ export function StageDegradationMap({
                               e.stopPropagation();
                               setSelectedStageId(row.id);
                               setSelectedCycleIdx(cIdx);
+                              setCustomCycle(cell.cycle);
                               setHoveredCell({
                                 stageName: row.matrixLabel,
                                 station: row.station,

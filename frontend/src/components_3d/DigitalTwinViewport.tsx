@@ -71,6 +71,183 @@ const _blueprintStrokeSage = new THREE.Color('#B8CE82');
 const _blueprintStrokeAmber = new THREE.Color('#D8B65E');
 const _blueprintStrokeCrimson = new THREE.Color('#D97865');
 
+// Dynamic degradation gradient palette (Cycle 0 -> 142)
+const _colCryoCyan = new THREE.Color('#00e5ff');
+const _colSkyBlue = new THREE.Color('#38bdf8');
+const _colEmeraldGreen = new THREE.Color('#10b981');
+const _colLimeGreen = new THREE.Color('#84cc16');
+const _colWarningAmber = new THREE.Color('#f59e0b');
+const _colOrangeRed = new THREE.Color('#f97316');
+const _colCrimsonRed = new THREE.Color('#ff1f42');
+const _colCoreViolentCrimson = new THREE.Color('#e11d48');
+const _colCowlingSlate = new THREE.Color('#1e293b');
+
+const _emissCyan = new THREE.Color('#0284c7');
+const _emissGreen = new THREE.Color('#059669');
+const _emissLime = new THREE.Color('#65a30d');
+const _emissAmber = new THREE.Color('#d97706');
+const _emissCrimson = new THREE.Color('#ff1f42');
+const _emissOrange = new THREE.Color('#ea580c');
+
+// Reusable color instances to avoid GC allocations in 60fps loop
+const _dynColor = new THREE.Color();
+const _dynEmissive = new THREE.Color();
+
+function getStageDegradationAppearance(
+  stageId: StageId | 'COWLING',
+  isOuterShell: boolean,
+  activeCycle: number,
+  elapsed: number,
+  isSelected: boolean
+): {
+  color: THREE.Color;
+  emissive: THREE.Color;
+  emissiveIntensity: number;
+  stageHeatWeight: number;
+  t30Norm: number;
+  t50Norm: number;
+  t24Norm: number;
+  targetOpacity: number;
+} {
+  const r = Math.max(0.0, Math.min(1.0, activeCycle / 142));
+
+  if (stageId === 'COWLING') {
+    return {
+      color: _colCowlingSlate,
+      emissive: _emissCyan,
+      emissiveIntensity: 0.08,
+      stageHeatWeight: 0.05,
+      t24Norm: 0.2,
+      t30Norm: 0.2,
+      t50Norm: 0.2,
+      targetOpacity: 0.08, // Translucent cutaway nacelle
+    };
+  }
+
+  let emissiveIntensity = 0.25;
+  let stageHeatWeight = 0.3;
+  let t24Norm = 0.2 + 0.3 * r;
+  let t30Norm = 0.2 + 0.75 * Math.pow(r, 1.3);
+  let t50Norm = 0.2 + 0.72 * Math.pow(r, 1.3);
+
+  if (stageId === 'FAN') {
+    // Health 100% -> 96%: Sky blue to emerald green
+    _dynColor.lerpColors(_colSkyBlue, _colEmeraldGreen, r);
+    _dynEmissive.lerpColors(_emissCyan, _emissGreen, r);
+    emissiveIntensity = 0.18 + 0.08 * r;
+    stageHeatWeight = 0.08 + 0.15 * r;
+  } else if (stageId === 'LPC') {
+    // Health 100% -> 86%: Cryo cyan to emerald green to teal
+    if (r < 0.6) {
+      _dynColor.lerpColors(_colCryoCyan, _colEmeraldGreen, r / 0.6);
+      _dynEmissive.lerpColors(_emissCyan, _emissGreen, r / 0.6);
+    } else {
+      _dynColor.lerpColors(_colEmeraldGreen, _colLimeGreen, (r - 0.6) / 0.4);
+      _dynEmissive.lerpColors(_emissGreen, _emissLime, (r - 0.6) / 0.4);
+    }
+    emissiveIntensity = 0.20 + 0.12 * r;
+    stageHeatWeight = 0.15 + 0.28 * r;
+    t24Norm = 0.25 + 0.45 * r;
+  } else if (stageId === 'HPC') {
+    // HPC: Primary fault driver (blade rub at 85c, thermal creep, tip gap 1.18mm at 142c)
+    // 0c: Healthy Green -> 50c: Lime -> 85c: Warning Amber -> 142c: Crimson Red
+    if (r < 0.38) {
+      _dynColor.lerpColors(_colEmeraldGreen, _colLimeGreen, r / 0.38);
+      _dynEmissive.lerpColors(_emissGreen, _emissLime, r / 0.38);
+      emissiveIntensity = 0.22 + 0.15 * (r / 0.38);
+    } else if (r < 0.65) {
+      const seg = (r - 0.38) / 0.27;
+      _dynColor.lerpColors(_colLimeGreen, _colWarningAmber, seg);
+      _dynEmissive.lerpColors(_emissLime, _emissAmber, seg);
+      emissiveIntensity = 0.37 + 0.28 * seg;
+    } else {
+      const seg = (r - 0.65) / 0.35;
+      _dynColor.lerpColors(_colWarningAmber, _colCrimsonRed, seg);
+      _dynEmissive.lerpColors(_emissAmber, _emissCrimson, seg);
+      emissiveIntensity = 0.65 + 0.42 * seg;
+    }
+
+    // Active blade rub thermal friction pulsation for cycles >= 80
+    if (r >= 0.55) {
+      const pulseSpeed = 4.0 + 4.0 * r;
+      emissiveIntensity += (0.12 + 0.18 * r) * Math.abs(Math.sin(elapsed * pulseSpeed));
+    }
+    stageHeatWeight = 0.22 + 0.76 * Math.pow(r, 1.25);
+    t30Norm = 0.20 + 0.78 * Math.pow(r, 1.30);
+  } else if (stageId === 'COMBUSTOR') {
+    // Hot combustor flame tube: Ceramic emerald -> Amber -> Crimson bloom
+    if (r < 0.45) {
+      _dynColor.lerpColors(_colEmeraldGreen, _colLimeGreen, r / 0.45);
+      _dynEmissive.lerpColors(_emissGreen, _emissLime, r / 0.45);
+      emissiveIntensity = 0.28 + 0.15 * (r / 0.45);
+    } else if (r < 0.70) {
+      const seg = (r - 0.45) / 0.25;
+      _dynColor.lerpColors(_colLimeGreen, _colOrangeRed, seg);
+      _dynEmissive.lerpColors(_emissLime, _emissOrange, seg);
+      emissiveIntensity = 0.43 + 0.30 * seg;
+    } else {
+      const seg = (r - 0.70) / 0.30;
+      _dynColor.lerpColors(_colOrangeRed, _colCrimsonRed, seg);
+      _dynEmissive.lerpColors(_emissOrange, _emissCrimson, seg);
+      emissiveIntensity = 0.73 + 0.35 * seg;
+    }
+    stageHeatWeight = 0.30 + 0.70 * Math.pow(r, 1.15);
+  } else if (stageId === 'HPT') {
+    // High-Pressure Turbine (TBC spallation & EGT creep):
+    // 0c: Healthy Green -> 85c: Amber -> 142c: Radiant Crimson Red
+    if (r < 0.38) {
+      _dynColor.lerpColors(_colEmeraldGreen, _colLimeGreen, r / 0.38);
+      _dynEmissive.lerpColors(_emissGreen, _emissLime, r / 0.38);
+      emissiveIntensity = 0.22 + 0.15 * (r / 0.38);
+    } else if (r < 0.65) {
+      const seg = (r - 0.38) / 0.27;
+      _dynColor.lerpColors(_colLimeGreen, _colWarningAmber, seg);
+      _dynEmissive.lerpColors(_emissLime, _emissAmber, seg);
+      emissiveIntensity = 0.37 + 0.28 * seg;
+    } else {
+      const seg = (r - 0.65) / 0.35;
+      _dynColor.lerpColors(_colWarningAmber, _colCoreViolentCrimson, seg);
+      _dynEmissive.lerpColors(_emissAmber, _emissCrimson, seg);
+      emissiveIntensity = 0.65 + 0.42 * seg;
+    }
+
+    if (r >= 0.55) {
+      emissiveIntensity += (0.10 + 0.16 * r) * Math.abs(Math.sin(elapsed * (5.0 + 3.0 * r)));
+    }
+    stageHeatWeight = 0.25 + 0.73 * Math.pow(r, 1.25);
+    t50Norm = 0.20 + 0.78 * Math.pow(r, 1.30);
+  } else if (stageId === 'LPT') {
+    // Low-Pressure Turbine: Cryo Cyan -> Emerald -> Amber gold
+    if (r < 0.60) {
+      _dynColor.lerpColors(_colCryoCyan, _colEmeraldGreen, r / 0.60);
+      _dynEmissive.lerpColors(_emissCyan, _emissGreen, r / 0.60);
+    } else {
+      _dynColor.lerpColors(_colEmeraldGreen, _colLimeGreen, (r - 0.60) / 0.40);
+      _dynEmissive.lerpColors(_emissGreen, _emissAmber, (r - 0.60) / 0.40);
+    }
+    emissiveIntensity = 0.18 + 0.22 * r;
+    stageHeatWeight = 0.20 + 0.38 * r;
+    t50Norm = 0.20 + 0.50 * r;
+  }
+
+  if (isSelected) {
+    emissiveIntensity += 0.35;
+  }
+
+  const targetOpacity = isOuterShell ? 0.18 : 1.0;
+
+  return {
+    color: _dynColor,
+    emissive: _dynEmissive,
+    emissiveIntensity,
+    stageHeatWeight,
+    t30Norm,
+    t50Norm,
+    t24Norm,
+    targetOpacity,
+  };
+}
+
 export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
   engine,
   onWaterWash,
@@ -124,6 +301,22 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     isDiagnosticsMode: isDiagnosticsMode,
   });
 
+  // Synchronously update stateRef on EVERY render to ensure zero latency for 3D animation loop
+  stateRef.current.selectedStage = selectedStage;
+  stateRef.current.cowlingOpen = cowlingOpen;
+  stateRef.current.explodedSlider = explodedSlider;
+  stateRef.current.thermalHeatmap = thermalHeatmap;
+  stateRef.current.blueprintXray = blueprintXray;
+  stateRef.current.isSpinning = isSpinning;
+  stateRef.current.n1RpmPct = engine.n1RpmPct;
+  stateRef.current.n2RpmPct = engine.n2RpmPct;
+  stateRef.current.t24 = engine.t24;
+  stateRef.current.t30 = engine.t30;
+  stateRef.current.t50 = engine.t50;
+  stateRef.current.sensorFaultActive = engine.sensorFaultActive;
+  stateRef.current.scrubbedCycle = scrubbedCycle;
+  stateRef.current.isDiagnosticsMode = Boolean(isDiagnosticsMode);
+
   useEffect(() => {
     stateRef.current.selectedStage = selectedStage;
     stateRef.current.cowlingOpen = cowlingOpen;
@@ -151,6 +344,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     engine.t24,
     engine.t30,
     engine.t50,
+    engine.sensorFaultActive,
+    scrubbedCycle,
+    isDiagnosticsMode,
   ]);
 
   const handleSelectStage = (stage: StageId | null, barKey?: string) => {
@@ -235,17 +431,20 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       setCowlingOpen(true);
       setBlueprintXray(true);
       setThermalHeatmap(true);
+      setExplodedSlider(0.22);
       stateRef.current.desiredCamPos.set(9.8, 1.8, 8.5);
       stateRef.current.desiredCamTarget.set(0.0, -0.1, 0.0);
       stateRef.current.cameraTransitionActive = true;
     } else if (!engine.sensorFaultActive) {
       setCowlingOpen(false);
       setBlueprintXray(false);
+      setThermalHeatmap(false);
+      setExplodedSlider(0.08);
       stateRef.current.desiredCamPos.set(11.6, 2.25, 11.1);
       stateRef.current.desiredCamTarget.set(0.05, -0.25, 0.0);
       stateRef.current.cameraTransitionActive = true;
     }
-  }, [isDiagnosticsMode]);
+  }, [isDiagnosticsMode, engine.sensorFaultActive]);
 
   useEffect(() => {
     const container = canvasMountRef.current;
@@ -540,8 +739,8 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       }
 
       // Thermal Heatmap & Diagnostics Cycle Progression Gradient
+      const isDegradationActive = st.isDiagnosticsMode || st.thermalHeatmap;
       const activeCyc = st.scrubbedCycle ?? (st.isDiagnosticsMode ? 142 : engine.flightCycles);
-      const degradRatio = Math.max(0.0, Math.min(1.0, activeCyc / 142));
 
       assembly.thermalMaterials.forEach((item) => {
         const isSelectedInner =
@@ -549,94 +748,121 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         const isSelectedShroud =
           st.selectedStage !== null && item.stageId === st.selectedStage && item.isOuterShell;
 
-        const isCoreStage = item.stageId === 'HPC' || item.stageId === 'COMBUSTOR' || item.stageId === 'HPT';
-        const stageFactor = isCoreStage ? degradRatio : degradRatio * 0.4;
+        if (isDegradationActive) {
+          const app = getStageDegradationAppearance(
+            item.stageId,
+            item.isOuterShell,
+            activeCyc,
+            elapsed,
+            isSelectedInner
+          );
 
-        if (st.isDiagnosticsMode) {
-          item.shaderUniforms.uThermalActive.value = 1.0;
-          item.shaderUniforms.uT30Norm.value = 0.2 + 0.75 * Math.pow(stageFactor, 1.4);
-          item.shaderUniforms.uT50Norm.value = 0.2 + 0.7 * Math.pow(stageFactor, 1.4);
-          item.shaderUniforms.uStageHeatWeight.value = 0.2 + 0.8 * stageFactor;
-        } else {
+          // Update Three.js physical material diffuse color & emissive
+          item.mat.color.lerp(app.color, 0.24);
+          item.mat.emissive.lerp(app.emissive, 0.24);
+          item.mat.emissiveIntensity = app.emissiveIntensity;
+
+          // Update GLSL shader uniforms
           item.shaderUniforms.uThermalActive.value = THREE.MathUtils.lerp(
             item.shaderUniforms.uThermalActive.value,
-            st.thermalHeatmap ? 1.0 : 0.0,
+            1.0,
             0.25
           );
-        }
-        item.shaderUniforms.uT24Norm.value = normT24;
-        item.shaderUniforms.uT30Norm.value = normT30;
-        item.shaderUniforms.uT50Norm.value = normT50;
-        item.shaderUniforms.uTime.value = elapsed;
+          item.shaderUniforms.uStageHeatWeight.value = app.stageHeatWeight;
+          item.shaderUniforms.uT24Norm.value = app.t24Norm;
+          item.shaderUniforms.uT30Norm.value = app.t30Norm;
+          item.shaderUniforms.uT50Norm.value = app.t50Norm;
+          item.shaderUniforms.uTime.value = elapsed;
 
-        if (st.thermalHeatmap) {
-          item.mat.color.lerp(item.thermalColor, 0.22);
-          item.mat.emissive.lerp(item.thermalEmissive, 0.22);
-          item.mat.emissiveIntensity = isSelectedInner
-            ? 0.9
-            : 0.4 + item.thermalIntensity * 0.48;
-        } else if (isSelectedInner && st.selectedStage) {
-          const spec = TURBOFAN_STAGE_SPECS[st.selectedStage];
-          const highlightColor =
-            spec.severity === 'CRITICAL'
-              ? _highlightCrimson
-              : spec.severity === 'WARNING'
-                ? _highlightAmber
-                : _highlightSage;
-          item.mat.color.lerp(item.baseColor, 0.2);
-          item.mat.emissive.lerp(highlightColor, 0.25);
-          item.mat.emissiveIntensity = 0.55;
-        } else if (isZoomedOrBlueprint && (item.isOuterShell || st.selectedStage !== null)) {
-          item.mat.color.lerp(_blueprintTint, 0.16);
-          item.mat.emissive.lerp(_blueprintStrokeSage, 0.16);
-          item.mat.emissiveIntensity = 0.18;
+          // Set opacity (transparent cutaway nacelle & shrouds so the glowing inner stages shine through)
+          const targetOpacity = app.targetOpacity;
+          const opLerp = isSoftwareGl ? 0.85 : 0.24;
+          item.mat.opacity = THREE.MathUtils.lerp(item.mat.opacity, targetOpacity, opLerp);
+          item.mat.depthWrite = item.mat.opacity > 0.65;
         } else {
-          item.mat.color.lerp(item.baseColor, 0.2);
-          item.mat.emissive.lerp(item.baseEmissive, 0.2);
-          item.mat.emissiveIntensity = item.baseEmissiveIntensity;
-        }
+          // Standard Overview Mode (Thermal Heatmap off)
+          item.shaderUniforms.uThermalActive.value = THREE.MathUtils.lerp(
+            item.shaderUniforms.uThermalActive.value,
+            0.0,
+            0.25
+          );
+          item.shaderUniforms.uT24Norm.value = normT24;
+          item.shaderUniforms.uT30Norm.value = normT30;
+          item.shaderUniforms.uT50Norm.value = normT50;
+          item.shaderUniforms.uTime.value = elapsed;
 
-        let targetOpacity = 1.0;
-        if (st.thermalHeatmap) {
-          if (item.stageId === 'COWLING' || item.isOuterShell) {
-            targetOpacity = 0.08;
-          } else if (st.selectedStage !== null && item.stageId !== st.selectedStage) {
-            targetOpacity = 0.35;
+          if (isSelectedInner && st.selectedStage) {
+            const spec = TURBOFAN_STAGE_SPECS[st.selectedStage];
+            const highlightColor =
+              spec.severity === 'CRITICAL'
+                ? _highlightCrimson
+                : spec.severity === 'WARNING'
+                  ? _highlightAmber
+                  : _highlightSage;
+            item.mat.color.lerp(item.baseColor, 0.2);
+            item.mat.emissive.lerp(highlightColor, 0.25);
+            item.mat.emissiveIntensity = 0.55;
+          } else if (isZoomedOrBlueprint && (item.isOuterShell || st.selectedStage !== null)) {
+            item.mat.color.lerp(_blueprintTint, 0.16);
+            item.mat.emissive.lerp(_blueprintStrokeSage, 0.16);
+            item.mat.emissiveIntensity = 0.18;
           } else {
-            targetOpacity = 1.0;
+            item.mat.color.lerp(item.baseColor, 0.2);
+            item.mat.emissive.lerp(item.baseEmissive, 0.2);
+            item.mat.emissiveIntensity = item.baseEmissiveIntensity;
           }
-        } else if (isZoomedOrBlueprint) {
-          if (item.stageId === 'COWLING') {
-            targetOpacity = 0.06;
-          } else if (isSelectedInner) {
-            targetOpacity = 1.0;
-          } else if (isSelectedShroud) {
-            targetOpacity = 0.08;
-          } else if (st.selectedStage !== null) {
-            targetOpacity = item.isOuterShell ? 0.06 : 0.16;
-          } else {
-            targetOpacity = item.isOuterShell ? 0.09 : 0.92;
-          }
-        } else {
-          if (item.stageId === 'COWLING') {
-            targetOpacity = 0.05;
-          } else if (item.isOuterShell) {
-            targetOpacity = item.stageId === 'FAN' ? 0.28 : 0.07;
-          } else {
-            targetOpacity = 1.0;
-          }
-        }
 
-        const opLerp = isSoftwareGl ? 0.85 : 0.24;
-        item.mat.opacity = THREE.MathUtils.lerp(item.mat.opacity, targetOpacity, opLerp);
-        item.mat.depthWrite = item.mat.opacity > 0.65;
+          let targetOpacity = 1.0;
+          if (isZoomedOrBlueprint) {
+            if (item.stageId === 'COWLING') {
+              targetOpacity = 0.06;
+            } else if (isSelectedInner) {
+              targetOpacity = 1.0;
+            } else if (isSelectedShroud) {
+              targetOpacity = 0.08;
+            } else if (st.selectedStage !== null) {
+              targetOpacity = item.isOuterShell ? 0.06 : 0.16;
+            } else {
+              targetOpacity = item.isOuterShell ? 0.09 : 0.92;
+            }
+          } else {
+            if (item.stageId === 'COWLING') {
+              targetOpacity = 0.05;
+            } else if (item.isOuterShell) {
+              targetOpacity = item.stageId === 'FAN' ? 0.28 : 0.07;
+            } else {
+              targetOpacity = 1.0;
+            }
+          }
+
+          const opLerp = isSoftwareGl ? 0.85 : 0.24;
+          item.mat.opacity = THREE.MathUtils.lerp(item.mat.opacity, targetOpacity, opLerp);
+          item.mat.depthWrite = item.mat.opacity > 0.65;
+        }
       });
 
       assembly.blueprintStrokes.forEach((stroke) => {
         const isSelectedStageStroke =
           st.selectedStage !== null && stroke.stageId === st.selectedStage;
 
-        if (isZoomedOrBlueprint) {
+        if (st.isDiagnosticsMode) {
+          stroke.line.visible = true;
+          if (stroke.stageId === 'HPC' || stroke.stageId === 'HPT') {
+            if (activeCyc >= 100) {
+              stroke.mat.color.lerp(_blueprintStrokeCrimson, 0.25);
+              stroke.mat.opacity = 0.85;
+            } else if (activeCyc >= 75) {
+              stroke.mat.color.lerp(_blueprintStrokeAmber, 0.25);
+              stroke.mat.opacity = 0.75;
+            } else {
+              stroke.mat.color.lerp(_blueprintStrokeSage, 0.25);
+              stroke.mat.opacity = 0.55;
+            }
+          } else {
+            stroke.mat.color.lerp(_blueprintStrokeSage, 0.25);
+            stroke.mat.opacity = stroke.stageId === 'COWLING' ? 0.45 : 0.55;
+          }
+        } else if (isZoomedOrBlueprint) {
           stroke.line.visible = true;
           if (isSelectedStageStroke) {
             const spec = TURBOFAN_STAGE_SPECS[st.selectedStage!];
@@ -966,8 +1192,8 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         </div>
       )}
 
-      {/* Custom GLSL Thermal Shader Gradient Legend Pill (Visible when Thermal Mode is active) */}
-      {thermalHeatmap && !actionBanner && (
+      {/* Custom GLSL Thermal Shader Gradient Legend Pill (Visible in Overview when Thermal Mode is active) */}
+      {thermalHeatmap && !actionBanner && !isDiagnosticsMode && (
         <div
           data-testid="thermal-shader-legend"
           className="absolute top-3 left-1/2 -translate-x-1/2 z-30 backdrop-blur-2xl bg-[#232725]/90 border border-white/15 rounded-full px-4 py-1.5 shadow-2xl flex items-center gap-3 text-[11px] font-mono text-[#EAECE9]"
@@ -992,38 +1218,40 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         </div>
       )}
 
-      {/* Subtle Target Rings Projected on the 3D Engine */}
-      <div className="absolute inset-0 pointer-events-none z-20">
-        {STAGE_ORDER.map((stageId) => {
-          const isSelected = selectedStage === stageId;
-          const spec = TURBOFAN_STAGE_SPECS[stageId];
-          return (
-            <button
-              key={stageId}
-              ref={(el) => {
-                stageRingRefs.current[stageId] = el;
-              }}
-              type="button"
-              onClick={() => handleSelectStage(stageId, stageId)}
-              aria-label={`Inspect ${spec.shortName}`}
-              className={`pointer-events-auto absolute top-0 left-0 w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                isSelected
-                  ? 'border-2 border-[#B8CE82] bg-[#252927]/90 shadow-[0_0_14px_rgba(184,206,130,0.65)]'
-                  : 'border border-white/25 bg-[#1E2220]/60 hover:border-[#B8CE82]'
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  isSelected ? 'bg-[#B8CE82]' : 'bg-[#EAECE9]/75'
+      {/* Subtle Target Rings Projected on the 3D Engine (Overview mode only) */}
+      {!isDiagnosticsMode && (
+        <div className="absolute inset-0 pointer-events-none z-20">
+          {STAGE_ORDER.map((stageId) => {
+            const isSelected = selectedStage === stageId;
+            const spec = TURBOFAN_STAGE_SPECS[stageId];
+            return (
+              <button
+                key={stageId}
+                ref={(el) => {
+                  stageRingRefs.current[stageId] = el;
+                }}
+                type="button"
+                onClick={() => handleSelectStage(stageId, stageId)}
+                aria-label={`Inspect ${spec.shortName}`}
+                className={`pointer-events-auto absolute top-0 left-0 w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                  isSelected
+                    ? 'border-2 border-[#B8CE82] bg-[#252927]/90 shadow-[0_0_14px_rgba(184,206,130,0.65)]'
+                    : 'border border-white/25 bg-[#1E2220]/60 hover:border-[#B8CE82]'
                 }`}
-              />
-            </button>
-          );
-        })}
-      </div>
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isSelected ? 'bg-[#B8CE82]' : 'bg-[#EAECE9]/75'
+                  }`}
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
 
-      {/* SVG Leader Line & Floating Callout Card when a specific 3D stage is clicked */}
-      {selectedStage && activeStageSpec && stageCalloutMetrics && (
+      {/* SVG Leader Line & Floating Callout Card when a specific 3D stage is clicked (Overview mode only) */}
+      {!isDiagnosticsMode && selectedStage && activeStageSpec && stageCalloutMetrics && (
         <div className="absolute inset-0 pointer-events-none z-20">
           <svg className="w-full h-full">
             <polyline
