@@ -359,6 +359,7 @@ export interface AirworthinessDossierEvaluation {
   llpCyclesRemaining: number;
   effectiveDispatchLimitCycles: number;
   bindingConstraint: 'CONFORMAL_PHM_RUL' | 'FAA_LLP_SCRAP_LIMIT';
+  governingConstraint: 'CONFORMAL_PHM_RUL' | 'FAA_LLP_SCRAP_LIMIT';
   clopperPearsonRiskPct: number;
   isDispatchApproved: boolean;
   verdictLabel: string;
@@ -925,6 +926,7 @@ export function evaluateDualConstraintAirworthiness(
     llpCyclesRemaining,
     effectiveDispatchLimitCycles,
     bindingConstraint,
+    governingConstraint: bindingConstraint,
     clopperPearsonRiskPct,
     isDispatchApproved,
     verdictLabel,

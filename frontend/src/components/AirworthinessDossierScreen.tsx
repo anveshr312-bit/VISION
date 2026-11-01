@@ -745,7 +745,7 @@ export const AirworthinessDossierScreen: React.FC<AirworthinessDossierScreenProp
                       • HPT DISK LLP SCRAP MARGIN: <strong className="text-blue-900">{evaluation.llpCyclesRemaining}c</strong> ({engine.llpAccumulatedCycles.toLocaleString()} / 15,000c LIMIT)
                     </div>
                     <div>
-                      • GOVERNING DISPATCH CONSTRAINT: <strong className="text-blue-900">{evaluation.effectiveDispatchLimitCycles.toFixed(1)} CYCLES</strong> ({evaluation.governingConstraint.toUpperCase()})
+                      • GOVERNING DISPATCH CONSTRAINT: <strong className="text-blue-900">{evaluation.effectiveDispatchLimitCycles.toFixed(1)} CYCLES</strong> ({(evaluation.governingConstraint || evaluation.bindingConstraint || 'CONFORMAL_PHM_RUL').toUpperCase()})
                     </div>
                     <div>
                       • CLOPPER-PEARSON RISK BOUND: <strong className="text-blue-900">≤ {evaluation.clopperPearsonRiskPct}%</strong> (EXACT BINOMIAL)
