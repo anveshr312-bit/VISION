@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { EmpiricalChartsSuite } from './EmpiricalChartsSuite';
 import {
   X,
   Award,
@@ -13,6 +14,7 @@ import {
   Scale,
   Sparkles,
   ExternalLink,
+  BarChart3,
 } from 'lucide-react';
 import {
   BenchmarkScorecard,
@@ -31,7 +33,7 @@ interface EmpiricalBenchmarkModalProps {
   onClose: () => void;
 }
 
-type TabKey = 'SCORECARD' | 'ABLATION' | 'PHYSICS' | 'LEAKAGE_PARITY';
+type TabKey = 'SCORECARD' | 'CHARTS' | 'ABLATION' | 'PHYSICS' | 'LEAKAGE_PARITY';
 
 export const EmpiricalBenchmarkModal: React.FC<EmpiricalBenchmarkModalProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<TabKey>('SCORECARD');
@@ -131,6 +133,7 @@ export const EmpiricalBenchmarkModal: React.FC<EmpiricalBenchmarkModalProps> = (
         <div className="flex items-center gap-2 px-6 pt-3 pb-2 border-b border-white/[0.08] bg-[#181B19]">
           {[
             { key: 'SCORECARD', label: 'Benchmark Scorecard', icon: Award },
+            { key: 'CHARTS', label: 'Interactive Charts & Trajectories', icon: BarChart3 },
             { key: 'ABLATION', label: 'E0–E7 Ablation Matrix', icon: Layers },
             { key: 'PHYSICS', label: '19-Check Physics Suite', icon: Flame },
             { key: 'LEAKAGE_PARITY', label: 'Leakage & Parity Audit', icon: ShieldCheck },
@@ -288,6 +291,9 @@ export const EmpiricalBenchmarkModal: React.FC<EmpiricalBenchmarkModalProps> = (
               </div>
             </div>
           )}
+
+          {/* TAB: INTERACTIVE CHARTS & TRAJECTORIES */}
+          {activeTab === 'CHARTS' && <EmpiricalChartsSuite />}
 
           {/* TAB 2: ABLATION MATRIX (E0-E7) */}
           {activeTab === 'ABLATION' && (
@@ -611,3 +617,4 @@ export const EmpiricalBenchmarkModal: React.FC<EmpiricalBenchmarkModalProps> = (
 };
 
 export default EmpiricalBenchmarkModal;
+

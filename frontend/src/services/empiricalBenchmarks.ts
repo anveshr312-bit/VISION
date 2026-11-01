@@ -535,3 +535,4 @@ export async function fetchParityReport(): Promise<ParitySuiteReport> {
     checks: FROZEN_PARITY_CHECKS,
   };
 }
+
