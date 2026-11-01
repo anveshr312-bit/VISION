@@ -991,6 +991,9 @@ export function StageDegradationMap({
   engine,
   onWaterWash,
   onNavigateToDossier,
+  onCycleScrub,
+  onReturnToOverview,
+  isOverlay = false,
 }) {
   const [selectedStageId, setSelectedStageId] = useState('HPC_MID_3_4');
   const [cutawayMode, setCutawayMode] = useState('HEALTH_MAP'); // 'HEALTH_MAP' | 'THERMAL_MAP' | 'CLEARANCE_MAP'
@@ -1006,11 +1009,18 @@ export function StageDegradationMap({
   });
   const [directiveFeedback, setDirectiveFeedback] = useState(null);
   const [localWaterWashDone, setLocalWaterWashDone] = useState(false);
+  const [view3DMode, setView3DMode] = useState(true);
 
   const isWaterWashed = Boolean(engine?.waterWashApplied || localWaterWashDone);
   const activeEngineId = engine?.id || 'ESN-787-034';
   const activeTailId = engine?.tailId || 'N787-17';
   const activeCycleNumber = CYCLE_COLUMNS[selectedCycleIdx] ?? 142;
+
+  useEffect(() => {
+    if (onCycleScrub) {
+      onCycleScrub(activeCycleNumber);
+    }
+  }, [activeCycleNumber, onCycleScrub]);
 
   // Compute live stage health & metrics (boosted if AMM 72-00-00 water wash was executed)
   const stagesWithLiveState = AXIAL_GAS_PATH_STAGES.map((stg) => {
@@ -1244,8 +1254,24 @@ export function StageDegradationMap({
   return (
     <div
       data-testid="stage-degradation-map-screen"
-      className="max-w-[1440px] mx-auto px-6 lg:px-8 py-5 space-y-5 text-[#EAECE9]"
+      className={`max-w-[1440px] mx-auto px-6 lg:px-8 py-5 space-y-5 text-[#EAECE9] ${
+        isOverlay ? "bg-[#111A19]/45 backdrop-blur-sm rounded-[28px] border border-white/10 my-4 shadow-2xl" : ""
+      }`}
     >
+      {onReturnToOverview && (
+        <div className="flex items-center justify-between pb-1">
+          <button
+            type="button"
+            onClick={onReturnToOverview}
+            className="px-4 py-1.5 rounded-full bg-[#232725] hover:bg-[#B8CE82] text-[#EAECE9] hover:text-[#181B19] border border-white/15 text-xs font-mono flex items-center gap-2 transition-all cursor-pointer shadow-md"
+          >
+            <span>← Return to 3D Digital Twin Overview</span>
+          </button>
+          <span className="text-xs font-mono text-[#B8CE82] hidden sm:inline">
+            3D Twin Persistence Active · Time-Scrubbing Modulates Thermal Gradient
+          </span>
+        </div>
+      )}
       {/* Editorial Section Header matching Overview section aesthetic */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1.5">
@@ -1308,36 +1334,130 @@ export function StageDegradationMap({
               </p>
             </div>
 
-            {/* 3-Mode Overlay Capsule Switcher */}
-            <div
-              className="flex items-center bg-[#1B1F1D] border border-white/[0.08] p-1 rounded-full"
-              role="group"
-              aria-label="Degradation Map Layer Mode"
-            >
-              {[
-                { id: 'HEALTH_MAP', label: 'Stage Health' },
-                { id: 'THERMAL_MAP', label: 'Thermal & Gas' },
-                { id: 'CLEARANCE_MAP', label: 'Tip Clearance' },
-              ].map((m) => (
+            {/* 3D vs 2D Engine Viewport Switcher + Layer Mode */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center bg-[#1B1F1D] border border-white/[0.08] p-1 rounded-full">
                 <button
-                  key={m.id}
                   type="button"
-                  data-testid={`cutaway-mode-${m.id}`}
-                  onClick={() => setCutawayMode(m.id)}
-                  className={`px-3 py-1 rounded-full text-[11px] transition-all cursor-pointer ${
-                    cutawayMode === m.id
-                      ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-xs'
+                  data-testid="toggle-view-3d"
+                  onClick={() => setView3DMode(true)}
+                  className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all cursor-pointer ${
+                    view3DMode
+                      ? 'bg-[#B8CE82] text-[#181B19] font-bold shadow-xs'
                       : 'text-[#949C96] hover:text-[#EAECE9]'
                   }`}
                 >
-                  {m.label}
+                  3D Engine Twin
                 </button>
-              ))}
+                <button
+                  type="button"
+                  data-testid="toggle-view-2d"
+                  onClick={() => setView3DMode(false)}
+                  className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all cursor-pointer ${
+                    !view3DMode
+                      ? 'bg-[#DCE0D9] text-[#181B19] font-bold shadow-xs'
+                      : 'text-[#949C96] hover:text-[#EAECE9]'
+                  }`}
+                >
+                  2D Cutaway CAD
+                </button>
+              </div>
+
+              {!view3DMode && (
+                <div
+                  className="flex items-center bg-[#1B1F1D] border border-white/[0.08] p-1 rounded-full"
+                  role="group"
+                  aria-label="Degradation Map Layer Mode"
+                >
+                  {[
+                    { id: 'HEALTH_MAP', label: 'Stage Health' },
+                    { id: 'THERMAL_MAP', label: 'Thermal & Gas' },
+                    { id: 'CLEARANCE_MAP', label: 'Tip Clearance' },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      data-testid={`cutaway-mode-${m.id}`}
+                      onClick={() => setCutawayMode(m.id)}
+                      className={`px-3 py-1 rounded-full text-[11px] transition-all cursor-pointer ${
+                        cutawayMode === m.id
+                          ? 'bg-[#DCE0D9] text-[#181B19] font-semibold shadow-xs'
+                          : 'text-[#949C96] hover:text-[#EAECE9]'
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Interactive SVG Cross-Sectional Turbofan Cutaway Diagram */}
-          <div className="relative bg-[#181C1A]/95 border border-white/[0.07] rounded-2xl p-3 overflow-hidden">
+          {/* Interactive 3D Digital Twin Viewport Portal or 2D Cross-Sectional Diagram */}
+          {view3DMode ? (
+            <div className="relative bg-[#181C1A]/20 border border-[#B8CE82]/30 rounded-2xl p-4 overflow-hidden min-h-[250px] sm:min-h-[275px] flex flex-col justify-between backdrop-blur-[2px]">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="flex items-center gap-2 text-[#B8CE82]">
+                  <span className="w-2 h-2 rounded-full bg-[#B8CE82] animate-pulse" />
+                  <span className="font-bold">3D DIGITAL TWIN · TIME-SCRUBBED DEGRADATION SHADER</span>
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-[#181B19]/80 text-[#B8CE82] border border-[#B8CE82]/40 text-[10px] font-bold">
+                  Cycle {activeCycleNumber} / 142 ({((activeCycleNumber / 142) * 100).toFixed(0)}% Degradation)
+                </span>
+              </div>
+
+              <div className="my-auto py-3 text-center pointer-events-none select-none">
+                <div className="inline-flex flex-col items-center gap-1.5 px-6 py-2.5 rounded-2xl bg-[#141715]/75 backdrop-blur-md border border-white/10 shadow-xl">
+                  <div className="flex items-center gap-2 text-xs font-mono text-[#EAECE9]">
+                    <span className="text-[#B8CE82] font-bold">● Active 3D Degradation Gradient:</span>
+                    <span className="font-semibold text-white">
+                      {activeCycleNumber === 0
+                        ? 'Cycle 0: Baseline Cool Emerald (Nominal)'
+                        : activeCycleNumber <= 50
+                          ? `Cycle ${activeCycleNumber}: Initial Gas-Path Thermal Equilibrium`
+                          : activeCycleNumber <= 85
+                            ? `Cycle ${activeCycleNumber}: Mid-Life Inflection Amber Gradient`
+                            : `Cycle ${activeCycleNumber}: Late-Stage Severe Crimson Thermal Creep`}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#949C96] font-mono max-w-lg">
+                    3D Trent 1000 engine core stages reflect real-time GLSL degradation heatmaps. Use the cycle buttons below to scrub the operational timeline.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-2 pt-2.5 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border ${activeTone.badgeBg}`}>
+                    {activeStage.station} · {activeStage.statusBadge}
+                  </span>
+                  <span className="font-mono font-bold text-[#EAECE9]">
+                    {activeStage.shortName}
+                  </span>
+                  <span className="text-[#949C96] font-mono text-[11px]">
+                    ({activeStage.spool})
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono">
+                  <span className="text-[#949C96]">
+                    Health @ Cycle {activeCycleNumber}:{' '}
+                    <strong className={activeTone.text}>{activeStage.scrubbedHealthPct}%</strong>
+                  </span>
+                  <span className="text-[#949C96]">
+                    Tip Gap: <strong className="text-[#EAECE9]">{activeStage.tipClearanceCurrentMm.toFixed(2)}mm</strong>
+                  </span>
+                  <span className="text-[#949C96]">
+                    Gas Temp: <strong className="text-[#D8B65E]">{activeStage.stationTempR.toFixed(0)}°R</strong>
+                  </span>
+                  <span className="text-[#949C96]">
+                    Press: <strong className="text-[#B8CE82]">{activeStage.stationPressPsia.toFixed(1)} psia</strong>
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="relative bg-[#181C1A]/95 border border-white/[0.07] rounded-2xl p-3 overflow-hidden">
             <svg
               viewBox="0 0 880 305"
               className="w-full h-[250px] sm:h-[275px] select-none overflow-visible"
@@ -1665,6 +1785,7 @@ export function StageDegradationMap({
               </div>
             </div>
           </div>
+          )}
 
           {/* Interactive Cycle Time-Travel Scrubber Bar (Cycle 0 -> Cycle 85 Inflection -> Cycle 142 Current) */}
           <div className="bg-[#1B1F1D]/90 border border-white/[0.07] rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-4">

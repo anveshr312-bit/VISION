@@ -37,6 +37,8 @@ interface DigitalTwinViewportProps {
   onNavigateToDiagnostics?: () => void;
   actionBanner: string | null;
   dataSource?: string;
+  isDiagnosticsMode?: boolean;
+  scrubbedCycle?: number;
 }
 
 const STAGE_ORDER: StageId[] = ['FAN', 'LPC', 'HPC', 'COMBUSTOR', 'HPT', 'LPT'];
@@ -76,6 +78,8 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
   onNavigateToDossier,
   actionBanner,
   dataSource = 'NASA_CMAPSS_BENCHMARK',
+  isDiagnosticsMode = false,
+  scrubbedCycle,
 }) => {
   const canvasMountRef = useRef<HTMLDivElement | null>(null);
   const pinOverlayRef = useRef<HTMLDivElement | null>(null);
@@ -115,6 +119,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     cameraTransitionActive: true,
     desiredCamPos: new THREE.Vector3(11.6, 2.25, 11.1),
     desiredCamTarget: new THREE.Vector3(0.05, -0.25, 0.0),
+    sensorFaultActive: engine.sensorFaultActive,
+    scrubbedCycle: scrubbedCycle,
+    isDiagnosticsMode: isDiagnosticsMode,
   });
 
   useEffect(() => {
@@ -129,6 +136,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     stateRef.current.t24 = engine.t24;
     stateRef.current.t30 = engine.t30;
     stateRef.current.t50 = engine.t50;
+    stateRef.current.sensorFaultActive = engine.sensorFaultActive;
+    stateRef.current.scrubbedCycle = scrubbedCycle;
+    stateRef.current.isDiagnosticsMode = isDiagnosticsMode;
   }, [
     selectedStage,
     cowlingOpen,
@@ -194,6 +204,48 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     stateRef.current.desiredCamTarget.set(0.05, -0.25, 0.0);
     stateRef.current.cameraTransitionActive = true;
   };
+
+  // Automated Sensor Fault Camera Focus, Blinking Beacon & Cutaway
+  const prevFaultRef = useRef<boolean>(engine.sensorFaultActive);
+  useEffect(() => {
+    if (engine.sensorFaultActive && !prevFaultRef.current) {
+      setSelectedStage('HPC');
+      setActiveBarKey('HPC');
+      setCowlingOpen(true);
+      setBlueprintXray(true);
+      setExplodedSlider(0.48);
+      const rotY = -Math.PI * 0.36;
+      // Close-up zoomed camera position right on the HPC compressor blisks and T30 thermocouple
+      const localCam = new THREE.Vector3(3.2, 1.8, 2.4);
+      localCam.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY);
+      const localTarget = new THREE.Vector3(0.0, 0.45, 0.2);
+      localTarget.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotY);
+      stateRef.current.desiredCamPos.copy(localCam);
+      stateRef.current.desiredCamTarget.copy(localTarget);
+      stateRef.current.cameraTransitionActive = true;
+    } else if (!engine.sensorFaultActive && prevFaultRef.current) {
+      handleResetCamera();
+    }
+    prevFaultRef.current = engine.sensorFaultActive;
+  }, [engine.sensorFaultActive]);
+
+  // Diagnostics Mode 3D Adaptation: Expose Core Stages, Activate Blueprint & Thermal Shader
+  useEffect(() => {
+    if (isDiagnosticsMode) {
+      setCowlingOpen(true);
+      setBlueprintXray(true);
+      setThermalHeatmap(true);
+      stateRef.current.desiredCamPos.set(9.8, 1.8, 8.5);
+      stateRef.current.desiredCamTarget.set(0.0, -0.1, 0.0);
+      stateRef.current.cameraTransitionActive = true;
+    } else if (!engine.sensorFaultActive) {
+      setCowlingOpen(false);
+      setBlueprintXray(false);
+      stateRef.current.desiredCamPos.set(11.6, 2.25, 11.1);
+      stateRef.current.desiredCamTarget.set(0.05, -0.25, 0.0);
+      stateRef.current.cameraTransitionActive = true;
+    }
+  }, [isDiagnosticsMode]);
 
   useEffect(() => {
     const container = canvasMountRef.current;
@@ -293,6 +345,33 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
     const assembly = buildTrent1000CutawayModel(renderer);
     assembly.rootGroup.position.y = 0.35;
     scene.add(assembly.rootGroup);
+
+    // 3D Sensor Fault Blinking Beacon at HPC Station 30 (Z = +0.2, Y = +1.35)
+    const sensorFaultBeacon = new THREE.Group();
+    sensorFaultBeacon.position.set(0, 1.35, 0.2);
+
+    const beaconCoreGeom = new THREE.SphereGeometry(0.12, 16, 16);
+    const beaconCoreMat = new THREE.MeshBasicMaterial({
+      color: 0xff2222,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const beaconCoreMesh = new THREE.Mesh(beaconCoreGeom, beaconCoreMat);
+    sensorFaultBeacon.add(beaconCoreMesh);
+
+    const beaconRingGeom = new THREE.RingGeometry(0.16, 0.32, 32);
+    const beaconRingMat = new THREE.MeshBasicMaterial({
+      color: 0xff3b30,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.8,
+    });
+    const beaconRingMesh = new THREE.Mesh(beaconRingGeom, beaconRingMat);
+    beaconRingMesh.rotation.x = Math.PI / 2;
+    sensorFaultBeacon.add(beaconRingMesh);
+
+    sensorFaultBeacon.visible = Boolean(engine.sensorFaultActive);
+    assembly.rootGroup.add(sensorFaultBeacon);
 
     // OrbitControls
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -450,17 +529,41 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       const normT30 = Math.max(0.0, Math.min(1.0, (st.t30 - 1540) / 75));
       const normT50 = Math.max(0.0, Math.min(1.0, (st.t50 - 1350) / 100));
 
+      // Animate 3D Sensor Fault Beacon
+      const isFault = Boolean(st.sensorFaultActive);
+      sensorFaultBeacon.visible = isFault;
+      if (isFault) {
+        const pulse = Math.sin(clock.elapsedTime * 6.0) * 0.5 + 0.5;
+        beaconRingMesh.scale.setScalar(1.0 + 0.9 * pulse);
+        beaconRingMat.opacity = 0.8 * (1.0 - pulse);
+        beaconCoreMat.opacity = 0.4 + 0.6 * Math.abs(Math.sin(clock.elapsedTime * 10.0));
+      }
+
+      // Thermal Heatmap & Diagnostics Cycle Progression Gradient
+      const activeCyc = st.scrubbedCycle ?? (st.isDiagnosticsMode ? 142 : engine.flightCycles);
+      const degradRatio = Math.max(0.0, Math.min(1.0, activeCyc / 142));
+
       assembly.thermalMaterials.forEach((item) => {
         const isSelectedInner =
           st.selectedStage !== null && item.stageId === st.selectedStage && !item.isOuterShell;
         const isSelectedShroud =
           st.selectedStage !== null && item.stageId === st.selectedStage && item.isOuterShell;
 
-        item.shaderUniforms.uThermalActive.value = THREE.MathUtils.lerp(
-          item.shaderUniforms.uThermalActive.value,
-          st.thermalHeatmap ? 1.0 : 0.0,
-          0.25
-        );
+        const isCoreStage = item.stageId === 'HPC' || item.stageId === 'COMBUSTOR' || item.stageId === 'HPT';
+        const stageFactor = isCoreStage ? degradRatio : degradRatio * 0.4;
+
+        if (st.isDiagnosticsMode) {
+          item.shaderUniforms.uThermalActive.value = 1.0;
+          item.shaderUniforms.uT30Norm.value = 0.2 + 0.75 * Math.pow(stageFactor, 1.4);
+          item.shaderUniforms.uT50Norm.value = 0.2 + 0.7 * Math.pow(stageFactor, 1.4);
+          item.shaderUniforms.uStageHeatWeight.value = 0.2 + 0.8 * stageFactor;
+        } else {
+          item.shaderUniforms.uThermalActive.value = THREE.MathUtils.lerp(
+            item.shaderUniforms.uThermalActive.value,
+            st.thermalHeatmap ? 1.0 : 0.0,
+            0.25
+          );
+        }
         item.shaderUniforms.uT24Norm.value = normT24;
         item.shaderUniforms.uT30Norm.value = normT30;
         item.shaderUniforms.uT50Norm.value = normT50;
@@ -609,7 +712,82 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
 
     tick();
 
-    return () => {
+    // Dynamic Flight Cycle Trend Graph (Updates dynamically per active dataset & engine cycles)
+  const trendData = useMemo(() => {
+    if (dataSource === 'NASA_NCMAPSS_TRANSIENT') {
+      return {
+        title: 'Mission Flight Spool Profile',
+        badge: '+4.2% Takeoff Surge',
+        badgeColor: '#B8CE82',
+        badgeBg: 'bg-[#B8CE82]/20 border border-[#B8CE82]/30',
+        yMax: '100% N1',
+        yMid: '90%',
+        yMin: '80%',
+        xLabels: ['Taxi', 'Takeoff', 'Climb', 'FL370', 'Reverse'],
+        pathD: 'M 40 82 C 60 78, 80 18, 105 18 C 130 20, 155 42, 190 44 C 215 45, 225 75, 236 80',
+        areaD: 'M 40 82 C 60 78, 80 18, 105 18 C 130 20, 155 42, 190 44 C 215 45, 225 75, 236 80 L 236 92 L 40 92 Z',
+        endPoint: { cx: 236, cy: 80 },
+        strokeColor: '#B8CE82',
+        gradientId: 'cycleTrendFillNCMAPSS',
+      };
+    }
+    if (dataSource === 'ARINC_429_ACARS_EHM') {
+      return {
+        title: 'ACARS EGT Margin Trend',
+        badge: '+14.2°C Margin',
+        badgeColor: '#82A995',
+        badgeBg: 'bg-[#82A995]/20 border border-[#82A995]/30',
+        yMax: '+25°C',
+        yMid: '+15°C',
+        yMin: '+5°C',
+        xLabels: ['Leg -4', 'Leg -3', 'Leg -2', 'Leg -1', 'Live'],
+        pathD: 'M 40 32 C 75 35, 110 38, 145 42 C 180 46, 210 50, 236 52',
+        areaD: 'M 40 32 C 75 35, 110 38, 145 42 C 180 46, 210 50, 236 52 L 236 92 L 40 92 Z',
+        endPoint: { cx: 236, cy: 52 },
+        strokeColor: '#82A995',
+        gradientId: 'cycleTrendFillACARS',
+      };
+    }
+    if (dataSource === 'FAA_PHYSICAL_MAINTENANCE') {
+      const rem = engine.llpLimitCycles - engine.llpAccumulatedCycles;
+      return {
+        title: 'FAA § 33.70 LLP Disk Clock',
+        badge: `${rem}c Scrap Margin`,
+        badgeColor: '#D97865',
+        badgeBg: 'bg-[#D97865]/20 border border-[#D97865]/30',
+        yMax: '15,000c Cap',
+        yMid: '14,500c',
+        yMin: '14,000c',
+        xLabels: ['Insp-A', 'Insp-B', 'Insp-C', 'Insp-D', 'Current'],
+        pathD: 'M 40 88 C 75 80, 110 65, 150 48 C 185 34, 215 24, 236 20',
+        areaD: 'M 40 88 C 75 80, 110 65, 150 48 C 185 34, 215 24, 236 20 L 236 92 L 40 92 Z',
+        endPoint: { cx: 236, cy: 20 },
+        strokeColor: '#D97865',
+        gradientId: 'cycleTrendFillFAA',
+      };
+    }
+    // Default: NASA C-MAPSS Benchmark Degradation Progression
+    const cyc = engine.flightCycles;
+    const rul = engine.conformalRul;
+    const rate = ((125 - rul) / Math.max(1, cyc) * 10).toFixed(1);
+    return {
+      title: 'Flight Cycle Degradation Trend',
+      badge: `-${rate}% / 10c`,
+      badgeColor: rul < 20 ? '#D97865' : '#B8CE82',
+      badgeBg: rul < 20 ? 'bg-[#D97865]/20 border border-[#D97865]/30' : 'bg-[#B8CE82]/20 border border-[#B8CE82]/30',
+      yMax: '125c RUL',
+      yMid: '60c',
+      yMin: '0c',
+      xLabels: ['0c', `c${Math.round(cyc * 0.33)}`, `c${Math.round(cyc * 0.66)}`, `c${cyc}`, `+${rul.toFixed(0)}c`],
+      pathD: 'M 40 24 C 80 28, 120 45, 160 62 C 190 74, 215 82, 236 86',
+      areaD: 'M 40 24 C 80 28, 120 45, 160 62 C 190 74, 215 82, 236 86 L 236 92 L 40 92 Z',
+      endPoint: { cx: 236, cy: 86 },
+      strokeColor: rul < 20 ? '#D97865' : '#B8CE82',
+      gradientId: 'cycleTrendFillCMAPSS',
+    };
+  }, [dataSource, engine.flightCycles, engine.conformalRul, engine.llpAccumulatedCycles, engine.llpLimitCycles]);
+
+  return () => {
       isUnmounted = true;
       cancelAnimationFrame(frameId);
       clearTimeout(frameId);
@@ -705,6 +883,28 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
         data-testid="digital-twin-canvas"
         className="absolute inset-0 z-10 w-full h-full cursor-grab active:cursor-grabbing"
       />
+
+      {/* Floating Sensor Drift Fault Warning Banner */}
+      {engine.sensorFaultActive && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto backdrop-blur-2xl bg-[#D97865]/95 border border-[#D97865] rounded-2xl px-5 py-2.5 shadow-[0_12px_40px_rgba(217,120,101,0.5)] flex items-center gap-3 text-[#181B19] animate-bounce">
+          <ShieldAlert className="w-5 h-5 shrink-0 text-[#181B19]" />
+          <div>
+            <div className="text-xs font-mono font-bold uppercase tracking-wider">
+              SENSOR DRIFT FAULT DETECTED: HPC T30 THERMOCOUPLE (+45°R BIAS)
+            </div>
+            <div className="text-[10px] font-mono opacity-90">
+              DO-178C SENSOR_FAULT_ABSTAIN · 3D Cutaway Focus Active · Inner Blades Exposed
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onToggleSensorFault(engine.id)}
+            className="ml-2 px-3 py-1 rounded-xl bg-[#181B19] text-[#EAECE9] hover:bg-black font-mono text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+          >
+            Clear Fault
+          </button>
+        </div>
+      )}
 
       {/* Action Notification Pill */}
       {actionBanner && (
@@ -932,83 +1132,96 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       )}
 
       {/* =====================================================================
-          LEFT COLUMN (MATCHES REFERENCE: "Engine Health at a Glance" + "Flight Cycle Trend")
+          LEFT COLUMN (ACTUAL ENGINE TELEMETRY + DYNAMIC FLIGHT CYCLE TREND)
          ===================================================================== */}
       {!hudCollapsed && (
         <aside
           aria-label="Active Engine Prognostics HUD"
-          className="absolute top-4 left-6 lg:left-8 z-20 w-[300px] space-y-6 pointer-events-none"
+          className={`absolute top-4 left-6 lg:left-8 z-20 w-[308px] space-y-4 pointer-events-none transition-all duration-700 ease-in-out ${
+            isDiagnosticsMode ? '-translate-x-[160%] opacity-0' : 'translate-x-0 opacity-100'
+          }`}
         >
-          {/* Top-Left Editorial Hero Block */}
-          <div className="pointer-events-auto space-y-2.5">
+          {/* Top-Left Editorial Hero Block with Actual Engine Data */}
+          <div className="pointer-events-auto space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm font-bold text-[#EAECE9] tracking-wider bg-[#2B302D] px-2.5 py-0.5 rounded-lg border border-white/10">
+                {engine.id}
+              </span>
+              <span className="text-[11px] font-mono text-[#949C96]">
+                {engine.tailId} · {engine.wingPosition === 'ENG-L' ? 'Port Wing' : 'Starboard Wing'}
+              </span>
+            </div>
+
             {dataSource === 'FAA_PHYSICAL_MAINTENANCE' ? (
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#D97865]/20 border border-[#D97865]/40 text-xs text-[#F2D5CF]">
+              <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#D97865]/20 border border-[#D97865]/40 text-xs text-[#F2D5CF]">
                 <span className="w-2 h-2 rounded-full bg-[#D97865] animate-pulse" />
                 <span>FAA § 33.70 Physical Dossier</span>
               </div>
             ) : dataSource === 'NASA_NCMAPSS_TRANSIENT' ? (
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#82A995]/20 border border-[#B8CE82]/40 text-xs text-[#EAECE9]">
+              <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#82A995]/20 border border-[#B8CE82]/40 text-xs text-[#EAECE9]">
                 <span className="w-2 h-2 rounded-full bg-[#B8CE82] animate-pulse" />
                 <span>N-CMAPSS · 1 Hz Flight Mission</span>
               </div>
             ) : dataSource === 'ARINC_429_ACARS_EHM' ? (
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#82A995]/20 border border-[#82A995]/40 text-xs text-[#EAECE9]">
+              <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#82A995]/20 border border-[#82A995]/40 text-xs text-[#EAECE9]">
                 <span className="w-2 h-2 rounded-full bg-[#82A995]" />
                 <span>ARINC 429 · ACARS SATCOM</span>
               </div>
             ) : (
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#232725]/90 border border-white/15 text-xs text-[#EAECE9]">
+              <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#232725]/90 border border-white/15 text-xs text-[#EAECE9]">
                 <span className="w-2 h-2 rounded-full bg-[#B8CE82]" />
                 <span>Trent 1000 · C-MAPSS Baseline</span>
               </div>
             )}
 
-            <h2 className="text-[36px] leading-[1.12] font-normal tracking-tight text-[#EAECE9]">
-              Engine Health
-              <br />
-              at a Glance
+            <h2 className="text-[34px] leading-[1.08] font-normal tracking-tight text-[#EAECE9]">
+              {engine.flightCycles}
+              <span className="text-lg text-[#949C96] ml-2 font-light">Spool Cycles</span>
             </h2>
 
-            <p className="text-[13px] text-[#949C96]">
-              Digital Twin &amp; Predictive Maintenance
+            <p className="text-[12px] text-[#949C96]">
+              Conformal RUL: <strong className="text-[#B8CE82] font-mono">{engine.conformalRul.toFixed(1)}c</strong>{' '}
+              <span className="font-mono text-[11px]">[{engine.conformalLower90.toFixed(1)}, {engine.conformalUpper90.toFixed(1)}]c</span>
             </p>
           </div>
 
-          {/* Middle-Left Card: Flight Cycle Trend */}
+          {/* Middle-Left Card: Dynamic Flight Cycle Trend */}
           <div className="pointer-events-auto backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-[14px] font-normal text-[#EAECE9]">Flight Cycle Trend</h3>
-              <span className="text-[13px] font-medium text-[#B8CE82] tabular-nums">+2.8% ↑</span>
+              <h3 className="text-[14px] font-normal text-[#EAECE9]">{trendData.title}</h3>
+              <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${trendData.badgeBg} tabular-nums`} style={{ color: trendData.badgeColor }}>
+                {trendData.badge}
+              </span>
             </div>
 
-            {/* Smooth Spline Area Chart (Jun - Oct, 8.0 - 16.0) */}
+            {/* Smooth Dynamic Spline Area Chart */}
             <div className="pt-1">
               <svg
                 viewBox="0 0 250 120"
                 className="w-full h-[116px] overflow-visible"
-                aria-label="Flight Cycle Trend Chart"
+                aria-label={trendData.title}
               >
                 <defs>
-                  <linearGradient id="cycleTrendFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#B8CE82" stopOpacity="0.28" />
-                    <stop offset="100%" stopColor="#B8CE82" stopOpacity="0.0" />
+                  <linearGradient id={trendData.gradientId} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={trendData.strokeColor} stopOpacity="0.32" />
+                    <stop offset="100%" stopColor={trendData.strokeColor} stopOpacity="0.0" />
                   </linearGradient>
                 </defs>
 
                 {/* Horizontal Grid Lines & Y-Axis Labels */}
                 <line x1="34" y1="16" x2="242" y2="16" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-                <text x="0" y="20" fontSize="10" fill="#949C96" className="font-mono">
-                  16.0
+                <text x="0" y="20" fontSize="9" fill="#949C96" className="font-mono">
+                  {trendData.yMax}
                 </text>
 
                 <line x1="34" y1="54" x2="242" y2="54" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-                <text x="0" y="58" fontSize="10" fill="#949C96" className="font-mono">
-                  12.0
+                <text x="0" y="58" fontSize="9" fill="#949C96" className="font-mono">
+                  {trendData.yMid}
                 </text>
 
                 <line x1="34" y1="92" x2="242" y2="92" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-                <text x="5" y="96" fontSize="10" fill="#949C96" className="font-mono">
-                  8.0
+                <text x="0" y="96" fontSize="9" fill="#949C96" className="font-mono">
+                  {trendData.yMin}
                 </text>
 
                 {/* Left Vertical Axis Line */}
@@ -1016,38 +1229,37 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
 
                 {/* Area under curve */}
                 <path
-                  d="M 40 86 C 65 82, 82 54, 110 52 C 142 50, 165 48, 190 40 C 210 34, 224 27, 236 22 L 236 92 L 40 92 Z"
-                  fill="url(#cycleTrendFill)"
+                  d={trendData.areaD}
+                  fill={`url(#${trendData.gradientId})`}
                 />
 
-                {/* Smooth Sage-Lime Trend Curve */}
+                {/* Smooth Trend Curve */}
                 <path
-                  d="M 40 86 C 65 82, 82 54, 110 52 C 142 50, 165 48, 190 40 C 210 34, 224 27, 236 22"
+                  d={trendData.pathD}
                   fill="none"
-                  stroke="#B8CE82"
-                  strokeWidth="2.2"
+                  stroke={trendData.strokeColor}
+                  strokeWidth="2.4"
                   strokeLinecap="round"
                 />
 
-                {/* Glowing End Point at Oct */}
-                <circle cx="236" cy="22" r="4.5" fill="#B8CE82" />
+                {/* Glowing End Point */}
+                <circle
+                  cx={trendData.endPoint.cx}
+                  cy={trendData.endPoint.cy}
+                  r="4.5"
+                  fill={trendData.strokeColor}
+                  className="animate-pulse"
+                />
 
-                {/* X-Axis Month Labels */}
-                <text x="36" y="112" fontSize="10" fill="#949C96">
-                  Jun
-                </text>
-                <text x="84" y="112" fontSize="10" fill="#949C96">
-                  Jul
-                </text>
-                <text x="130" y="112" fontSize="10" fill="#949C96">
-                  Aug
-                </text>
-                <text x="178" y="112" fontSize="10" fill="#949C96">
-                  Sep
-                </text>
-                <text x="224" y="112" fontSize="10" fill="#949C96">
-                  Oct
-                </text>
+                {/* X-Axis Cycle / Phase Labels */}
+                {trendData.xLabels.map((lbl, idx) => {
+                  const xPos = 36 + idx * 46;
+                  return (
+                    <text key={lbl} x={xPos} y="112" fontSize="9" fill="#949C96" className="font-mono">
+                      {lbl}
+                    </text>
+                  );
+                })}
               </svg>
             </div>
           </div>
@@ -1060,7 +1272,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       {!hudCollapsed && (
         <aside
           aria-label="Spool and Gas-Path Gauges HUD"
-          className="absolute top-4 right-6 lg:right-8 z-20 w-[308px] space-y-4 pointer-events-none"
+          className={`absolute top-4 right-6 lg:right-8 z-20 w-[308px] space-y-4 pointer-events-none transition-all duration-700 ease-in-out ${
+            isDiagnosticsMode ? 'translate-x-[160%] opacity-0' : 'translate-x-0 opacity-100'
+          }`}
         >
           {/* Top-Right Card: Operational Status (Adapts dynamically to active data stream) */}
           <div className="pointer-events-auto backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] space-y-4">
@@ -1234,7 +1448,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
       <div className="absolute bottom-4 left-6 right-6 lg:left-8 lg:right-8 z-20 flex flex-col items-center gap-3.5 pointer-events-none">
         {/* Center 7-Stage Selector Strip with Angled Bracket Lines (FAN | IPC | HPC | COMB | HPT | IPT | LPT) */}
         {!hudCollapsed && (
-          <div className="pointer-events-auto flex flex-col items-center gap-2">
+          <div className={`pointer-events-auto flex flex-col items-center gap-2 transition-all duration-700 ease-in-out ${
+            isDiagnosticsMode ? '-translate-y-[160%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+          }`}>
             {/* Bracket Line Row & Pill Buttons */}
             <div
               role="group"
@@ -1353,7 +1569,9 @@ export const DigitalTwinViewport: React.FC<DigitalTwinViewportProps> = ({
 
         {/* Bottom 3-Card Row (Matches Reference: Rolls-Royce Trent 1000 | Temperatures | High-Risk Alarms) */}
         {!hudCollapsed && (
-          <div className="pointer-events-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+          <div className={`pointer-events-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch transition-all duration-700 ease-in-out ${
+            isDiagnosticsMode ? 'translate-y-[160%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+          }`}>
             {/* Bottom-Left Card: Rolls-Royce Trent 1000 Specs */}
             <div className="lg:col-span-5 backdrop-blur-2xl bg-[#232725]/85 border border-white/[0.08] rounded-[24px] p-5 shadow-[0_16px_40px_rgba(0,0,0,0.45)] flex items-center justify-between gap-5">
               {/* Left RR Monogram & Engine Model Title */}

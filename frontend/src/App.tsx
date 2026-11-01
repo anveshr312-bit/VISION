@@ -9,7 +9,10 @@ import {
   AlertCircle,
   Activity,
   Database,
+  Plus,
+  Upload,
 } from 'lucide-react';
+import { UploadDatasetModal } from './components/UploadDatasetModal';
 import { api } from './services/api.js';
 import { TelemetryStreamClient } from './services/streamClient.js';
 import {
@@ -192,6 +195,41 @@ export default function App() {
   const [streamTicks, setStreamTicks] = useState<number>(0);
   const [activeDataSource, setActiveDataSource] = useState<AviationDataSource>('NASA_CMAPSS_BENCHMARK');
   const [missionPhaseInfo, setMissionPhaseInfo] = useState<string | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const [diagnosticsScrubbedCycle, setDiagnosticsScrubbedCycle] = useState<number>(142);
+
+  const handleDatasetIngested = (datasetName: string, customEngine?: Partial<EngineTelemetry>) => {
+    if (customEngine && customEngine.id) {
+      setFleet((prev) => {
+        const exists = prev.some((e) => e.id === customEngine.id);
+        if (exists) {
+          return prev.map((e) => (e.id === customEngine.id ? { ...e, ...customEngine } : e));
+        }
+        const base = prev[0] || generateInitialFleet()[0];
+        const newEng: EngineTelemetry = {
+          ...base,
+          id: customEngine.id!,
+          tailId: 'N787-99',
+          wingPosition: 'ENG-L',
+          flightCycles: customEngine.flightCycles ?? 168,
+          conformalRul: customEngine.conformalRul ?? 14.6,
+          conformalLower90: customEngine.conformalLower90 ?? 10.8,
+          conformalUpper90: customEngine.conformalUpper90 ?? 18.8,
+          hpcEfficiencyPct: customEngine.hpcEfficiencyPct ?? 82.4,
+          trajectory: buildEngineTrajectory(
+            customEngine.flightCycles ?? 168,
+            customEngine.conformalRul ?? 14.6,
+            1612.0,
+            false
+          ),
+        };
+        return [newEng, ...prev];
+      });
+      setSelectedEngineId(customEngine.id);
+    }
+    setActiveTab('DIGITAL_TWIN');
+    setActionBanner(`Successfully Ingested External Telemetry: ${datasetName} · Model Recalibrated`);
+  };
 
   const handleDataSourceChange = async (source: AviationDataSource) => {
     setActiveDataSource(source);
@@ -424,6 +462,17 @@ export default function App() {
             </span>
           </button>
 
+          {/* Small Plus Icon for External Telemetry / Dataset Ingestion (Fix 5) */}
+          <button
+            type="button"
+            onClick={() => setShowUploadModal(true)}
+            title="Upload External Telemetry / Dataset (CSV, JSON, ARINC 429)"
+            aria-label="Upload External Dataset"
+            className="w-7 h-7 rounded-full bg-[#232725] hover:bg-[#B8CE82] text-[#949C96] hover:text-[#181B19] border border-white/10 hover:border-[#B8CE82] flex items-center justify-center transition-all cursor-pointer shadow-sm group shrink-0"
+          >
+            <Plus className="w-4 h-4 transition-transform group-hover:rotate-90 duration-200" />
+          </button>
+
           {/* Subtle Aircraft Tail & Wing Pill Switcher */}
           <div className="hidden md:flex items-center gap-1.5 bg-[#232725]/90 border border-white/[0.08] rounded-full px-3 py-1 text-xs">
             <label htmlFor="tail-switcher" className="text-[11px] text-[#949C96]">
@@ -602,15 +651,7 @@ export default function App() {
             <Radio className={`w-3 h-3 ${isLiveStreaming ? 'animate-pulse text-[#B8CE82]' : 'text-[#949C96]'}`} />
             <span className="hidden sm:inline">{isLiveStreaming ? `SSE Active (${streamTicks})` : 'SSE Stream'}</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setShowSearchModal(true)}
-            title="Quick Search Fleet, Tail, or Engine Serial"
-            aria-label="Quick Search Fleet Navigator"
-            className="text-[#949C96] hover:text-[#B8CE82] transition-colors cursor-pointer p-1"
-          >
-            <Search className="w-[18px] h-[18px]" />
-          </button>
+
 
           <button
             type="button"
@@ -641,17 +682,40 @@ export default function App() {
       </header>
 
       {/* MAIN VIEWPORT CONTENT */}
-      <main className="flex-1 relative z-10">
-        {activeTab === 'DIGITAL_TWIN' && (
-          <DigitalTwinViewport
-            engine={activeEngine}
-            onWaterWash={handleWaterWash}
-            onToggleSensorFault={handleToggleSensorFault}
-            onNavigateToDossier={() => setActiveTab('AIRWORTHINESS')}
-            onNavigateToDiagnostics={() => setActiveTab('STAGE_DEGRADATION')}
-            actionBanner={actionBanner}
-            dataSource={activeDataSource}
-          />
+      <main className="flex-1 relative z-10 overflow-hidden">
+        {/* PERSISTENT 3D DIGITAL TWIN FOR BOTH OVERVIEW AND DIAGNOSTICS */}
+        {(activeTab === 'DIGITAL_TWIN' || activeTab === 'STAGE_DEGRADATION') && (
+          <div className="relative w-full h-full min-h-[calc(100vh-64px)]">
+            <DigitalTwinViewport
+              engine={activeEngine}
+              onWaterWash={handleWaterWash}
+              onToggleSensorFault={handleToggleSensorFault}
+              onNavigateToDossier={() => setActiveTab('AIRWORTHINESS')}
+              onNavigateToDiagnostics={() => setActiveTab('STAGE_DEGRADATION')}
+              actionBanner={actionBanner}
+              dataSource={activeDataSource}
+              isDiagnosticsMode={activeTab === 'STAGE_DEGRADATION'}
+              scrubbedCycle={diagnosticsScrubbedCycle}
+            />
+
+            {/* DIAGNOSTICS SLIDE-IN OVERLAY */}
+            <div
+              className={`absolute inset-0 z-20 overflow-y-auto transition-all duration-700 ease-in-out ${
+                activeTab === 'STAGE_DEGRADATION'
+                  ? 'translate-x-0 opacity-100 pointer-events-auto'
+                  : 'translate-x-[120%] opacity-0 pointer-events-none'
+              }`}
+            >
+              <StageDegradationMap
+                engine={activeEngine}
+                onWaterWash={handleWaterWash}
+                onNavigateToDossier={() => setActiveTab('AIRWORTHINESS')}
+                onCycleScrub={(cyc: number) => setDiagnosticsScrubbedCycle(cyc)}
+                onReturnToOverview={() => setActiveTab('DIGITAL_TWIN')}
+                isOverlay={true}
+              />
+            </div>
+          </div>
         )}
 
         {activeTab === 'FLEET_ETOPS' && (
@@ -659,14 +723,6 @@ export default function App() {
             fleet={fleet}
             selectedEngineId={activeEngine.id}
             onSelectEngineForTwin={handleSelectEngineFromFleet}
-          />
-        )}
-
-        {activeTab === 'STAGE_DEGRADATION' && (
-          <StageDegradationMap
-            engine={activeEngine}
-            onWaterWash={handleWaterWash}
-            onNavigateToDossier={() => setActiveTab('AIRWORTHINESS')}
           />
         )}
 
@@ -684,6 +740,14 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* EXTERNAL DATASET UPLOAD MODAL */}
+      {showUploadModal && (
+        <UploadDatasetModal
+          onClose={() => setShowUploadModal(false)}
+          onDatasetIngested={handleDatasetIngested}
+        />
+      )}
 
       {/* AIRCRAFT AND CHIEF ENGINEER PROFILE DOSSIER MODAL */}
       {showProfileModal && (

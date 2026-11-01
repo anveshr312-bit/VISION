@@ -34,6 +34,7 @@ export const AirworthinessDossierScreen: React.FC<AirworthinessDossierScreenProp
 }) => {
   const [certificateModalOpen, setCertificateModalOpen] = useState<boolean>(false);
   const [printConfirmNotice, setPrintConfirmNotice] = useState<boolean>(false);
+  const [certTemplateMode, setCertTemplateMode] = useState<'OFFICIAL_FORM' | 'DIGITAL_LEDGER'>('OFFICIAL_FORM');
   const [kalmanData, setKalmanData] = useState<any>(null);
   const [isLoadingKalman, setIsLoadingKalman] = useState<boolean>(false);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
@@ -576,33 +577,60 @@ export const AirworthinessDossierScreen: React.FC<AirworthinessDossierScreenProp
           role="dialog"
           aria-modal="true"
           aria-labelledby="faa-8130-modal-title"
-          className="fixed inset-0 z-50 bg-[#111A19]/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-[#111A19]/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
         >
-          <div className="backdrop-blur-2xl bg-[#232725]/95 border border-white/10 rounded-[24px] max-w-3xl w-full p-6 shadow-[0_24px_60px_rgba(0,0,0,0.75)] space-y-5 text-[#EAECE9]">
-            <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] pb-4">
+          <div className="backdrop-blur-2xl bg-[#232725]/95 border border-white/10 rounded-[24px] max-w-4xl w-full p-5 sm:p-6 shadow-[0_24px_60px_rgba(0,0,0,0.75)] space-y-4 text-[#EAECE9]">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
               <div>
                 <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#B8CE82]">
                   AUTHORIZED RELEASE CERTIFICATE · FAA FORM 8130-3 / EASA FORM 1
                 </div>
                 <h3
                   id="faa-8130-modal-title"
-                  className="text-base font-mono font-bold uppercase tracking-wider text-[#EAECE9] mt-1"
+                  className="text-base font-mono font-bold uppercase tracking-wider text-[#EAECE9] mt-0.5"
                 >
                   Airworthiness Approval Tag — Rolls-Royce Trent 1000 Turbofan
                 </h3>
               </div>
+
+              {/* View Switcher: Official FAA Template vs Digital Ledger */}
+              <div className="flex items-center gap-1.5 bg-[#1B1F1D] p-1 rounded-xl border border-white/10 text-xs font-mono">
+                <button
+                  type="button"
+                  onClick={() => setCertTemplateMode('OFFICIAL_FORM')}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    certTemplateMode === 'OFFICIAL_FORM'
+                      ? 'bg-[#B8CE82] text-[#181B19] font-bold shadow-sm'
+                      : 'text-[#949C96] hover:text-[#EAECE9]'
+                  }`}
+                >
+                  Official Form 8130-3 Template
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCertTemplateMode('DIGITAL_LEDGER')}
+                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                    certTemplateMode === 'DIGITAL_LEDGER'
+                      ? 'bg-[#B8CE82] text-[#181B19] font-bold shadow-sm'
+                      : 'text-[#949C96] hover:text-[#EAECE9]'
+                  }`}
+                >
+                  Digital Inspection Ledger
+                </button>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setCertificateModalOpen(false)}
                 aria-label="Close Certificate Modal"
-                className="p-1.5 rounded-xl bg-[#2B302D] hover:bg-[#343A36] text-[#EAECE9] border border-white/10 cursor-pointer"
+                className="p-1.5 rounded-xl bg-[#2B302D] hover:bg-[#343A36] text-[#EAECE9] border border-white/10 cursor-pointer ml-auto"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {printConfirmNotice && (
-              <div className="bg-[#B8CE82]/20 border border-[#B8CE82]/50 text-[#EAECE9] px-4 py-2.5 rounded-2xl text-xs font-mono flex items-center justify-between">
+              <div className="bg-[#B8CE82]/20 border border-[#B8CE82]/50 text-[#EAECE9] px-4 py-2 rounded-2xl text-xs font-mono flex items-center justify-between">
                 <span>
                   Official FAA Form 8130-3 formatted for print output (Tracking ID: {evaluation.trackingId}).
                 </span>
@@ -610,78 +638,252 @@ export const AirworthinessDossierScreen: React.FC<AirworthinessDossierScreenProp
               </div>
             )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-[#1B1F1D] p-4 rounded-2xl border border-white/[0.07]">
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
-                  1. Approving Authority
-                </span>
-                <span className="font-mono font-bold text-[#EAECE9]">FAA / EASA PART-145</span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
-                  3. Form Tracking Number
-                </span>
-                <span className="font-mono font-bold text-[#B8CE82] tabular-nums">
-                  {evaluation.trackingId}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
-                  4. Aircraft Tail / Wing
-                </span>
-                <span className="font-mono font-bold text-[#EAECE9] tabular-nums">
-                  {engine.tailId} ({engine.wingPosition})
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
-                  5. Engine Serial No.
-                </span>
-                <span className="font-mono font-bold text-[#EAECE9] tabular-nums">{engine.id}</span>
-              </div>
-            </div>
+            {/* VIEW 1: AUTHENTIC OFFICIAL FAA FORM 8130-3 IMAGE TEMPLATE WITH OVERLAYS */}
+            {certTemplateMode === 'OFFICIAL_FORM' && (
+              <div className="relative bg-white rounded-2xl overflow-hidden border border-black/20 shadow-2xl p-1 select-none max-h-[68vh] overflow-y-auto">
+                <div className="relative w-full">
+                  <img
+                    src="/assets/FAA_Form_8130-3.jpg"
+                    alt="FAA Form 8130-3 Official Airworthiness Approval Tag"
+                    className="w-full h-auto block rounded-xl"
+                  />
 
-            <div className="bg-[#1B1F1D] p-4 rounded-2xl border border-white/[0.07] space-y-3 text-xs">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-[#949C96]">
-                12. Remarks &amp; DO-178C Conformal Prognostics Airworthiness Verification
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3 rounded-xl bg-[#2B302D] border border-white/[0.08]">
-                  <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
-                    Conformal RUL (90% CI)
-                  </span>
-                  <span className="text-sm font-mono font-bold text-[#B8CE82] tabular-nums">
-                    {evaluation.conformalRul90Lower.toFixed(1)} cycles
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-[#2B302D] border border-white/[0.08]">
-                  <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
-                    14 CFR § 33.70 LLP Clock
-                  </span>
-                  <span className="text-sm font-mono font-bold text-[#EAECE9] tabular-nums">
-                    {evaluation.llpCyclesRemaining}c rem (of 15,000c)
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-[#2B302D] border border-white/[0.08]">
-                  <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
-                    Clopper-Pearson Risk
-                  </span>
-                  <span className="text-sm font-mono font-bold text-[#82A995] tabular-nums">
-                    ≤ {evaluation.clopperPearsonRiskPct}% (Exact Bound)
-                  </span>
-                </div>
-              </div>
-              <p className="text-[#949C96] leading-relaxed">
-                Certifies that the turbofan assembly identified above was inspected in accordance with{' '}
-                {evaluation.regulatoryCitation} and DO-178C Level-A air-gapped conformal prognostics.
-                Effective Dual-Constraint Dispatch Window:{' '}
-                <strong className="font-mono text-[#B8CE82] tabular-nums">
-                  {evaluation.effectiveDispatchLimitCycles.toFixed(1)} flight cycles
-                </strong>
-                .
-              </p>
-            </div>
+                  {/* Block 3: Form Tracking Number */}
+                  <div
+                    className="absolute text-blue-900 font-mono font-bold text-[8px] sm:text-[10px] md:text-[12px] tracking-tight pointer-events-none"
+                    style={{ top: '10.5%', left: '77%' }}
+                  >
+                    {evaluation.trackingId}
+                  </div>
 
+                  {/* Block 4: Organization Name and Address */}
+                  <div
+                    className="absolute text-blue-950 font-mono text-[7px] sm:text-[9px] md:text-[10px] leading-tight pointer-events-none"
+                    style={{ top: '13.8%', left: '7%' }}
+                  >
+                    <strong className="text-blue-900">Rolls-Royce / Boeing Fleet PHM Consortium</strong>
+                    <br />
+                    EASA/FAA Part-145 Certified Station #RR-787-EHM
+                  </div>
+
+                  {/* Block 5: Work Order / Contract / Invoice */}
+                  <div
+                    className="absolute text-blue-900 font-mono font-bold text-[7px] sm:text-[9px] md:text-[10px] pointer-events-none"
+                    style={{ top: '14.0%', left: '77%' }}
+                  >
+                    WO-72-31-{engine.id.split('-').pop()}
+                  </div>
+
+                  {/* Block 6: Item */}
+                  <div
+                    className="absolute text-blue-950 font-mono font-bold text-[8px] sm:text-[10px] pointer-events-none"
+                    style={{ top: '21.0%', left: '6.5%' }}
+                  >
+                    1
+                  </div>
+
+                  {/* Block 7: Description */}
+                  <div
+                    className="absolute text-blue-950 font-mono font-bold text-[7px] sm:text-[9px] md:text-[10px] pointer-events-none"
+                    style={{ top: '21.0%', left: '12%' }}
+                  >
+                    ROLLS-ROYCE TRENT 1000-TEN TURBOFAN ASSEMBLY
+                  </div>
+
+                  {/* Block 8: Part Number */}
+                  <div
+                    className="absolute text-blue-950 font-mono font-bold text-[7px] sm:text-[9px] md:text-[10px] pointer-events-none"
+                    style={{ top: '21.0%', left: '46%' }}
+                  >
+                    TRENT-1000-M10
+                  </div>
+
+                  {/* Block 9: Quantity */}
+                  <div
+                    className="absolute text-blue-950 font-mono font-bold text-[7px] sm:text-[9px] pointer-events-none"
+                    style={{ top: '21.0%', left: '65.5%' }}
+                  >
+                    1 EA
+                  </div>
+
+                  {/* Block 10: Serial Number */}
+                  <div
+                    className="absolute text-blue-900 font-mono font-bold text-[7px] sm:text-[9px] md:text-[10px] leading-tight pointer-events-none"
+                    style={{ top: '20.8%', left: '72%' }}
+                  >
+                    {engine.id}
+                    <br />
+                    <span className="text-[6.5px] sm:text-[8px] font-normal text-blue-800">
+                      Tail: {engine.tailId} ({engine.wingPosition})
+                    </span>
+                  </div>
+
+                  {/* Block 11: Status / Work */}
+                  <div
+                    className="absolute text-blue-950 font-mono font-bold text-[7px] sm:text-[8px] md:text-[9px] leading-tight pointer-events-none"
+                    style={{ top: '20.8%', left: '86%' }}
+                  >
+                    AIRWORTHY
+                    <br />
+                    <span className="text-[6px] sm:text-[7.5px] font-semibold text-emerald-800">
+                      DO-178C CONFORMAL
+                    </span>
+                  </div>
+
+                  {/* Block 12: Remarks (Prognostics and Safety Certifications) */}
+                  <div
+                    className="absolute text-blue-950 font-mono text-[6.5px] sm:text-[8px] md:text-[9.5px] leading-[1.3] pointer-events-none max-w-[44%]"
+                    style={{ top: '29.5%', left: '6%' }}
+                  >
+                    <div className="font-bold text-blue-900">
+                      AIRWORTHINESS APPROVAL PER FAA 14 CFR § 33.70 & EASA CS-E.515
+                    </div>
+                    <div>
+                      • CONFORMAL RUL (90% LOWER BOUND): <strong className="text-blue-900">{evaluation.conformalRul90Lower.toFixed(1)} FLIGHT CYCLES</strong>
+                    </div>
+                    <div>
+                      • HPT DISK LLP SCRAP MARGIN: <strong className="text-blue-900">{evaluation.llpCyclesRemaining}c</strong> ({engine.llpAccumulatedCycles.toLocaleString()} / 15,000c LIMIT)
+                    </div>
+                    <div>
+                      • GOVERNING DISPATCH CONSTRAINT: <strong className="text-blue-900">{evaluation.effectiveDispatchLimitCycles.toFixed(1)} CYCLES</strong> ({evaluation.governingConstraint.toUpperCase()})
+                    </div>
+                    <div>
+                      • CLOPPER-PEARSON RISK BOUND: <strong className="text-blue-900">≤ {evaluation.clopperPearsonRiskPct}%</strong> (EXACT BINOMIAL)
+                    </div>
+                    <div className="text-[5.5px] sm:text-[7.5px] text-gray-700 mt-1">
+                      Turbofan assembly inspected in accordance with Rolls-Royce Trent 1000 AMM 72-00-00. Digital twin state estimates verified against RTCA DO-178C Level-A deterministic prognostic margins.
+                    </div>
+                  </div>
+
+                  {/* Block 13b: Authorized Signature */}
+                  <div
+                    className="absolute text-blue-900 font-serif italic font-bold text-[9px] sm:text-[12px] md:text-[14px] pointer-events-none"
+                    style={{ top: '88.5%', left: '16%' }}
+                  >
+                    Capt. Harold Vance, PE
+                  </div>
+
+                  {/* Block 13c: Approval / Authorization No */}
+                  <div
+                    className="absolute text-blue-900 font-mono font-bold text-[7px] sm:text-[9px] pointer-events-none"
+                    style={{ top: '88.8%', left: '33%' }}
+                  >
+                    FAA-DER-88412-T1000
+                  </div>
+
+                  {/* Block 13d: Name */}
+                  <div
+                    className="absolute text-blue-950 font-mono text-[7px] sm:text-[9px] pointer-events-none"
+                    style={{ top: '93.5%', left: '16%' }}
+                  >
+                    Harold Vance, Lead Airworthiness DER
+                  </div>
+
+                  {/* Block 13e: Date */}
+                  <div
+                    className="absolute text-blue-950 font-mono font-bold text-[7px] sm:text-[9px] pointer-events-none"
+                    style={{ top: '93.5%', left: '33%' }}
+                  >
+                    {new Date().toISOString().split('T')[0]}
+                  </div>
+
+                  {/* Official FAA Approved Circular Stamp */}
+                  <div
+                    className="absolute pointer-events-none border-2 border-red-700/80 rounded-full w-12 h-12 sm:w-16 sm:h-16 flex flex-col items-center justify-center text-center rotate-[-12deg] bg-white/30 backdrop-blur-[0.5px]"
+                    style={{ top: '82%', left: '37%' }}
+                  >
+                    <span className="text-[5px] sm:text-[6.5px] font-mono font-bold text-red-700 leading-none">
+                      FAA AIRWORTHINESS
+                    </span>
+                    <span className="text-[7px] sm:text-[9px] font-mono font-extrabold text-red-800 my-0.5">
+                      APPROVED
+                    </span>
+                    <span className="text-[4.5px] sm:text-[6px] font-mono text-red-700 leading-none">
+                      PART-145 · EHM
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* VIEW 2: STRUCTURED DIGITAL INSPECTION LEDGER */}
+            {certTemplateMode === 'DIGITAL_LEDGER' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-[#1B1F1D] p-4 rounded-2xl border border-white/[0.07]">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
+                      1. Approving Authority
+                    </span>
+                    <span className="font-mono font-bold text-[#EAECE9]">FAA / EASA PART-145</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
+                      3. Form Tracking Number
+                    </span>
+                    <span className="font-mono font-bold text-[#B8CE82] tabular-nums">
+                      {evaluation.trackingId}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
+                      4. Aircraft Tail / Wing
+                    </span>
+                    <span className="font-mono font-bold text-[#EAECE9] tabular-nums">
+                      {engine.tailId} ({engine.wingPosition})
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
+                      5. Engine Serial No.
+                    </span>
+                    <span className="font-mono font-bold text-[#EAECE9] tabular-nums">{engine.id}</span>
+                  </div>
+                </div>
+
+                <div className="bg-[#1B1F1D] p-4 rounded-2xl border border-white/[0.07] space-y-3 text-xs">
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#949C96]">
+                    12. Remarks &amp; DO-178C Conformal Prognostics Airworthiness Verification
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="p-3 rounded-xl bg-[#2B302D] border border-white/[0.08]">
+                      <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
+                        Conformal RUL (90% CI)
+                      </span>
+                      <span className="text-sm font-mono font-bold text-[#B8CE82] tabular-nums">
+                        {evaluation.conformalRul90Lower.toFixed(1)} cycles
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-[#2B302D] border border-white/[0.08]">
+                      <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
+                        14 CFR § 33.70 LLP Clock
+                      </span>
+                      <span className="text-sm font-mono font-bold text-[#EAECE9] tabular-nums">
+                        {evaluation.llpCyclesRemaining}c rem (of 15,000c)
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-[#2B302D] border border-white/[0.08]">
+                      <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
+                        Clopper-Pearson Risk
+                      </span>
+                      <span className="text-sm font-mono font-bold text-[#82A995] tabular-nums">
+                        ≤ {evaluation.clopperPearsonRiskPct}% (Exact Bound)
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[#949C96] leading-relaxed">
+                    Certifies that the turbofan assembly identified above was inspected in accordance with{' '}
+                    {evaluation.regulatoryCitation} and DO-178C Level-A air-gapped conformal prognostics.
+                    Effective Dual-Constraint Dispatch Window:{' '}
+                    <strong className="font-mono text-[#B8CE82] tabular-nums">
+                      {evaluation.effectiveDispatchLimitCycles.toFixed(1)} flight cycles
+                    </strong>
+                    .
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Footer with Actions */}
             <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-white/[0.08] text-xs">
               <div>
                 <span className="text-[10px] uppercase tracking-wider text-[#949C96] block">
@@ -696,7 +898,7 @@ export const AirworthinessDossierScreen: React.FC<AirworthinessDossierScreenProp
                 <button
                   type="button"
                   onClick={handleTriggerPrint}
-                  className="px-4 py-2 rounded-full bg-[#B8CE82] hover:bg-[#B8CE82]/90 text-[#181B19] font-mono font-bold uppercase tracking-wider text-[11px] flex items-center gap-2 cursor-pointer"
+                  className="px-4 py-2 rounded-full bg-[#B8CE82] hover:bg-[#B8CE82]/90 text-[#181B19] font-mono font-bold uppercase tracking-wider text-[11px] flex items-center gap-2 cursor-pointer shadow-sm"
                 >
                   <Printer className="w-4 h-4" />
                   <span>Print Official 8130-3 Certificate</span>
